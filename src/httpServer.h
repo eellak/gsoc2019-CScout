@@ -8,10 +8,10 @@ using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
 
-class httpServer{
+class HttpServer{
 public:
-    httpServer(){}
-    httpServer(utility::string_t url);
+    HttpServer(){}
+    HttpServer(utility::string_t url);
 
 private:
     void handle_get(http_request request);

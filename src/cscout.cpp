@@ -85,6 +85,7 @@
 #include "fifstream.h"
 #include "ctag.h"
 #include "timer.h"
+#include "httpServer.h"
 
 #ifdef PICO_QL
 #include "pico_ql_search.h"
@@ -3357,12 +3358,18 @@ main(int argc, char *argv[])
 	if (argv[optind] == NULL || argv[optind + 1] != NULL)
 		usage(argv[0]);
 
+	utility::string_t address = U("http://localhost:");
+	address.append(U(to_string(portno)));
+	HttpServer server;
+	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
+		
 		if (!swill_init(portno)) {
 			cerr << "Couldn't initialize our web server on port " << portno << endl;
 			exit(1);
 		}
-
+		
+		server = HttpServer(address);
 		Option::initialize();
 		options_load();
 		parse_acl();
