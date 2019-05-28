@@ -2475,7 +2475,7 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 }
 
 // Display all projects, allowing user to select
-void
+json::value
 select_project_page(FILE *fo, void *p)
 {
 	html_head(fo, "sproject", "Select Active Project");
@@ -2485,6 +2485,7 @@ select_project_page(FILE *fo, void *p)
 		fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
 	fprintf(fo, "\n</ul>\n");
 	html_tail(fo);
+	return NULL;
 }
 
 // Select a single project (or none) to restrict file/identifier results
@@ -3409,10 +3410,11 @@ main(int argc, char *argv[])
 	// Pass 2: Create web pages
 	files = Fileid::files(true);
 
-
+	
 
 	if (process_mode != pm_compile) {
-		swill_handle("sproject.html", select_project_page, 0);
+		server.addHandler("sproject.html",select_project_page, 0);
+		//swill_handle("sproject.html", select_project_page, 0);
 		swill_handle("replacements.html", replacements_page, 0);
 		swill_handle("xreplacements.html", xreplacements_page, NULL);
 		swill_handle("funargrefs.html", funargrefs_page, 0);
@@ -3423,6 +3425,7 @@ main(int argc, char *argv[])
 		swill_handle("sexit.html", write_quit_page, "exit");
 		swill_handle("save.html", write_quit_page, 0);
 		swill_handle("qexit.html", quit_page, 0);
+
 	}
 
 	// Populate the EC identifier member and the directory tree
