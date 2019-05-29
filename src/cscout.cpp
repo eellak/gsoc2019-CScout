@@ -1882,9 +1882,10 @@ cpath_page(GraphDisplay *gd)
 
 
 // Front-end global options page
-void
-options_page(FILE *fo, void *p)
+json::value
+options_page(void *p)
 {
+	/* define JSON func
 	html_head(fo, "options", "Global Options");
 	fprintf(fo, "<FORM ACTION=\"soptions.html\" METHOD=\"GET\">\n");
 	Option::display_all(fo);
@@ -1893,12 +1894,16 @@ options_page(FILE *fo, void *p)
 	fprintf(fo, "<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n");
 	fprintf(fo, "</FORM>\n");
 	html_tail(fo);
+	*/
+	json::value test = json::value(utility::string_t("options_page"));
+	return test;
 }
 
 // Front-end global options page
-void
-set_options_page(FILE *fo, void *p)
+json::value
+set_options_page(void *p)
 {
+	/* define JSON func
 	prohibit_remote_access(fo);
 
 	if (string(swill_getvar("set")) == "Cancel") {
@@ -1919,12 +1924,16 @@ set_options_page(FILE *fo, void *p)
 		options_page(fo, p);
 	else
 		index_page(fo, p);
+	*/
+	json::value test = json::value(utility::string_t("set_options_page"));
+	return test;
 }
 
 // Save options in .cscout/options
-static void
-save_options_page(FILE *fo, void *p)
+static json::value
+save_options_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(fo);
 	prohibit_remote_access(fo);
 
@@ -1940,6 +1949,9 @@ save_options_page(FILE *fo, void *p)
 	fprintf(fo, "Options have been saved in the file \"%s\".\n", fname.c_str());
 	fprintf(fo, "They will be loaded when CScout is executed again.");
 	html_tail(fo);
+	*/
+	json::value test = json::value(utility::string_t("save_options_page"));
+	return test;
 }
 
 // Load the CScout options.
@@ -2476,16 +2488,18 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 
 // Display all projects, allowing user to select
 json::value
-select_project_page(FILE *fo, void *p)
+select_project_page(void *p)
 {
-	html_head(fo, "sproject", "Select Active Project");
-	fprintf(fo, "<ul>\n");
-	fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
-	for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-		fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
-	fprintf(fo, "\n</ul>\n");
-	html_tail(fo);
-	return NULL;
+	// html_head(fo, "sproject", "Select Active Project");
+	// fprintf(fo, "<ul>\n");
+	// fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
+	// for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
+	// 	fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
+	// fprintf(fo, "\n</ul>\n");
+	// html_tail(fo);
+
+	json::value test = json::value(utility::string_t("select_project_page"));
+	return test;
 }
 
 // Select a single project (or none) to restrict file/identifier results
@@ -2864,9 +2878,10 @@ logo_page(FILE *fo, void *p)
 	Logo::logo(fo);
 }
 
-static void
-replacements_page(FILE *of, void *p)
+static json::value
+replacements_page(void *p)
 {
+	/* define JSON func
 	prohibit_remote_access(of);
 	html_head(of, "replacements", "Identifier Replacements");
 	cerr << "Creating identifier list" << endl;
@@ -2889,12 +2904,17 @@ replacements_page(FILE *of, void *p)
 	cerr << endl;
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
+	*/
+	json::value test = json::value(utility::string_t("replacements_page"));
+	return test;
+
 }
 
 // Process an identifier replacements form
-static void
-xreplacements_page(FILE *of,  void *p)
+static json::value
+xreplacements_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -2917,12 +2937,17 @@ xreplacements_page(FILE *of,  void *p)
 	}
 	cerr << endl;
 	index_page(of, p);
+	*/
+	json::value test = json::value(utility::string_t("xreplacements_page"));
+	return test;
+
 }
 
 
-static void
-funargrefs_page(FILE *of, void *p)
+static json::value
+funargrefs_page( void *p)
 {
+	/* define JSON func
 	prohibit_remote_access(of);
 	html_head(of, "funargrefs", "Function Argument Refactorings");
 	fputs("<p><form action=\"xfunargrefs.html\" method=\"get\">\n"
@@ -2940,12 +2965,16 @@ funargrefs_page(FILE *of, void *p)
 	}
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
+	*/
+	json::value test = json::value(utility::string_t("funargrefs_page"));
+	return test;
 }
 
 // Process a function argument refactorings form
-static void
-xfunargrefs_page(FILE *of,  void *p)
+static json::value
+xfunargrefs_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -2962,12 +2991,16 @@ xfunargrefs_page(FILE *of,  void *p)
 		i->second.set_active(!!swill_getvar(varname));
 	}
 	index_page(of, p);
+	*/
+	json::value test = json::value(utility::string_t("xfunargrefs_page"));
+	return test;
 }
 
 
-void
-write_quit_page(FILE *of, void *exit)
+json::value
+write_quit_page(void *exit)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -3042,11 +3075,15 @@ write_quit_page(FILE *of, void *exit)
 		must_exit = true;
 	} else
 		html_tail(of);
+	*/
+	json::value test = json::value(utility::string_t("write_quit_page"));
+	return test;
 }
 
-void
-quit_page(FILE *of, void *p)
+json::value
+quit_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -3054,6 +3091,9 @@ quit_page(FILE *of, void *p)
 	fprintf(of, "No changes were saved.");
 	fprintf(of, "<p>Bye...</body></html>");
 	must_exit = true;
+	*/
+	json::value test = json::value(utility::string_t("quit_page"));
+	return test;
 }
 
 // Parse the access control list acl.
@@ -3360,7 +3400,7 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 
 	utility::string_t address = U("http://localhost:");
-	address.append(U(to_string(portno)));
+	address.append(U(to_string(portno+1)));
 	HttpServer server;
 	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
@@ -3415,16 +3455,19 @@ main(int argc, char *argv[])
 	if (process_mode != pm_compile) {
 		server.addHandler("sproject.html",select_project_page, 0);
 		//swill_handle("sproject.html", select_project_page, 0);
-		swill_handle("replacements.html", replacements_page, 0);
-		swill_handle("xreplacements.html", xreplacements_page, NULL);
-		swill_handle("funargrefs.html", funargrefs_page, 0);
-		swill_handle("xfunargrefs.html", xfunargrefs_page, NULL);
-		swill_handle("options.html", options_page, 0);
-		swill_handle("soptions.html", set_options_page, 0);
-		swill_handle("save_options.html", save_options_page, 0);
-		swill_handle("sexit.html", write_quit_page, "exit");
-		swill_handle("save.html", write_quit_page, 0);
-		swill_handle("qexit.html", quit_page, 0);
+		/*change these functions*/
+		server.addHandler("replacements.html", replacements_page, 0);
+		server.addHandler("xreplacements.html", xreplacements_page, NULL);
+		server.addHandler("funargrefs.html", funargrefs_page, 0);
+		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
+		server.addHandler("options.html", options_page, 0);
+		server.addHandler("soptions.html", set_options_page, 0);
+		server.addHandler("save_options.html", save_options_page, 0);
+		utility::string_t * arg = new utility::string_t;
+		(*arg) = "exit";
+		server.addHandler("sexit.html", write_quit_page, arg);
+		server.addHandler("save.html", write_quit_page, 0);
+		server.addHandler("qexit.html", quit_page, 0);
 
 	}
 
@@ -3472,6 +3515,7 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
+		/*change these functions*/
 		swill_handle("src.html", source_page, NULL);
 		swill_handle("qsrc.html", query_source_page, NULL);
 		swill_handle("fedit.html", fedit_page, NULL);
@@ -3555,8 +3599,11 @@ main(int argc, char *argv[])
 		cerr << "CScout is now ready to serve you at http://localhost:" << portno << endl;
 	if (browse_only)
 		swill_setfork();
-	while (!must_exit)
+	while (!must_exit){
+		cout << "CScout to serve" << endl;
+		server.serve();
 		swill_serve();
+	}
 
 #ifdef NODE_USE_PROFILE
 	cout << "Type node count = " << Type_node::get_count() << endl;

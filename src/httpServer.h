@@ -1,3 +1,5 @@
+#ifndef HTTPSERV_H_
+#define HTTPSERV_H_
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
 #include <string>
@@ -11,14 +13,13 @@ using namespace web::http::experimental::listener;
 
 typedef struct{
     utility::string_t value;
-    function <json::value(FILE*,void*)> handleFunction;
+    function <json::value(void*)> handleFunction;
     void* attributes;
 } Handler;
 
 
 class HttpServer{
-private:
-    map<utility::string_t, Handler> mapHandlers;
+
 public:
     HttpServer(){}
     HttpServer(utility::string_t url);
@@ -26,6 +27,9 @@ public:
     void handle_post(http_request request);
     void handle_delete(http_request request);
     void handle_put(http_request request);
-    void addHandler(utility::string_t value,function <json::value(FILE*,void*)> handleFunction,void* attributes);
+    void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
+    void serve();
     http_listener listener;
+
 };
+#endif
