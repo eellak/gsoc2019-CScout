@@ -41,7 +41,7 @@
 #include <cstring>		// strdup
 #include <cerrno>		// errno
 #include <regex.h> // regex
-
+#include <wait.h>
 #include <getopt.h>
 
 #include "swill.h"
@@ -85,6 +85,7 @@
 #include "fifstream.h"
 #include "ctag.h"
 #include "timer.h"
+#include "httpServer.h"
 
 #ifdef PICO_QL
 #include "pico_ql_search.h"
@@ -1881,9 +1882,10 @@ cpath_page(GraphDisplay *gd)
 
 
 // Front-end global options page
-void
-options_page(FILE *fo, void *p)
+json::value
+options_page(void *p)
 {
+	/* define JSON func
 	html_head(fo, "options", "Global Options");
 	fprintf(fo, "<FORM ACTION=\"soptions.html\" METHOD=\"GET\">\n");
 	Option::display_all(fo);
@@ -1892,12 +1894,16 @@ options_page(FILE *fo, void *p)
 	fprintf(fo, "<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n");
 	fprintf(fo, "</FORM>\n");
 	html_tail(fo);
+	*/
+	json::value test = json::value(utility::string_t("options_page"));
+	return test;
 }
 
 // Front-end global options page
-void
-set_options_page(FILE *fo, void *p)
+json::value
+set_options_page(void *p)
 {
+	/* define JSON func
 	prohibit_remote_access(fo);
 
 	if (string(swill_getvar("set")) == "Cancel") {
@@ -1918,12 +1924,16 @@ set_options_page(FILE *fo, void *p)
 		options_page(fo, p);
 	else
 		index_page(fo, p);
+	*/
+	json::value test = json::value(utility::string_t("set_options_page"));
+	return test;
 }
 
 // Save options in .cscout/options
-static void
-save_options_page(FILE *fo, void *p)
+static json::value
+save_options_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(fo);
 	prohibit_remote_access(fo);
 
@@ -1939,6 +1949,9 @@ save_options_page(FILE *fo, void *p)
 	fprintf(fo, "Options have been saved in the file \"%s\".\n", fname.c_str());
 	fprintf(fo, "They will be loaded when CScout is executed again.");
 	html_tail(fo);
+	*/
+	json::value test = json::value(utility::string_t("save_options_page"));
+	return test;
 }
 
 // Load the CScout options.
@@ -1967,11 +1980,12 @@ options_load()
 void
 file_metrics_page(FILE *fo, void *p)
 {
-	html_head(fo, "filemetrics", "File Metrics");
-	ostringstream mstring;
-	mstring << file_msum;
-	fputs(mstring.str().c_str(), fo);
-	html_tail(fo);
+	// html_head(fo, "filemetrics", "File Metrics");
+	// ostringstream mstring;
+	// mstring << file_msum;
+	// fputs(mstring.str().c_str(), fo);
+	// html_tail(fo);
+
 }
 
 void
@@ -2474,16 +2488,19 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 }
 
 // Display all projects, allowing user to select
-void
-select_project_page(FILE *fo, void *p)
+json::value
+select_project_page(void *p)
 {
-	html_head(fo, "sproject", "Select Active Project");
-	fprintf(fo, "<ul>\n");
-	fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
+	json::value to_return;
+	// html_head(fo, "sproject", "Select Active Project");
+	// fprintf(fo, "<ul>\n");
+	// fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
 	for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-		fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
-	fprintf(fo, "\n</ul>\n");
-	html_tail(fo);
+	//	fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
+		to_return[to_string(j)]=json::value::string(Project::get_projname(j).c_str());
+	// fprintf(fo, "\n</ul>\n");
+	// html_tail(fo);
+	return to_return;
 }
 
 // Select a single project (or none) to restrict file/identifier results
@@ -2555,6 +2572,7 @@ about_page(FILE *fo, void *p)
 void
 index_page(FILE *of, void *data)
 {
+	
 	html_head(of, "index", "CScout Main Page", "<img src=\"logo.png\">Scout Main Page");
 	fputs(
 		"<table><tr><td valign=\"top\">\n"
@@ -2647,6 +2665,7 @@ index_page(FILE *of, void *data)
 			"</ul></div>", of);
 	fputs("</td></tr></table>\n", of);
 	html_tail(of);
+
 }
 
 void
@@ -2742,19 +2761,25 @@ file_page(FILE *of, void *p)
 	html_tail(of);
 }
 
-void
-source_page(FILE *of, void *p)
+json::value
+source_page(json::value *p)
 {
+	
 	int id;
-	if (!swill_getargs("i(id)", &id)) {
-		fprintf(of, "Missing value");
-		return;
+	json::value to_return;
+	cout << "source page" << endl;
+	if ((*p)["id"].is_null()) {
+		to_return["error"] = json::value::string("No id found");
+		return to_return;
 	}
 	Fileid i(id);
 	const string &pathname = i.get_path();
-	html_head(of, "src", string("Source: ") + html(pathname));
-	file_hypertext(of, i, false);
-	html_tail(of);
+	to_return["source"] = json::value::string(pathname);
+// 	modify file_hypertext
+//	file_hypertext(of, i, false);
+	
+	return to_return;
+
 }
 
 static void
@@ -2862,16 +2887,17 @@ logo_page(FILE *fo, void *p)
 	Logo::logo(fo);
 }
 
-static void
-replacements_page(FILE *of, void *p)
+static json::value
+replacements_page(void *p)
 {
-	prohibit_remote_access(of);
+	/* define JSON func
 	html_head(of, "replacements", "Identifier Replacements");
-	cerr << "Creating identifier list" << endl;
+	cerr << "Creating i
+	prohibit_remote_access(of);dentifier list" << endl;
 	fputs("<p><form action=\"xreplacements.html\" method=\"get\">\n"
 		"<table><tr><th>Identifier</th><th>Replacement</th><th>Active</th></tr>\n"
 	, of);
-
+	
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 		if (i->second.get_replaced()) {
@@ -2887,12 +2913,17 @@ replacements_page(FILE *of, void *p)
 	cerr << endl;
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
+	*/
+	json::value to_return = json::value(utility::string_t("replacements_page"));
+	return to_return;
+
 }
 
 // Process an identifier replacements form
-static void
-xreplacements_page(FILE *of,  void *p)
+static json::value
+xreplacements_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -2915,12 +2946,17 @@ xreplacements_page(FILE *of,  void *p)
 	}
 	cerr << endl;
 	index_page(of, p);
+	*/
+	json::value test = json::value(utility::string_t("xreplacements_page"));
+	return test;
+
 }
 
 
-static void
-funargrefs_page(FILE *of, void *p)
+static json::value
+funargrefs_page( void *p)
 {
+	/* define JSON func
 	prohibit_remote_access(of);
 	html_head(of, "funargrefs", "Function Argument Refactorings");
 	fputs("<p><form action=\"xfunargrefs.html\" method=\"get\">\n"
@@ -2938,12 +2974,16 @@ funargrefs_page(FILE *of, void *p)
 	}
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
+	*/
+	json::value test = json::value(utility::string_t("funargrefs_page"));
+	return test;
 }
 
 // Process a function argument refactorings form
-static void
-xfunargrefs_page(FILE *of,  void *p)
+static json::value
+xfunargrefs_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -2960,12 +3000,16 @@ xfunargrefs_page(FILE *of,  void *p)
 		i->second.set_active(!!swill_getvar(varname));
 	}
 	index_page(of, p);
+	*/
+	json::value test = json::value(utility::string_t("xfunargrefs_page"));
+	return test;
 }
 
 
-void
-write_quit_page(FILE *of, void *exit)
+json::value
+write_quit_page(void *exit)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -3040,11 +3084,15 @@ write_quit_page(FILE *of, void *exit)
 		must_exit = true;
 	} else
 		html_tail(of);
+	*/
+	json::value test = json::value(utility::string_t("write_quit_page"));
+	return test;
 }
 
-void
-quit_page(FILE *of, void *p)
+json::value
+quit_page(void *p)
 {
+	/* define JSON func
 	prohibit_browsers(of);
 	prohibit_remote_access(of);
 
@@ -3052,6 +3100,9 @@ quit_page(FILE *of, void *p)
 	fprintf(of, "No changes were saved.");
 	fprintf(of, "<p>Bye...</body></html>");
 	must_exit = true;
+	*/
+	json::value test = json::value(utility::string_t("quit_page"));
+	return test;
 }
 
 // Parse the access control list acl.
@@ -3357,12 +3408,18 @@ main(int argc, char *argv[])
 	if (argv[optind] == NULL || argv[optind + 1] != NULL)
 		usage(argv[0]);
 
+	utility::string_t address = U("http://localhost:");
+	address.append(U(to_string(portno+1)));
+	HttpServer server;
+	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
+		
 		if (!swill_init(portno)) {
 			cerr << "Couldn't initialize our web server on port " << portno << endl;
 			exit(1);
 		}
-
+		
+		server = HttpServer(address);
 		Option::initialize();
 		options_load();
 		parse_acl();
@@ -3402,20 +3459,24 @@ main(int argc, char *argv[])
 	// Pass 2: Create web pages
 	files = Fileid::files(true);
 
-
+	
 
 	if (process_mode != pm_compile) {
-		swill_handle("sproject.html", select_project_page, 0);
-		swill_handle("replacements.html", replacements_page, 0);
-		swill_handle("xreplacements.html", xreplacements_page, NULL);
-		swill_handle("funargrefs.html", funargrefs_page, 0);
-		swill_handle("xfunargrefs.html", xfunargrefs_page, NULL);
-		swill_handle("options.html", options_page, 0);
-		swill_handle("soptions.html", set_options_page, 0);
-		swill_handle("save_options.html", save_options_page, 0);
-		swill_handle("sexit.html", write_quit_page, "exit");
-		swill_handle("save.html", write_quit_page, 0);
-		swill_handle("qexit.html", quit_page, 0);
+		server.addHandler("sproject",select_project_page, 0);
+		//swill_handle("sproject.html", select_project_page, 0);
+		/*change these functions*/
+		server.addHandler("replacements", replacements_page, 0);
+		server.addHandler("xreplacements", xreplacements_page, NULL);
+		server.addHandler("funargrefs.html", funargrefs_page, 0);
+		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
+		server.addHandler("options.html", options_page, 0);
+		server.addHandler("soptions.html", set_options_page, 0);
+		server.addHandler("save_options.html", save_options_page, 0);
+		json::value arg = json::value::string("exit");
+		server.addHandler("sexit.html", write_quit_page, &arg);
+		server.addHandler("save.html", write_quit_page, 0);
+		server.addHandler("qexit.html", quit_page, 0);
+
 	}
 
 	// Populate the EC identifier member and the directory tree
@@ -3462,38 +3523,39 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
-		swill_handle("src.html", source_page, NULL);
-		swill_handle("qsrc.html", query_source_page, NULL);
-		swill_handle("fedit.html", fedit_page, NULL);
-		swill_handle("file.html", file_page, NULL);
-		swill_handle("dir.html", dir_page, NULL);
+	
+		server.addHandler("src.html", source_page, NULL);
+	/*	server.addHandler("qsrc.html", query_source_page, NULL);
+		server.addHandler("fedit.html", fedit_page, NULL);
+		server.addHandler("file.html", file_page, NULL);
+		server.addHandler("dir.html", dir_page, NULL);
 
 		// Identifier query and execution
-		swill_handle("iquery.html", iquery_page, NULL);
-		swill_handle("xiquery.html", xiquery_page, NULL);
+		server.addHandler("iquery.html", iquery_page, NULL);
+		server.addHandler("xiquery.html", xiquery_page, NULL);
 		// File query and execution
-		swill_handle("filequery.html", filequery_page, NULL);
-		swill_handle("xfilequery.html", xfilequery_page, NULL);
-		swill_handle("qinc.html", query_include_page, NULL);
+		server.addHandler("filequery.html", filequery_page, NULL);
+		server.addHandler("xfilequery.html", xfilequery_page, NULL);
+		server.addHandler("qinc.html", query_include_page, NULL);
 
 		// Function query and execution
-		swill_handle("funquery.html", funquery_page, NULL);
-		swill_handle("xfunquery.html", xfunquery_page, NULL);
+		server.addHandler("funquery.html", funquery_page, NULL);
+		server.addHandler("xfunquery.html", xfunquery_page, NULL);
 
-		swill_handle("id.html", identifier_page, NULL);
-		swill_handle("fun.html", function_page, NULL);
-		swill_handle("funlist.html", funlist_page, NULL);
-		swill_handle("funmetrics.html", function_metrics_page, NULL);
-		swill_handle("filemetrics.html", file_metrics_page, NULL);
-		swill_handle("idmetrics.html", id_metrics_page, NULL);
-
+		server.addHandler("id.html", identifier_page, NULL);
+		server.addHandler("fun.html", function_page, NULL);
+		server.addHandler("funlist.html", funlist_page, NULL);
+		server.addHandler("funmetrics.html", function_metrics_page, NULL);
+		server.addHandler("filemetrics.html", file_metrics_page, NULL);
+		server.addHandler("idmetrics.html", id_metrics_page, NULL);
+*/
 		graph_handle("cgraph", cgraph_page);
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
 
-		swill_handle("about.html", about_page, NULL);
-		swill_handle("setproj.html", set_project_page, NULL);
-		swill_handle("logo.png", logo_page, NULL);
+		// server.addHandler("about.html", about_page, NULL);
+		// server.addHandler("setproj.html", set_project_page, NULL);
+		// server.addHandler("logo.png", logo_page, NULL);
 		swill_handle("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
 	}
 
@@ -3541,12 +3603,18 @@ main(int argc, char *argv[])
 	if (DP())
 		cout  << "Tokid EC map size is " << Tokid::map_size() << endl;
 	// Serve web pages
-	if (!must_exit)
+	if (!must_exit){
 		cerr << "CScout is now ready to serve you at http://localhost:" << portno << endl;
+		//pid_t pid=fork();
+		//system("npm start");
+	}
 	if (browse_only)
 		swill_setfork();
-	while (!must_exit)
+	while (!must_exit){
+		cout << "CScout to serve" << endl;
+		server.serve();
 		swill_serve();
+	}
 
 #ifdef NODE_USE_PROFILE
 	cout << "Type node count = " << Type_node::get_count() << endl;
