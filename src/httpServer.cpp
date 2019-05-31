@@ -10,7 +10,11 @@ HttpServer::HttpServer(utility::string_t url) : listener(url){
     cout << "HttpServer: constructor called listen at "<< url << endl;
 }
 
+<<<<<<< HEAD
 void HttpServer::addHandler(utility::string_t value,function <json::value(json::value*)> handleFunction,json::value* attributes){
+=======
+void HttpServer::addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes){
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
     Handler funcHandler;
     funcHandler.value = value;
     funcHandler.handleFunction = handleFunction;
@@ -30,6 +34,10 @@ void HttpServer::serve(){
         this->listener.open()
             .then([&list](){cout << "\n Http Rest Server starts listening \n";})
             .wait();
+<<<<<<< HEAD
+=======
+        
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
         while(true);
     }
     catch (exception const & e){
@@ -42,6 +50,7 @@ void HttpServer::handle_get(http_request request){
 
     utility::string_t path = request.relative_uri().path();
     cout << "HttpServer: Handle get of "<<path << endl;
+<<<<<<< HEAD
     json::value response;
 
     cout << "HttpServer: Handle get of "<<path << endl;
@@ -67,6 +76,20 @@ void HttpServer::handle_get(http_request request){
 }
     
 
+=======
+    cout <<"HttpServer: Get begin. Mapped functions\n";
+  
+    auto it = handler_dictionary.find(path.substr(1));
+
+    if (it == handler_dictionary.end())
+        cout << "Empty iterator" << endl;
+    else
+        cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
+    json::value response = it->second.handleFunction(it->second.attributes);
+
+    request.reply(status_codes::OK, response);
+}
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 
 
 void HttpServer::handle_post(http_request request){

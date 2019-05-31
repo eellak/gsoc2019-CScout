@@ -2491,6 +2491,7 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 json::value
 select_project_page(void *p)
 {
+<<<<<<< HEAD
 	json::value to_return;
 	// html_head(fo, "sproject", "Select Active Project");
 	// fprintf(fo, "<ul>\n");
@@ -2501,6 +2502,18 @@ select_project_page(void *p)
 	// fprintf(fo, "\n</ul>\n");
 	// html_tail(fo);
 	return to_return;
+=======
+	// html_head(fo, "sproject", "Select Active Project");
+	// fprintf(fo, "<ul>\n");
+	// fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
+	// for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
+	// 	fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
+	// fprintf(fo, "\n</ul>\n");
+	// html_tail(fo);
+
+	json::value test = json::value(utility::string_t("select_project_page"));
+	return test;
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 }
 
 // Select a single project (or none) to restrict file/identifier results
@@ -2891,6 +2904,10 @@ static json::value
 replacements_page(void *p)
 {
 	/* define JSON func
+<<<<<<< HEAD
+=======
+	prohibit_remote_access(of);
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 	html_head(of, "replacements", "Identifier Replacements");
 	cerr << "Creating i
 	prohibit_remote_access(of);dentifier list" << endl;
@@ -2914,8 +2931,13 @@ replacements_page(void *p)
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
 	*/
+<<<<<<< HEAD
 	json::value to_return = json::value(utility::string_t("replacements_page"));
 	return to_return;
+=======
+	json::value test = json::value(utility::string_t("replacements_page"));
+	return test;
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 
 }
 
@@ -3462,18 +3484,32 @@ main(int argc, char *argv[])
 	
 
 	if (process_mode != pm_compile) {
+<<<<<<< HEAD
 		server.addHandler("sproject",select_project_page, 0);
 		//swill_handle("sproject.html", select_project_page, 0);
 		/*change these functions*/
 		server.addHandler("replacements", replacements_page, 0);
 		server.addHandler("xreplacements", xreplacements_page, NULL);
+=======
+		server.addHandler("sproject.html",select_project_page, 0);
+		//swill_handle("sproject.html", select_project_page, 0);
+		/*change these functions*/
+		server.addHandler("replacements.html", replacements_page, 0);
+		server.addHandler("xreplacements.html", xreplacements_page, NULL);
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
 		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
 		server.addHandler("soptions.html", set_options_page, 0);
 		server.addHandler("save_options.html", save_options_page, 0);
+<<<<<<< HEAD
 		json::value arg = json::value::string("exit");
 		server.addHandler("sexit.html", write_quit_page, &arg);
+=======
+		utility::string_t * arg = new utility::string_t;
+		(*arg) = "exit";
+		server.addHandler("sexit.html", write_quit_page, arg);
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 		server.addHandler("save.html", write_quit_page, 0);
 		server.addHandler("qexit.html", quit_page, 0);
 
@@ -3523,12 +3559,21 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
+<<<<<<< HEAD
 	
 		server.addHandler("src.html", source_page, NULL);
 	/*	server.addHandler("qsrc.html", query_source_page, NULL);
 		server.addHandler("fedit.html", fedit_page, NULL);
 		server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
+=======
+		/*change these functions*/
+		swill_handle("src.html", source_page, NULL);
+		swill_handle("qsrc.html", query_source_page, NULL);
+		swill_handle("fedit.html", fedit_page, NULL);
+		swill_handle("file.html", file_page, NULL);
+		swill_handle("dir.html", dir_page, NULL);
+>>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 
 		// Identifier query and execution
 		server.addHandler("iquery.html", iquery_page, NULL);

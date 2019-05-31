@@ -27,7 +27,7 @@ WEBHOME=$(UH)/dds/pubs/web/home/cscout/
 
 .PHONY: test
 
-ADDLIBS+=../swill/libswill.a
+ADDLIBS+=../swill/libswill.a -lboost_system -lcrypto -lssl -lcpprest
 
 # Common object files
 OBJBASE=eclass.o fchar.o fileid.o pdtoken.o pltoken.o debug.o \
@@ -36,7 +36,8 @@ OBJBASE=eclass.o fchar.o fileid.o pdtoken.o pltoken.o debug.o \
   error.o fdep.o fcall.o call.o idquery.o query.o funquery.o \
   logo.o workdb.o obfuscate.o sql.o md5.o os.o pager.o \
   option.o filequery.o mcall.o filemetrics.o funmetrics.o ctconst.o \
-  dirbrowse.o html.o fileutils.o gdisplay.o globobj.o ctag.o timer.o
+  dirbrowse.o html.o fileutils.o gdisplay.o globobj.o ctag.o timer.o \
+  httpServer.o
 
 # monitor.o
 
@@ -58,20 +59,20 @@ OBJ=$(addprefix build/, $(OBJBASE))
 CFILES=md5.c attr.cpp call.cpp cscout.cpp ctag.cpp ctconst.cpp \
   ctoken.cpp debug.cpp dirbrowse.cpp eclass.cpp error.cpp fcall.cpp \
   fchar.cpp fdep.cpp fileid.cpp filemetrics.cpp filequery.cpp fileutils.cpp \
-  funmetrics.cpp funquery.cpp gdisplay.cpp globobj.cpp html.cpp idquery.cpp \
-  logo.cpp macro.cpp mcall.cpp metrics.cpp obfuscate.cpp option.cpp os.cpp \
-  pager.cpp pdtoken.cpp pltoken.cpp ptoken.cpp query.cpp simple_cpp.cpp \
-  sql.cpp stab.cpp tchar.cpp timer.cpp token.cpp tokid.cpp \
+  funmetrics.cpp funquery.cpp gdisplay.cpp globobj.cpp html.cpp httpServer.cpp \
+  idquery.cpp logo.cpp macro.cpp mcall.cpp metrics.cpp obfuscate.cpp \
+  option.cpp  os.cpp pager.cpp pdtoken.cpp pltoken.cpp ptoken.cpp query.cpp \
+  simple_cpp.cpp sql.cpp stab.cpp tchar.cpp timer.cpp token.cpp tokid.cpp \
   tokmap.cpp type.cpp workdb.cpp
 
 HEADERS=attr.h call.h compiledre.h cpp.h ctag.h ctconst.h ctoken.h \
   debug.h defs.h dirbrowse.h eclass.h error.h eval.h fcall.h fchar.h fdep.h \
   fifstream.h fileid.h filemetrics.h filequery.h fileutils.h funmetrics.h \
-  funquery.h gdisplay.h globobj.h html.h id.h idquery.h incs.h logo.h \
-  macro.h mcall.h md5.h metrics.h mquery.h mscdefs.h mscincs.h obfuscate.h \
-  option.h os.h pager.h pdtoken.h pltoken.h ptoken.h query.h sql.h stab.h \
-  swill.h tchar.h timer.h token.h tokid.h tokmap.h type.h type2.h version.h \
-  wdefs.h wincs.h workdb.h ytoken.h ytoken.h
+  funquery.h gdisplay.h globobj.h html.h httpServer.cpp id.h idquery.h incs.h \
+  logo.h macro.h mcall.h md5.h metrics.h mquery.h mscdefs.h mscincs.h \
+  obfuscate.h option.h os.h pager.h pdtoken.h pltoken.h ptoken.h query.h sql.h \
+  stab.h swill.h tchar.h timer.h token.h tokid.h tokmap.h type.h type2.h \
+  version.h wdefs.h wincs.h workdb.h ytoken.h ytoken.h
 
 OTHERSRC=style.css csmake.pl cswc.pl tokname.pl runtest.sh eval.y parse.y \
   Makefile
@@ -84,7 +85,7 @@ AUTOHEADERS=parse.tab.h
 YACC=../btyacc/btyacc
 #YACC=yacc
 
-CPPFLAGS+=-pipe -Wall -I. -DINSTALL_PREFIX='"$(INSTALL_PREFIX)"'
+CPPFLAGS+=-pipe -Wall -I. -DINSTALL_PREFIX='"$(INSTALL_PREFIX)"' 
 CXXFLAGS+=-std=gnu++11
 ifdef DEBUG
 # Debug build
@@ -137,12 +138,12 @@ ifeq ($(OS),Windows_NT)
 CPPFLAGS += -I/vol/boost_1_44_0
 else
 CPPFLAGS += -I../boost_1_44_0
-LDFLAGS += -ldl -lpthread
+LDFLAGS += -ldl -lpthread -lcpprest
 endif
 
 endif
 
-CPPFLAGS+=$(EXTRA_CPPFLAGS)
+CPPFLAGS+=$(EXTRA_CPPFLAGS)  
 
 # Pattern rules for C and C++ files
 build/%.o: %.c
