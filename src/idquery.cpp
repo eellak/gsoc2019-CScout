@@ -74,7 +74,7 @@
 IdProp Identifier::ids;
 
 // Construct an object based on URL parameters
-IdQuery::IdQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r) :
+IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, bool e, bool r) :
 	Query(!e, r, true),
 	match(attr_end),
 	current_project(cp)
@@ -82,18 +82,18 @@ IdQuery::IdQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r)
 	if (lazy)
 		return;
 	// Query name
-	char *qname = swill_getvar("n");
+	const char *qname = (*attr)["n"].as_string().c_str();
 	if (qname && *qname)
 		name = qname;
 
-	// Identifier EC match
+	// Identifier EC match to change
 	if (!swill_getargs("p(ec)", &ec)) {
 		ec = NULL;
 
 		// Type of boolean match
-		char *m;
-		if (!(m = swill_getvar("match"))) {
-			fprintf(of, "Missing value: match");
+		const char *m= (*attr)["match"].as_string().c_str();
+		if (!m ) {
+			to_return = "Missing value: match";
 			valid = return_val = false;
 			lazy = true;
 			return;
@@ -101,16 +101,17 @@ IdQuery::IdQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r)
 		match_type = *m;
 	}
 
-	xfile = !!swill_getvar("xfile");
-	unused = !!swill_getvar("unused");
-	writable = !!swill_getvar("writable");
-	exclude_ire = !!swill_getvar("xire");
-	exclude_fre = !!swill_getvar("xfre");
-
+	xfile = !!(*attr)["xfile"].as_bool();
+	unused = !!(*attr)["unused"].as_bool();
+	writable = !!(*attr)["writable"].as_bool();
+	exclude_ire = !!(*attr)["xire"].as_bool();
+	exclude_fre = !!(*attr)["xfre"].as_bool();
+	to_return = compile_re(attr, "Identifier", "ire", ire, match_ire, str_ire);
 	// Compile regular expression specs
-	if (!compile_re(of, "Identifier", "ire", ire, match_ire, str_ire))
+	if (to_return == NULL)
 		return;
-	if (!compile_re(of, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
+	
+	if (!compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
 		return;
 
 	// Store match specifications in a vector
@@ -118,7 +119,7 @@ IdQuery::IdQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r)
 		ostringstream varname;
 
 		varname << "a" << i;
-		match[i] = !!swill_getvar(varname.str().c_str());
+		match[i] = !!(*attr)[varname.str().c_str()].as_bool();
 		if (DP())
 			cout << "v=[" << varname.str() << "] m=" << match[i] << "\n";
 	}
@@ -309,3 +310,4 @@ IdQuery::eval(const IdPropElem &i)
 	}
 	return true;
 }
+
