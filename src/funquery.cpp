@@ -133,12 +133,12 @@ FunQuery::FunQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool 
 	exclude_fure = !!swill_getvar("xfure");
 	exclude_fdre = !!swill_getvar("xfdre");
 	exclude_fre = !!swill_getvar("xfre");
-
+	web::json::value * attr;
 	// Compile regular expression specs
-	if (!compile_re(of, "Function name", "fnre", fnre, match_fnre, str_fnre) ||
-	    !compile_re(of, "Calling function name", "fure", fure, match_fure, str_fure) ||
-	    !compile_re(of, "Called function name", "fdre", fdre, match_fdre, str_fdre) ||
-	    !compile_re(of, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
+	if (!compile_re(attr, "Function name", "fnre", fnre, match_fnre, str_fnre) ||
+	    !compile_re(attr, "Calling function name", "fure", fure, match_fure, str_fure) ||
+	    !compile_re(attr, "Called function name", "fdre", fdre, match_fdre, str_fdre) ||
+	    !compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
 	    	return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
