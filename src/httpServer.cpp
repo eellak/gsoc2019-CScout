@@ -10,11 +10,7 @@ HttpServer::HttpServer(utility::string_t url) : listener(url){
     cout << "HttpServer: constructor called listen at "<< url << endl;
 }
 
-<<<<<<< HEAD
 void HttpServer::addHandler(utility::string_t value,function <json::value(json::value*)> handleFunction,json::value* attributes){
-=======
-void HttpServer::addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes){
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
     Handler funcHandler;
     funcHandler.value = value;
     funcHandler.handleFunction = handleFunction;
@@ -43,7 +39,7 @@ void HttpServer::serve(){
 
 void HttpServer::handle_get(http_request request){
  /* to add handler */
-
+    cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
     utility::string_t path = request.relative_uri().path();
     cout << "HttpServer: Handle get of "<<path << endl;
     json::value response;
@@ -59,14 +55,20 @@ void HttpServer::handle_get(http_request request){
     }
     else{
         cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
+        cout<<"URI:"<< request.request_uri().query()<<endl;
         std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
         json::value attr;
+        cout << "Attributes:" << endl;
 
         for(std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++){
             attr[it->first] = json::value::string(it->second);
+            cout<<it->first << "-"<<it->second<<endl;
+
         }
+        cout << attr.serialize().c_str() << endl;
         response = it->second.handleFunction(&attr);
         request.reply(status_codes::OK, response);
+        cout << "Get Respons:"<< response.serialize().c_str() << endl;
     }
 }
     
