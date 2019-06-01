@@ -397,14 +397,14 @@ file_analyze(Fileid fi)
 }
 
 // Display the contents of a file in hypertext form
-static void
-file_hypertext(FILE *of, Fileid fi, bool eval_query)
+static json::value
+file_hypertext( Fileid * fi,bool eval_query,json::value *attr)
 {
 	istream *in;
-	const string &fname = fi.get_path();
+	const string &fname = (*fi).get_path();
 	bool at_bol = true;
 	int line_number = 1;
-	bool mark_unprocessed = !!swill_getvar("marku");
+	bool mark_unprocessed = !!(*attr)["marku"].as_bool();
 
 	/*
 	 * In theory this could be handled by adding a class
@@ -416,54 +416,55 @@ file_hypertext(FILE *of, Fileid fi, bool eval_query)
 	IdQuery idq;
 	FunQuery funq;
 	bool have_funq, have_idq;
-	char *qtype = swill_getvar("qt");
+	const char *qtype = (*attr)["qt"].as_string().c_str();
+
 	have_funq = have_idq = false;
 	if (!qtype || strcmp(qtype, "id") == 0) {
-		idq = IdQuery(of, Option::file_icase->get(), current_project, eval_query);
+		idq = IdQuery(attr, Option::file_icase->get(), current_project, eval_query);
 		have_idq = true;
 	} else if (strcmp(qtype, "fun") == 0) {
-		funq = FunQuery(of, Option::file_icase->get(), current_project, eval_query);
+		funq = FunQuery(stdout, Option::file_icase->get(), current_project, eval_query);
 		have_funq = true;
 	} else {
 		fprintf(stderr, "Unknown query type (try adding &qt=id to the URL).\n");
-		return;
+		return NULL;
 	}
 
 	if (DP())
 		cout << "Write to " << fname << endl;
-	if (fi.is_hand_edited()) {
-		in = new istringstream(fi.get_original_contents());
-		fputs("<p>This file has been edited by hand. The following code reflects the contents before the first CScout-invoked hand edit.</p>", of);
+	if ((*fi).is_hand_edited()) {
+		in = new istringstream((*fi).get_original_contents());
+		fputs("<p>This file has been edited by hand. The following code reflects the contents before the first CScout-invoked hand edit.</p>", stdout);
 	} else {
 		in = new ifstream(fname.c_str(), ios::binary);
 		if (in->fail()) {
-			html_perror(of, "Unable to open " + fname + " for reading");
-			return;
+			html_perror(stdout, "Unable to open " + fname + " for reading");
+			return NULL;
 		}
 	}
-	fputs("<hr><code>", of);
+	fputs("<hr><code>", stdout);
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
 	for (;;) {
 		Tokid ti;
 		int val;
 
-		ti = Tokid(fi, in->tellg());
+		ti = Tokid(*fi, in->tellg());
 		if ((val = in->get()) == EOF)
 			break;
 		if (at_bol) {
-			fprintf(of,"<a name=\"%d\"></a>", line_number);
-			if (mark_unprocessed && !fi.is_processed(line_number))
-				fprintf(of, "<span class=\"unused\">");
+			fprintf(stdout,"<a name=\"%d\"></a>", line_number);
+			if (mark_unprocessed && !(*fi).is_processed(line_number))
+				fprintf(stdout, "<span class=\"unused\">");
 			if (Option::show_line_number->get()) {
 				char buff[50];
 				snprintf(buff, sizeof(buff), "%5d ", line_number);
 				// Do not go via HTML string to keep tabs ok
 				for (char *s = buff; *s; s++)
 					if (*s == ' ')
-						fputs("&nbsp;", of);
+						fputs("&nbsp;", stdout);
 					else
-						fputc(*s, of);
+						fputc(*s, stdout);
 			}
 			at_bol = false;
 		}
@@ -478,9 +479,9 @@ file_hypertext(FILE *of, Fileid fi, bool eval_query)
 			Identifier i(ec, s);
 			const IdPropElem ip(ec, i);
 			if (idq.eval(ip))
-				html(of, ip);
+				html(stdout, ip);
 			else
-				html_string(of, s);
+				html_string(stdout, s);
 			continue;
 		}
 		// Function we can mark
@@ -494,22 +495,22 @@ file_hypertext(FILE *of, Fileid fi, bool eval_query)
 					int len = ci->second->get_name().length();
 					for (int j = 1; j < len; j++)
 						s += (char)in->get();
-					html(of, *(ci->second));
+					html(stdout, *(ci->second));
 					break;
 				}
 			if (ci != be.second)
 				continue;
 		}
-		fprintf(of, "%s", html((char)val));
+		fprintf(stdout, "%s", html((char)val));
 		if ((char)val == '\n') {
 			at_bol = true;
-			if (mark_unprocessed && !fi.is_processed(line_number))
-				fprintf(of, "</span>");
+			if (mark_unprocessed && !(*fi).is_processed(line_number))
+				fprintf(stdout, "</span>");
 			line_number++;
 		}
 	}
 	delete in;
-	fputs("<hr></code>", of);
+	fputs("<hr></code>", stdout);
 }
 
 
@@ -1278,7 +1279,7 @@ display_files(FILE *of, const Query &query, const IFSet &sorted_files)
 
 // Process an identifier query
 static void
-xiquery_page(FILE *of,  void *p)
+xiquery_page(json::value * attr,  void *p)
 {
 	Timer timer;
 	prohibit_remote_access(of);
@@ -1286,18 +1287,19 @@ xiquery_page(FILE *of,  void *p)
 	Sids sorted_ids;
 	IFSet sorted_files;
 	set <Call *> funs;
-	bool q_id = !!swill_getvar("qi");	// Show matching identifiers
-	bool q_file = !!swill_getvar("qf");	// Show matching files
-	bool q_fun = !!swill_getvar("qfun");	// Show matching functions
-	char *qname = swill_getvar("n");
-	IdQuery query(of, Option::file_icase->get(), current_project);
+	bool q_id = !!(*attr)["qi"].as_bool();	// Show matching identifiers
+	bool q_file = !!(*attr)["qf"].as_bool();	// Show matching files
+	bool q_fun = !!(*attr)["qfun"].as_bool();	// Show matching functions
+	
+	const char *qname = (*attr)["n"].as_string().c_str();
+	IdQuery query(attr, Option::file_icase->get(), current_project);
 
 	if (!query.is_valid()) {
-		html_tail(of);
+		//html_tail(of);
 		return;
 	}
 
-	html_head(of, "xiquery", (qname && *qname) ? qname : "Identifier Query Results");
+	//html_head(of, "xiquery", (qname && *qname) ? qname : "Identifier Query Results");
 	cerr << "Evaluating identifier query" << endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
@@ -1315,20 +1317,20 @@ xiquery_page(FILE *of,  void *p)
 	}
 	cerr << endl;
 	if (q_id) {
-		fputs("<h2>Matching Identifiers</h2>\n", of);
-		display_sorted(of, query, sorted_ids);
+		fputs("<h2>Matching Identifiers</h2>\n", stdout);
+		display_sorted(stdout, query, sorted_ids);
 	}
 	if (q_file)
-		display_files(of, query, sorted_files);
+		display_files(stdout, query, sorted_files);
 	if (q_fun) {
-		fputs("<h2>Matching Functions</h2>\n", of);
+		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
 		sorted_funs.insert(funs.begin(), funs.end());
-		display_sorted(of, query, sorted_funs);
+		display_sorted(stdout, query, sorted_funs);
 	}
 
-	timer.print_elapsed(of);
-	html_tail(of);
+	timer.print_elapsed(stdout);
+	//html_tail(of);
 }
 
 // Process a function query
@@ -2491,7 +2493,6 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 json::value
 select_project_page(void *p)
 {
-<<<<<<< HEAD
 	json::value to_return;
 	// html_head(fo, "sproject", "Select Active Project");
 	// fprintf(fo, "<ul>\n");
@@ -2502,18 +2503,6 @@ select_project_page(void *p)
 	// fprintf(fo, "\n</ul>\n");
 	// html_tail(fo);
 	return to_return;
-=======
-	// html_head(fo, "sproject", "Select Active Project");
-	// fprintf(fo, "<ul>\n");
-	// fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
-	// for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-	// 	fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
-	// fprintf(fo, "\n</ul>\n");
-	// html_tail(fo);
-
-	json::value test = json::value(utility::string_t("select_project_page"));
-	return test;
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 }
 
 // Select a single project (or none) to restrict file/identifier results
@@ -2826,24 +2815,30 @@ fedit_page(FILE *of, void *p)
 	modification_state = ms_hand_edit;
 }
 
-void
-query_source_page(FILE *of, void *p)
+json::value
+query_source_page(json::value *args)
 {
 	int id;
-	if (!swill_getargs("i(id)", &id)) {
-		fprintf(of, "Missing value");
-		return;
+	json::value to_return;
+	if ((*args)["id"].is_null()){
+			to_return["error"] = json::value::string("File not found");
+		return to_return;
 	}
+	id =  (*args)["id"].as_integer(); 
+	cout << "id=" << id << endl; 
 	Fileid i(id);
 	const string &pathname = i.get_path();
-	char *qname = swill_getvar("n");
+	const char *qname;
+	qname = (*args)["n"].as_string().c_str();
 	if (qname && *qname)
-		html_head(of, "qsrc", string(qname) + ": " + html(pathname));
+		to_return["qname"] = json::value::string(qname);
+		
 	else
-		html_head(of, "qsrc", string("Source with queried elements marked: ") + html(pathname));
-	fputs("<p>Use the tab key to move to each marked element.</p>", of);
-	file_hypertext(of, i, true);
-	html_tail(of);
+		to_return["qname"] = NULL;
+	to_return["pathname"] = json::value::string(pathname);
+	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
+	file_hypertext(&i, true,args);
+	return to_return;
 }
 
 void
@@ -2904,10 +2899,6 @@ static json::value
 replacements_page(void *p)
 {
 	/* define JSON func
-<<<<<<< HEAD
-=======
-	prohibit_remote_access(of);
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 	html_head(of, "replacements", "Identifier Replacements");
 	cerr << "Creating i
 	prohibit_remote_access(of);dentifier list" << endl;
@@ -2931,13 +2922,8 @@ replacements_page(void *p)
 	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
 	html_tail(of);
 	*/
-<<<<<<< HEAD
 	json::value to_return = json::value(utility::string_t("replacements_page"));
 	return to_return;
-=======
-	json::value test = json::value(utility::string_t("replacements_page"));
-	return test;
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 
 }
 
@@ -3484,32 +3470,18 @@ main(int argc, char *argv[])
 	
 
 	if (process_mode != pm_compile) {
-<<<<<<< HEAD
 		server.addHandler("sproject",select_project_page, 0);
 		//swill_handle("sproject.html", select_project_page, 0);
 		/*change these functions*/
 		server.addHandler("replacements", replacements_page, 0);
 		server.addHandler("xreplacements", xreplacements_page, NULL);
-=======
-		server.addHandler("sproject.html",select_project_page, 0);
-		//swill_handle("sproject.html", select_project_page, 0);
-		/*change these functions*/
-		server.addHandler("replacements.html", replacements_page, 0);
-		server.addHandler("xreplacements.html", xreplacements_page, NULL);
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
 		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
 		server.addHandler("soptions.html", set_options_page, 0);
 		server.addHandler("save_options.html", save_options_page, 0);
-<<<<<<< HEAD
 		json::value arg = json::value::string("exit");
 		server.addHandler("sexit.html", write_quit_page, &arg);
-=======
-		utility::string_t * arg = new utility::string_t;
-		(*arg) = "exit";
-		server.addHandler("sexit.html", write_quit_page, arg);
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 		server.addHandler("save.html", write_quit_page, 0);
 		server.addHandler("qexit.html", quit_page, 0);
 
@@ -3559,21 +3531,12 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
-<<<<<<< HEAD
 	
 		server.addHandler("src.html", source_page, NULL);
-	/*	server.addHandler("qsrc.html", query_source_page, NULL);
-		server.addHandler("fedit.html", fedit_page, NULL);
+		server.addHandler("qsrc.html", query_source_page, NULL);
+	/*	server.addHandler("fedit.html", fedit_page, NULL);
 		server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
-=======
-		/*change these functions*/
-		swill_handle("src.html", source_page, NULL);
-		swill_handle("qsrc.html", query_source_page, NULL);
-		swill_handle("fedit.html", fedit_page, NULL);
-		swill_handle("file.html", file_page, NULL);
-		swill_handle("dir.html", dir_page, NULL);
->>>>>>> d27152392df5acdff3428036dc3fac2c7e65438f
 
 		// Identifier query and execution
 		server.addHandler("iquery.html", iquery_page, NULL);
