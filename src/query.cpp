@@ -36,7 +36,6 @@
 #include <cstdlib>		// atoi
 
 #include <regex.h>
-#include "swill.h"
 
 #include "cpp.h"
 #include "debug.h"
@@ -67,23 +66,24 @@ Query::url(const string &s)
 }
 
 // Compile regular expression specs
-bool
-Query::compile_re(FILE *of, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags)
+char *
+Query::compile_re(web::json::value * attr, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags)
 {
-	char *s;
+	const char *s = (*attr)[varname].as_string().c_str();
 	match = false;
-	if ((s = swill_getvar(varname)) && *s) {
+	char* to_return = NULL;
+	if (s && *s) {
 		match = true;
 		str = s;
 		re = CompiledRE(s, REG_EXTENDED | REG_NOSUB | compflags);
 		if (!re.isCorrect()) {
-			fprintf(of, "<h2>%s regular expression error</h2>%s", name, re.getError().c_str());
+			sprintf(to_return, "<h2>%s regular expression error</h2>%s", name, re.getError().c_str());
 			valid = return_val = false;
 			lazy = true;
-			return false;
+			return to_return;
 		}
 	}
-	return true;
+	return to_return;
 }
 
 // Display an equality selection box

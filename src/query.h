@@ -25,6 +25,7 @@
 #define QUERY_
 
 #include <iostream>
+#include <cpprest/json.h>
 
 using namespace std;
 
@@ -50,7 +51,7 @@ protected:
 	 * Return true if OK, false on error
 	 * Errors are sent to of
 	 */
-	bool compile_re(FILE *of, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
+	char* compile_re(web::json::value *ret, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
 public:
 	// Comparisson constants used for selections
 	enum e_cmp {
