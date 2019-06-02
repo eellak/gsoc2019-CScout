@@ -40,7 +40,7 @@
 #include <cstdlib>		// atoi
 
 #include <regex.h>
-#include "swill.h"
+
 #include "getopt.h"
 
 #include "cpp.h"
@@ -87,13 +87,16 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 		name = qname;
 
 	// Identifier EC match to change
-	if (!swill_getargs("p(ec)", &ec)) {
+	ec = (Eclass *)(*attr)["ec"].as_integer();
+	if (!(*attr)["ec"].is_null()) {
+		ec = (Eclass *)(*attr)["ec"].as_integer();
+	} else {
 		ec = NULL;
 
 		// Type of boolean match
 		const char *m= (*attr)["match"].as_string().c_str();
 		if (!m ) {
-			to_return = "Missing value: match";
+			error = "Missing value: match";
 			valid = return_val = false;
 			lazy = true;
 			return;
@@ -106,12 +109,13 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 	writable = !!(*attr)["writable"].as_bool();
 	exclude_ire = !!(*attr)["xire"].as_bool();
 	exclude_fre = !!(*attr)["xfre"].as_bool();
-	to_return = compile_re(attr, "Identifier", "ire", ire, match_ire, str_ire);
+	error = compile_re(attr, "Identifier", "ire", ire, match_ire, str_ire);
 	// Compile regular expression specs
-	if (to_return == NULL)
+	if (error != NULL)
 		return;
 	
-	if (!compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
+	error = compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
+	if (error!=NULL)
 		return;
 
 	// Store match specifications in a vector

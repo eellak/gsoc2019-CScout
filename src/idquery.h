@@ -96,7 +96,7 @@ private:
 	Eclass *ec;		// True if identifier EC matches
 				// No other evaluation takes place
 	string name;		// Query name
-	string to_return;
+	char* error;
 	Attributes::size_type current_project;	// Restrict evaluation to this project
 public:
 	// Construct object based on URL parameters
@@ -105,6 +105,7 @@ public:
 	IdQuery(const string &s);
 	// Default
 	IdQuery() : Query(), match_fre(false), match_ire(false) {}
+	char* getError(){return error;};
 
 
 	// Destructor
