@@ -87,7 +87,6 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 		name = qname;
 
 	// Identifier EC match to change
-	ec = (Eclass *)(*attr)["ec"].as_integer();
 	if (!(*attr)["ec"].is_null()) {
 		ec = (Eclass *)(*attr)["ec"].as_integer();
 	} else {
