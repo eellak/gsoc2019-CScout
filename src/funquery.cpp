@@ -80,7 +80,8 @@ FunQuery::FunQuery(web::json::value * attr, bool icase, Attributes::size_type cp
 	match_fid(false),
 	id_ec(NULL),
 	call(NULL),
-	current_project(cp)
+	current_project(cp),
+	error(new char[256])
 {
 	if (lazy)
 		return;
@@ -130,13 +131,23 @@ FunQuery::FunQuery(web::json::value * attr, bool icase, Attributes::size_type cp
 	pscope = !!(*attr)["pscope"].as_bool();
 	fscope = !!(*attr)["fscope"].as_bool();
 	defined = !!(*attr)["defined"].as_bool();
-	if (!swill_getargs("i(ncallers)|i(ncallerop)", &ncallers, &ncallerop))
+	// Identifier EC match
+	if ((*attr)["ncallers"].is_null() || ) {
 		ncallerop = ec_ignore;
+		ncaller = NULL;
+	} else {
+		ncallers = (*attr)["ncallers"].as_integer();
+		if((*attr)["ncallerop"].is_null())
+			ncallerop = ec_ignore;
+		else		
+			ncallerop = (*attr)["ncallerop"].as_integer();
+	}
 
-	exclude_fnre = !!swill_getvar("xfnre");
-	exclude_fure = !!swill_getvar("xfure");
-	exclude_fdre = !!swill_getvar("xfdre");
-	exclude_fre = !!swill_getvar("xfre");
+
+	exclude_fnre = !!(*attr)["xfnre"].as_bool();
+	exclude_fure = !!(*attr)["xfure"].as_bool();
+	exclude_fdre = !!(*attr)["xfdre"].as_bool();
+	exclude_fre = !!(*attr)["xfre"].as_bool();
 
 	// Compile regular expression specs
 	if((error =compile_re(attr, "Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
