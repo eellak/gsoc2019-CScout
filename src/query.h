@@ -51,7 +51,7 @@ protected:
 	 * Return true if OK, false on error
 	 * Errors are sent to of
 	 */
-	char* compile_re(web::json::value *ret, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
+	char* compile_re(web::json::value *attr, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
 public:
 	// Comparisson constants used for selections
 	enum e_cmp {
