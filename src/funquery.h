@@ -25,6 +25,7 @@
 #define FUNQUERY_
 
 #include <string>
+#include <cpprest/json.h>
 
 using namespace std;
 
@@ -32,6 +33,7 @@ using namespace std;
 #include "mquery.h"
 #include "fileid.h"
 #include "call.h"
+
 
 class FunQuery : public Query {
 private:
@@ -68,7 +70,7 @@ private:
 	bool match_fid;		// True to use the above
 	int ncallers;		// Number of callers
 	int ncallerop;		// Operator for comparing them
-
+	char * error;		// Error message
 	Eclass *id_ec;		// True if identifier EC matches
 				// No other evaluation takes place
 
@@ -81,13 +83,13 @@ private:
 	MQuery<FunMetrics, Call &> mquery;
 public:
 	// Construct object based on URL parameters
-	FunQuery(FILE *f, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
+	FunQuery(web::json::value *attr, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
 	// Default
 	FunQuery() : Query(), match_fnre(false), match_fdre(false), match_fure(false), match_fre(false), match_fid(false)  {}
 
 	// Destructor
 	virtual ~FunQuery() {}
-
+	char * getError(){return error;}
 	// Perform a query
 	bool eval(Call *c);
 	// Return the URL for re-executing this query

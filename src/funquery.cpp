@@ -74,7 +74,7 @@ int FunQuery::specified_order::order;
 bool FunQuery::specified_order::reverse;
 
 // Construct an object based on URL parameters
-FunQuery::FunQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r) :
+FunQuery::FunQuery(web::json::value * attr, bool icase, Attributes::size_type cp, bool e, bool r) :
 	Query(!e, r, true),
 	match_type('Y'),
 	match_fid(false),
@@ -88,29 +88,33 @@ FunQuery::FunQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool 
 	valid = true;
 
 	// Query name
-	char *qname = swill_getvar("n");
+	const char *qname = (*attr)["n"].as_string().c_str();
 	if (qname && *qname)
 		name = qname;
 
 	// Match specific file
-	int ifid;
-	if (swill_getargs("i(fid)", &ifid)) {
+
+	if (!((*attr)["fid"].is_null())) {
 		match_fid = true;
-		fid = Fileid(ifid);
+		fid = Fileid((*attr)["fid"].as_integer());
 	}
 
 	// Function call declaration direct match
-	if (!swill_getargs("p(call)", &call))
+	if ((*attr)["call"].is_null())
 		call = NULL;
-
+	else
+		call = (Call *)(*attr)["call"].as_integer();
+	
 	// Identifier EC match
-	if (!swill_getargs("p(ec)", &id_ec)) {
+	if (!(*attr)["ec"].is_null()) {
+		id_ec = (Eclass *)(*attr)["ec"].as_integer();
+	} else {
 		id_ec = NULL;
 
 		// Type of boolean match
-		char *m;
-		if (!(m = swill_getvar("match"))) {
-			fprintf(of, "Missing value: match");
+		const char *m;
+		if (!(m = (*attr)["match"].as_string().c_str())) {
+			sprintf(error, "Missing value: match");
 			valid = return_val = false;
 			lazy = true;
 			return;
@@ -119,13 +123,13 @@ FunQuery::FunQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool 
 	}
 	mquery.set_match_type(match_type);
 
-	cfun = !!swill_getvar("cfun");
-	macro = !!swill_getvar("macro");
-	writable = !!swill_getvar("writable");
-	ro = !!swill_getvar("ro");
-	pscope = !!swill_getvar("pscope");
-	fscope = !!swill_getvar("fscope");
-	defined = !!swill_getvar("defined");
+	cfun = !!(*attr)["cfun"].as_bool();
+	macro = !!(*attr)["macro"].as_bool();
+	writable = !!(*attr)["writable"].as_bool();
+	ro = !!(*attr)["ro"].as_bool();
+	pscope = !!(*attr)["pscope"].as_bool();
+	fscope = !!(*attr)["fscope"].as_bool();
+	defined = !!(*attr)["defined"].as_bool();
 	if (!swill_getargs("i(ncallers)|i(ncallerop)", &ncallers, &ncallerop))
 		ncallerop = ec_ignore;
 
@@ -133,13 +137,16 @@ FunQuery::FunQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool 
 	exclude_fure = !!swill_getvar("xfure");
 	exclude_fdre = !!swill_getvar("xfdre");
 	exclude_fre = !!swill_getvar("xfre");
-	web::json::value * attr;
+
 	// Compile regular expression specs
-	if (!compile_re(attr, "Function name", "fnre", fnre, match_fnre, str_fnre) ||
-	    !compile_re(attr, "Calling function name", "fure", fure, match_fure, str_fure) ||
-	    !compile_re(attr, "Called function name", "fdre", fdre, match_fdre, str_fdre) ||
-	    !compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
-	    	return;
+	if((error =compile_re(attr, "Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
+		return;
+	if((error =compile_re(attr, "Calling function name", "fure", fure, match_fure, str_fure))==NULL)
+		return;
+	if((error = compile_re(attr, "Called function name", "fdre", fdre, match_fdre, str_fdre))==NULL)
+		return;
+	if((error =compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
+		return;	
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
 
