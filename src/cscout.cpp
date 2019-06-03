@@ -21,6 +21,7 @@
  *
  */
 
+
 #include <map>
 #include <string>
 #include <deque>
@@ -44,7 +45,7 @@
 #include <wait.h>
 #include <getopt.h>
 
-#include "swill.h"
+
 
 #include "cpp.h"
 #include "debug.h"
@@ -85,7 +86,7 @@
 #include "fifstream.h"
 #include "ctag.h"
 #include "timer.h"
-#include "httpServer.h"
+#include "headers.h"
 
 #ifdef PICO_QL
 #include "pico_ql_search.h"
@@ -150,8 +151,7 @@ static IdQuery monitor;
 static vector <Fileid> files;
 
 Attributes::size_type current_project;
-
-
+HttpServer server;
 /*
  * A map from an equivallence class to the string
  * specifying the arguments of the corresponding
@@ -226,51 +226,54 @@ progress(typename container::const_iterator i, const container &c)
 }
 
 // Display an identifier hyperlink
-static void
-html(FILE *of, const IdPropElem &i)
+static string
+html(const IdPropElem &i)
 {
-	fprintf(of, "<a href=\"id.html?id=%p\">", i.first);
-	html_string(of, (i.second).get_id());
-	fputs("</a>", of);
+	string to_ret;
+	to_ret = "<a href=\"id.html?id="+to_string((long long)&i.first)+"\">" +
+		html_string((i.second).get_id())+"</a>";
+	return to_ret;
 }
 
-static void
-html(FILE *of, const Call &c)
+static string
+html(const Call &c)
 {
-	fprintf(of, "<a href=\"fun.html?f=%p\">", &c);
-	html_string(of, c.get_name());
-	fputs("</a>", of);
+	string to_ret;
+	to_ret = "<a href=\"fun.html?f=%p\">"+html_string(c.get_name())+ "</a>";
+	return to_ret;
 }
 
 // Display a hyperlink based on a string and its starting tokid
-static void
-html_string(FILE *of, const string &s, Tokid t)
+static string
+html_string(const string &s, Tokid t)
 {
 	int len = s.length();
+	string to_ret;
 	for (int pos = 0; pos < len;) {
 		Eclass *ec = t.get_ec();
 		Identifier id(ec, s.substr(pos, ec->get_len()));
 		const IdPropElem ip(ec, id);
-		html(of, ip);
+		to_ret.append(html(ip));
 		pos += ec->get_len();
 		t += ec->get_len();
 		if (pos < len)
-			fprintf(of, "][");
+			to_ret.append("][");
 	}
+	return to_ret;
 }
 
 // Display hyperlinks to a function's identifiers
-static void
-html_string(FILE *of, const Call *f)
+static string
+html_string( const Call *f)
 {
 	int start = 0;
+	string to_ret;
 	for (dequeTpart::const_iterator i = f->get_token().get_parts_begin(); i != f->get_token().get_parts_end(); i++) {
 		Tokid t = i->get_tokid();
-		putc('[', of);
-		html_string(of, f->get_name().substr(start, i->get_len()), t);
-		putc(']', of);
+		to_ret.append('['+html_string(f->get_name().substr(start, i->get_len()), t)+']');
 		start += i->get_len();
 	}
+	return to_ret;
 }
 
 // Add identifiers of the file fi into ids
@@ -398,13 +401,16 @@ file_analyze(Fileid fi)
 
 // Display the contents of a file in hypertext form
 static json::value
-file_hypertext( Fileid * fi,bool eval_query,json::value *attr)
+file_hypertext( Fileid * fi,bool eval_query)
 {
 	istream *in;
 	const string &fname = (*fi).get_path();
 	bool at_bol = true;
 	int line_number = 1;
-	bool mark_unprocessed = !!(*attr)["marku"].as_bool();
+	int mark_unprocessed = 52;
+	cout <<"file_hypertext" << endl;
+	mark_unprocessed = server.getIntParam("marku");
+	json::value to_return;
 
 	/*
 	 * In theory this could be handled by adding a class
@@ -416,58 +422,72 @@ file_hypertext( Fileid * fi,bool eval_query,json::value *attr)
 	IdQuery idq;
 	FunQuery funq;
 	bool have_funq, have_idq;
-	const char *qtype = (*attr)["qt"].as_string().c_str();
-
+	const char *qtype = server.getStrParam("qt").c_str();
+	cout << "qtype: " << qtype << endl;
 	have_funq = have_idq = false;
 	if (!qtype || strcmp(qtype, "id") == 0) {
-		idq = IdQuery(attr, Option::file_icase->get(), current_project, eval_query);
+		idq = IdQuery(Option::file_icase->get(), current_project, eval_query);
 		have_idq = true;
+		if(idq.getError()!=NULL){
+			to_return["IdMsg"]=json::value::string(idq.getError());
+			cout<<"idq Error:" << idq.getError() << endl;
+		}
 	} else if (strcmp(qtype, "fun") == 0) {
-		funq = FunQuery(stdout, Option::file_icase->get(), current_project, eval_query);
+		funq = FunQuery(Option::file_icase->get(), current_project, eval_query);
 		have_funq = true;
+		if(funq.getError()!=NULL)
+			to_return["FunMsg"]=json::value::string(funq.getError());
 	} else {
-		fprintf(stderr, "Unknown query type (try adding &qt=id to the URL).\n");
-		return NULL;
+		to_return["error"] = json::value::string("Unknown query type (try adding &qt=id to the URL).\n");
+		return to_return;
 	}
 
 	if (DP())
 		cout << "Write to " << fname << endl;
 	if ((*fi).is_hand_edited()) {
+		cout << "Hand Edited" << endl;
 		in = new istringstream((*fi).get_original_contents());
-		fputs("<p>This file has been edited by hand. The following code reflects the contents before the first CScout-invoked hand edit.</p>", stdout);
+		to_return["handEd"]=json::value(1);
 	} else {
+		cout << "Not Hand Edited" << endl;
 		in = new ifstream(fname.c_str(), ios::binary);
 		if (in->fail()) {
-			html_perror(stdout, "Unable to open " + fname + " for reading");
-			return NULL;
+			string error_msg("Unable to open " + fname + " for reading" + ": " + string(strerror(errno)) + "\n");
+			fputs(error_msg.c_str(), stderr);
+			cout<<"error:" << error_msg << endl;
+			to_return["error"] = json::value::string(error_msg);
+			return to_return;
 		}
 	}
 	fputs("<hr><code>", stdout);
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
+	cout<<"file_hypertext before read file"<<endl;
+	string file;
 	for (;;) {
 		Tokid ti;
 		int val;
-
+		//cout<<"l_no:"<<line_number<<endl;
 		ti = Tokid(*fi, in->tellg());
 		if ((val = in->get()) == EOF)
 			break;
 		if (at_bol) {
-			fprintf(stdout,"<a name=\"%d\"></a>", line_number);
+			file.append("<a name=\""+to_string(line_number)+"\"></a>\n");
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
-				fprintf(stdout, "<span class=\"unused\">");
+				file.append("<span class=\"unused\">");
 			if (Option::show_line_number->get()) {
 				char buff[50];
 				snprintf(buff, sizeof(buff), "%5d ", line_number);
 				// Do not go via HTML string to keep tabs ok
 				for (char *s = buff; *s; s++)
 					if (*s == ' ')
-						fputs("&nbsp;", stdout);
+						file.append("&nbsp;");
 					else
-						fputc(*s, stdout);
+						file.append(1,*s);
 			}
 			at_bol = false;
 		}
+		//cout<<line_number<<":identifier we can mark" << endl;
 		// Identifier we can mark
 		Eclass *ec;
 		if (have_idq && (ec = ti.check_ec()) && ec->is_identifier() && idq.need_eval()) {
@@ -476,14 +496,17 @@ file_hypertext( Fileid * fi,bool eval_query,json::value *attr)
 			int len = ec->get_len();
 			for (int j = 1; j < len; j++)
 				s += (char)in->get();
+			cout<<"S:"<<s <<endl;
 			Identifier i(ec, s);
 			const IdPropElem ip(ec, i);
+			
 			if (idq.eval(ip))
-				html(stdout, ip);
+				file.append(html(ip));
 			else
-				html_string(stdout, s);
+				file.append(html_string(s)+"\n");
 			continue;
 		}
+		
 		// Function we can mark
 		if (have_funq && funq.need_eval()) {
 			pair <Call::const_fmap_iterator_type, Call::const_fmap_iterator_type> be(Call::get_calls(ti));
@@ -495,22 +518,26 @@ file_hypertext( Fileid * fi,bool eval_query,json::value *attr)
 					int len = ci->second->get_name().length();
 					for (int j = 1; j < len; j++)
 						s += (char)in->get();
-					html(stdout, *(ci->second));
+					file.append(html(*(ci->second)));
 					break;
 				}
 			if (ci != be.second)
 				continue;
 		}
-		fprintf(stdout, "%s", html((char)val));
+		
+		file.append(html((char)val));
+	//	cout << fname<<"line number:"<<line_number<<endl;
 		if ((char)val == '\n') {
 			at_bol = true;
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
-				fprintf(stdout, "</span>");
+				file.append("</span>");
+			
 			line_number++;
 		}
 	}
+	cout<<"ending file_hypertext";
 	delete in;
-	fputs("<hr></code>", stdout);
+	to_return["file"] = json::value::string(file);
 }
 
 
@@ -1027,7 +1054,7 @@ static void
 xfilequery_page(FILE *of,  void *p)
 {
 	Timer timer;
-	char *qname = swill_getvar("n");
+	const char *qname = server.getStrParam("n").c_str();
 	FileQuery query(of, Option::file_icase->get(), current_project);
 
 	if (!query.is_valid())
@@ -1077,16 +1104,17 @@ template <typename container>
 static void
 display_sorted(FILE *of, const Query &query, const container &sorted_ids)
 {
+	string to_ret;
 	if (Option::sort_rev->get())
-		fputs("<table><tr><td width=\"50%\" align=\"right\">\n", of);
+		to_ret = "<table><tr><td width=\"50%\" align=\"right\">\n";
 	else
-		fputs("<p>\n", of);
+		to_ret = "<p>\n";
 
 	Pager pager(of, Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			html(of, **i);
+			//html(of, **i);
 			fputs("<br>\n", of);
 		}
 	}
@@ -1115,7 +1143,7 @@ display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &so
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
 			fputs("<tr><td witdh='50%'>", of);
-			html(of, **i);
+		//	html(of, **i);
 			fprintf(of, "</td><td witdh='50%%' align='right'>%g</td></tr>\n",
 			    (*i)->const_metrics().get_metric(query.get_sort_order()));
 		}
@@ -1278,8 +1306,8 @@ display_files(FILE *of, const Query &query, const IFSet &sorted_files)
 }
 
 // Process an identifier query
-static void
-xiquery_page(json::value * attr,  void *p)
+static json::value 
+xiquery_page(void * p)
 {
 	Timer timer;
 	prohibit_remote_access(of);
@@ -1287,19 +1315,19 @@ xiquery_page(json::value * attr,  void *p)
 	Sids sorted_ids;
 	IFSet sorted_files;
 	set <Call *> funs;
-	bool q_id = !!(*attr)["qi"].as_bool();	// Show matching identifiers
-	bool q_file = !!(*attr)["qf"].as_bool();	// Show matching files
-	bool q_fun = !!(*attr)["qfun"].as_bool();	// Show matching functions
-	
-	const char *qname = (*attr)["n"].as_string().c_str();
-	IdQuery query(attr, Option::file_icase->get(), current_project);
+	bool q_id = !!server.getIntParam("qi");	// Show matching identifiers
+	bool q_file = !!server.getIntParam("qf");	// Show matching files
+	bool q_fun = !!server.getIntParam("qfun");	// Show matching functions
+	json::value to_return;
+	const char *qname = server.getStrParam("n").c_str();
+	IdQuery query(Option::file_icase->get(), current_project);
 
 	if (!query.is_valid()) {
 		//html_tail(of);
-		return;
+		return NULL;
 	}
 
-	//html_head(of, "xiquery", (qname && *qname) ? qname : "Identifier Query Results");
+	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
 	cerr << "Evaluating identifier query" << endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
@@ -1342,15 +1370,15 @@ xfunquery_page(FILE *of,  void *p)
 
 	Sfuns sorted_funs;
 	IFSet sorted_files;
-	bool q_id = !!swill_getvar("qi");	// Show matching identifiers
-	bool q_file = !!swill_getvar("qf");	// Show matching files
-	char *qname = swill_getvar("n");
-	FunQuery query(of, Option::file_icase->get(), current_project);
+	bool q_id = !!server.getIntParam("qi");	// Show matching identifiers
+	bool q_file = !!server.getIntParam("qf");	// Show matching files
+	const char *qname = server.getStrParam("n").c_str();
+	FunQuery query(NULL, Option::file_icase->get(), current_project);
 
-	if (!query.is_valid())
-		return;
+//	if (!query.is_valid())
+//		return;
 
-	html_head(of, "xfunquery", (qname && *qname) ? qname : "Function Query Results");
+//	html_head(of, "xfunquery", (qname && *qname) ? qname : "Function Query Results");
 	cerr << "Evaluating function query" << endl;
 	for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 		progress(i, Call::functions());
@@ -1387,14 +1415,15 @@ show_id_prop(FILE *fo, const string &name, bool val)
 void
 identifier_page(FILE *fo, void *p)
 {
-	Eclass *e;
-	if (!swill_getargs("p(id)", &e)) {
+	/*Eclass *e;
+	e = (Eclass *)server.getIntParam("id");
+	if (e) {
 		fprintf(fo, "Missing value");
 		return;
 	}
 	char *subst;
 	Identifier &id = ids[e];
-	if ((subst = swill_getvar("sname"))) {
+	if ((subst = server.getStrParam("sname").c_str())) {
 		if (modification_state == ms_hand_edit) {
 			change_prohibited(fo);
 			return;
@@ -1460,27 +1489,28 @@ identifier_page(FILE *fo, void *p)
 	fprintf(fo, "</ul>\n");
 	fprintf(fo, "</FORM>\n");
 	html_tail(fo);
+*/
 }
 
 // Details for each function
 void
 function_page(FILE *fo, void *p)
 {
-	Call *f;
-	if (!swill_getargs("p(f)", &f)) {
+	Call *f = (Call *)server.getAddrParam("f");
+	if (f == NULL) {
 		fprintf(fo, "Missing value");
 		return;
 	}
-	char *subst;
-	if ((subst = swill_getvar("ncall"))) {
+	const char *subst;
+	if ((subst = server.getStrParam("ncall").c_str())) {
 		string ssubst(subst);
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
 			fprintf(fo, "Invalid function call refactoring template: %s", error);
 			return;
 		}
-		Eclass *ec;
-		if (!swill_getargs("p(id)", &ec)) {
+		Eclass *ec = (Eclass *)server.getAddrParam("id");
+		if (ec == NULL) {
 			fprintf(fo, "Missing value");
 			return;
 		}
@@ -1498,7 +1528,7 @@ function_page(FILE *fo, void *p)
 	fprintf(fo, "<h2>Details</h2>\n");
 	fprintf(fo, "<ul>\n");
 	fprintf(fo, "<li> Associated identifier(s): ");
-	html_string(fo, f);
+	//html_string(fo, f);
 	Tokid t = f->get_tokid();
 	if (f->is_declared()) {
 		fprintf(fo, "\n<li> Declared in file <a href=\"file.html?id=%u\">%s</a>",
@@ -1612,7 +1642,7 @@ visit_functions(FILE *fo, const char *call_path, Call *f,
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {
 		if (show && (!(*i)->is_visited(visit_id) || *i == f)) {
 			fprintf(fo, "<li> ");
-			html(fo, **i);
+	//		html(fo, **i);
 			if (recurse && call_path)
 				fprintf(fo, call_path, *i);
 		}
@@ -1704,7 +1734,7 @@ visit_fcall_files(Fileid f, Call::const_fiterator_type (Call::*abegin)() const, 
 }
 
 
-extern "C" { const char *swill_getquerystring(void); }
+ extern "C" { const char *swill_getquerystring(void); }
 
 /*
  * Print a list of callers or called functions for the given function,
@@ -1724,7 +1754,7 @@ explore_functions(FILE *fo, Call *f,
 			/* Functions below; create +/- hyperlink. */
 			char param[1024];
 			sprintf(param, "f%02d%p", level, &(**i));
-			char *pval = swill_getvar(param);
+			const char *pval = server.getStrParam(param).c_str();
 
 			if (pval) {
 				// Colapse hyperlink
@@ -1734,20 +1764,20 @@ explore_functions(FILE *fo, Call *f,
 					// Erase &param=1 (i.e. param + 3 chars)
 					nquery.erase(start - 1, strlen(param) + 3);
 				fprintf(fo, "<table class=\"box\"> <tr><th><a class=\"plain\" href=\"%s?%s\">&ndash;</a></th><td>",
-				    swill_getvar("__uri__"), nquery.c_str());
+				    server.getStrParam("__uri__").c_str(), nquery.c_str());
 			} else
 				// Expand hyperlink
 				fprintf(fo, "<table class=\"box\"> <tr><th><a class=\"plain\" href=\"%s?%s&%s=1\">+</a></th><td>",
-				    swill_getvar("__uri__"),
-				    swill_getquerystring(), param);
-			html(fo, **i);
+				     server.getStrParam("__uri__").c_str(),
+				     swill_getquerystring(), param);
+		//	html(fo, **i);
 			fputs("</td></tr></table></div>\n", fo);
 			if (pval && *pval == '1')
 				explore_functions(fo, *i, fbegin, fend, level + 1);
 		} else {
 			/* No functions below. Just display the function. */
 			fputs("<table class=\"unbox\"> <tr><th></th><td>", fo);
-			html(fo, **i);
+		//	html(fo, **i);
 			fputs("</td></tr></table></div>\n", fo);
 		}
 	}
@@ -1757,17 +1787,18 @@ explore_functions(FILE *fo, Call *f,
 static void
 funlist_page(FILE *fo, void *p)
 {
-	Call *f;
+	Call *f = (Call *)server.getAddrParam("f");
 	char buff[256];
 
-	char *ltype = swill_getvar("n");
-	if (!swill_getargs("p(f)", &f) || !ltype) {
+	const char *ltype = server.getStrParam("n").c_str();
+	
+	if (f == NULL || !ltype) {
 		fprintf(fo, "Missing value");
 		return;
 	}
 	html_head(fo, "funlist", "Function List");
 	fprintf(fo, "<h2>Function ");
-	html(fo, *f);
+	//html(fo, *f);
 	fprintf(fo, "</h2>");
 	const char *calltype;
 	bool recurse;
@@ -1804,7 +1835,7 @@ funlist_page(FILE *fo, void *p)
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix(), f);
 		break;
 	}
-	if (swill_getvar("e")) {
+	if (server.getIntParam("e")) {
 		fprintf(fo, "<br />\n");
 		explore_functions(fo, f, fbegin, fend, 0);
 	} else {
@@ -1860,12 +1891,13 @@ static void
 cpath_page(GraphDisplay *gd)
 {
 	Call *from, *to;
-
-	if (!swill_getargs("p(from)", &from)) {
+	from = (Call *)server.getAddrParam("from");
+	if (from == NULL) {
 		fprintf(stderr, "Missing from value");
 		return;
 	}
-	if (!swill_getargs("p(to)", &to)) {
+	to = (Call *)server.getAddrParam("to");
+	if (to == NULL) {
 		fprintf(stderr, "Missing to value");
 		return;
 	}
@@ -1908,7 +1940,7 @@ set_options_page(void *p)
 	/* define JSON func
 	prohibit_remote_access(fo);
 
-	if (string(swill_getvar("set")) == "Cancel") {
+	if (server.getStrParam("set") == "Cancel") {
 		index_page(fo, p);
 		return;
 	}
@@ -1922,7 +1954,7 @@ set_options_page(void *p)
 			return;
 		}
 	}
-	if (string(swill_getvar("set")) == "Apply")
+	if (server.getStrParam("set") == "Apply")
 		options_page(fo, p);
 	else
 		index_page(fo, p);
@@ -2017,9 +2049,9 @@ id_metrics_page(FILE *fo, void *p)
 static bool
 single_function_graph()
 {
-	Call *f;
-	char *ltype = swill_getvar("n");
-	if (!swill_getargs("p(f)", &f) || !ltype)
+	Call *f = (Call *)server.getAddrParam("f");
+	const char *ltype = server.getStrParam("n").c_str();
+	if ((f == NULL) || !ltype)
 		return false;
 	Call::clear_visit_flags();
 	// No output, just set the visited flag
@@ -2050,8 +2082,8 @@ static bool
 single_file_graph(char gtype, EdgeMatrix &edges)
 {
 	int id;
-	char *ltype = swill_getvar("n");
-	if (!swill_getargs("i(f)", &id) || !ltype)
+	const char *ltype = server.getStrParam("n").c_str();
+	if (!(id = server.getIntParam("f")) || !ltype)
 		return false;
 	Fileid fileid(id);
 	Fileid::clear_all_visited();
@@ -2111,7 +2143,7 @@ static bool
 single_file_function_graph()
 {
 	int id;
-	if (!swill_getargs("i(fid)", &id))
+	if (!(id = server.getIntParam("id")))
 		return false;
 	Fileid fileid(id);
 
@@ -2129,7 +2161,7 @@ cgraph_page(GraphDisplay *gd)
 {
 	bool all, only_visited;
 	if (gd->uses_swill) {
-		all = !!swill_getvar("all");
+		all = !!server.getIntParam("all");
 		only_visited = (single_function_graph() || single_file_function_graph());
 	}
 	else {
@@ -2177,11 +2209,11 @@ static void
 fgraph_page(GraphDisplay *gd)
 {
 
-	char *gtype = NULL;
-	char *ltype = NULL;
+	const char *gtype = NULL;
+	const char *ltype = NULL;
 	if (gd->uses_swill) {
-		gtype = swill_getvar("gtype");		// Graph type
-		ltype = swill_getvar("n");
+		gtype = server.getStrParam("gtype").c_str();		// Graph type
+		ltype = server.getStrParam("n").c_str();
 	}
 	else {
 		gtype = gd->gtype;
@@ -2197,7 +2229,7 @@ fgraph_page(GraphDisplay *gd)
 	EdgeMatrix edges;
 	bool empty_node = (Option::fgraph_show->get() == 'e');
 	if (gd->uses_swill) {
-		all = !!swill_getvar("all");		// Otherwise exclude read-only files
+		all = !!server.getIntParam("all");		// Otherwise exclude read-only files
 		only_visited = single_file_graph(*gtype, edges);
 	}
 	else {
@@ -2328,9 +2360,9 @@ static void
 graph_txt_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 {
 	// Add output and outfile argument to enable output to outfile
-	int output;
-	char *outfile;
-	if (swill_getargs("i(output)s(outfile)", &output, &outfile) && output && strlen(outfile)) {
+	int output = server.getIntParam("output");
+	const char *outfile = server.getStrParam("outfile").c_str();
+	if (!output && (outfile != NULL) && output && strlen(outfile)) {
 		FILE *ofile = fopen(outfile, "w+");
 		GDTxt gdout(ofile);
 		graph_fun(&gdout);
@@ -2480,13 +2512,14 @@ static void produce_call_graphs(const vector <string> &call_graphs)
 static void
 graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 {
-	swill_handle((name + ".html").c_str(), graph_html_page, graph_fun);
+	/*swill_handle((name + ".html").c_str(), graph_html_page, graph_fun);
 	swill_handle((name + ".txt").c_str(), graph_txt_page, graph_fun);
 	swill_handle((name + "_dot.txt").c_str(), graph_dot_page, graph_fun);
 	swill_handle((name + ".svg").c_str(), graph_svg_page, graph_fun);
 	swill_handle((name + ".gif").c_str(), graph_gif_page, graph_fun);
 	swill_handle((name + ".png").c_str(), graph_png_page, graph_fun);
 	swill_handle((name + ".pdf").c_str(), graph_pdf_page, graph_fun);
+*/
 }
 
 // Display all projects, allowing user to select
@@ -2512,7 +2545,7 @@ set_project_page(FILE *fo, void *p)
 	prohibit_browsers(fo);
 	prohibit_remote_access(fo);
 
-	if (!swill_getargs("i(projid)", &current_project)) {
+	if (!(current_project = server.getIntParam("projid)"))) {
 		fprintf(fo, "Missing value");
 		return;
 	}
@@ -2583,7 +2616,7 @@ index_page(FILE *of, void *data)
 		"<ul>\n"
 		"<li> <a href=\"filemetrics.html\">File metrics</a>\n"
 		"<li>\n", of);
-	dir_top(of, "Browse file tree");
+// to change 	dir_top(of,"Browse file tree");
 	fprintf(of,
 		"<li> <a href=\"xfilequery.html?ro=1&writable=1&match=Y&n=All+Files\">All files</a>\n"
 		"<li> <a href=\"xfilequery.html?ro=1&match=Y&n=Read-only+Files\">Read-only files</a>\n"
@@ -2674,7 +2707,7 @@ void
 file_page(FILE *of, void *p)
 {
 	int id;
-	if (!swill_getargs("i(id)", &id)) {
+	if (!(id = server.getIntParam("id"))) {
 		fprintf(of, "Missing value");
 		return;
 	}
@@ -2696,7 +2729,7 @@ file_page(FILE *of, void *p)
 		for (set <Fileid>::const_iterator j = copies.begin(); j != copies.end(); j++) {
 			if (*j != i) {
 				fprintf(of, "<li>");
-				html_string(of, j->get_path());
+				//html_string(of, j->get_path());
 			}
 		}
 		if (copies.size() > 1)
@@ -2764,13 +2797,13 @@ file_page(FILE *of, void *p)
 }
 
 json::value
-source_page(json::value *p)
+source_page(void *p)
 {
 	
 	int id;
 	json::value to_return;
 	cout << "source page" << endl;
-	if ((*p)["id"].is_null()) {
+	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("No id found");
 		return to_return;
 	}
@@ -2778,7 +2811,7 @@ source_page(json::value *p)
 	const string &pathname = i.get_path();
 	to_return["source"] = json::value::string(pathname);
 // 	modify file_hypertext
-//	file_hypertext(of, i, false);
+	to_return["html"]=file_hypertext(&i, false);
 	
 	return to_return;
 
@@ -2795,13 +2828,13 @@ fedit_page(FILE *of, void *p)
 	prohibit_remote_access(of);
 
 	int id;
-	if (!swill_getargs("i(id)", &id)) {
+	if (!(id = server.getIntParam("id"))) {
 		fprintf(of, "Missing value");
 		return;
 	}
 	Fileid i(id);
 	i.hand_edit();
-	char *re = swill_getvar("re");
+	const char *re = server.getStrParam("re").c_str();
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
 	cerr << "Running " << buff << endl;
@@ -2816,28 +2849,32 @@ fedit_page(FILE *of, void *p)
 }
 
 json::value
-query_source_page(json::value *args)
+query_source_page(void *)
 {
 	int id;
 	json::value to_return;
-	if ((*args)["id"].is_null()){
+	
+	if (!(id = server.getIntParam("id"))){
 			to_return["error"] = json::value::string("File not found");
+			cout << "query_source_page: file not found" << endl;
 		return to_return;
 	}
-	id =  (*args)["id"].as_integer(); 
-	cout << "id=" << id << endl; 
+
+	id =  server.getIntParam("id"); 
+	
 	Fileid i(id);
 	const string &pathname = i.get_path();
 	const char *qname;
-	qname = (*args)["n"].as_string().c_str();
+	qname = server.getStrParam("n").c_str();
+
 	if (qname && *qname)
-		to_return["qname"] = json::value::string(qname);
-		
+		to_return["qname"] = json::value::string(qname);		
 	else
 		to_return["qname"] = NULL;
 	to_return["pathname"] = json::value::string(pathname);
+	cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
 	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
-	file_hypertext(&i, true,args);
+	to_return["html"] = file_hypertext(&i, true);
 	return to_return;
 }
 
@@ -2845,22 +2882,22 @@ void
 query_include_page(FILE *of, void *p)
 {
 	int id;
-	if (!swill_getargs("i(id)", &id)) {
+	if (!(id = server.getIntParam("id"))) {
 		fprintf(of, "Missing value");
 		return;
 	}
 	Fileid f(id);
 	const string &pathname = f.get_path();
-	char *qname = swill_getvar("n");
+	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
 		html_head(of, "qinc", string(qname) + ": " + html(pathname));
 	else
 		html_head(of, "qinc", string("Include File Query: ") + html(pathname));
-	bool writable = !!swill_getvar("writable");
-	bool direct = !!swill_getvar("direct");
-	bool unused = !!swill_getvar("unused");
-	bool used = !!swill_getvar("used");
-	bool includes = !!swill_getvar("includes");
+	bool writable = !!server.getIntParam("writable");
+	bool direct = !!server.getIntParam("direct");
+	bool unused = !!server.getIntParam("unused");
+	bool used = !!server.getIntParam("used");
+	bool includes = !!server.getIntParam("includes");
 	const FileIncMap &m = includes ? f.get_includes() : f.get_includers();
 	html_file_begin(of);
 	html_file_set_begin(of);
@@ -2942,14 +2979,14 @@ xreplacements_page(void *p)
 		if (i->second.get_replaced()) {
 			char varname[128];
 			snprintf(varname, sizeof(varname), "r%p", &(i->second));
-			char *subst;
-			if ((subst = swill_getvar(varname))) {
+			const char *subst;
+			if ((subst = server.getStrParam(varname).c_str())!= NULL) {
 				string ssubst(subst);
 				i->second.set_newid(ssubst);
 			}
 
 			snprintf(varname, sizeof(varname), "a%p", &(i->second));
-			i->second.set_active(!!swill_getvar(varname));
+			i->second.set_active(!!server.getIntParam(varname));
 		}
 	}
 	cerr << endl;
@@ -2999,13 +3036,13 @@ xfunargrefs_page(void *p)
 		char varname[128];
 		snprintf(varname, sizeof(varname), "r%p", i->first);
 		char *subst;
-		if ((subst = swill_getvar(varname))) {
+		if ((subst = server.getStrParam(varname))!= NULL) {
 			string ssubst(subst);
 			i->second.set_replacement(ssubst);
 		}
 
 		snprintf(varname, sizeof(varname), "a%p", i->first);
-		i->second.set_active(!!swill_getvar(varname));
+		i->second.set_active(!!server.getIntParam(varname));
 	}
 	index_page(of, p);
 	*/
@@ -3131,17 +3168,17 @@ parse_acl()
 			in >> host;
 			if (ad == "A") {
 				cerr << "Allow from IP address " << host << endl;
-				swill_allow(host.c_str());
+//	to change		swill_allow(host.c_str());
 			} else if (ad == "D") {
 				cerr << "Deny from IP address " << host << endl;
-				swill_deny(host.c_str());
+//	to change		swill_deny(host.c_str());
 			} else
 				cerr << "Bad ACL specification " << ad << ' ' << host << endl;
 		}
 		in.close();
 	} else {
 		cerr << "No ACL found.  Only localhost access will be allowed." << endl;
-		swill_allow("127.0.0.1");
+//to change		swill_allow("127.0.0.1");
 	}
 }
 
@@ -3386,7 +3423,7 @@ main(int argc, char *argv[])
 				perror(optarg);
 				exit(1);
 			}
-			swill_log(logfile);
+			server.log(logfile);
 			break;
 		case 'o':
 			if (process_mode)
@@ -3418,14 +3455,11 @@ main(int argc, char *argv[])
 
 	utility::string_t address = U("http://localhost:");
 	address.append(U(to_string(portno+1)));
-	HttpServer server;
+	
 	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
 		
-		if (!swill_init(portno)) {
-			cerr << "Couldn't initialize our web server on port " << portno << endl;
-			exit(1);
-		}
+
 		
 		server = HttpServer(address);
 		Option::initialize();
@@ -3444,6 +3478,7 @@ main(int argc, char *argv[])
 
 	// Set the contents of the master file as immutable
 	Fileid fi = Fileid(argv[optind]);
+
 	fi.set_readonly(true);
 
 	// Pass 1: process master file loop
@@ -3471,7 +3506,6 @@ main(int argc, char *argv[])
 
 	if (process_mode != pm_compile) {
 		server.addHandler("sproject",select_project_page, 0);
-		//swill_handle("sproject.html", select_project_page, 0);
 		/*change these functions*/
 		server.addHandler("replacements", replacements_page, 0);
 		server.addHandler("xreplacements", xreplacements_page, NULL);
@@ -3534,14 +3568,15 @@ main(int argc, char *argv[])
 	
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
-	/*	server.addHandler("fedit.html", fedit_page, NULL);
-		server.addHandler("file.html", file_page, NULL);
+		// server.addHandler("fedit.html", fedit_page, NULL);
+		// server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
 
 		// Identifier query and execution
-		server.addHandler("iquery.html", iquery_page, NULL);
+	//	server.addHandler("iquery.html", iquery_page, NULL);
+		
 		server.addHandler("xiquery.html", xiquery_page, NULL);
-		// File query and execution
+	/*	// File query and execution
 		server.addHandler("filequery.html", filequery_page, NULL);
 		server.addHandler("xfilequery.html", xfilequery_page, NULL);
 		server.addHandler("qinc.html", query_include_page, NULL);
@@ -3564,7 +3599,7 @@ main(int argc, char *argv[])
 		// server.addHandler("about.html", about_page, NULL);
 		// server.addHandler("setproj.html", set_project_page, NULL);
 		// server.addHandler("logo.png", logo_page, NULL);
-		swill_handle("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
+		//server.addHandler("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
 	}
 
 
@@ -3616,12 +3651,12 @@ main(int argc, char *argv[])
 		//pid_t pid=fork();
 		//system("npm start");
 	}
-	if (browse_only)
-		swill_setfork();
+	// if (browse_only)
+	// 	swill_setfork();
 	while (!must_exit){
 		cout << "CScout to serve" << endl;
 		server.serve();
-		swill_serve();
+
 	}
 
 #ifdef NODE_USE_PROFILE
