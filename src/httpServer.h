@@ -10,16 +10,19 @@ using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
  
+class HttpServer;
+
 
 typedef struct{
     utility::string_t value;
-    function <json::value(json::value*)> handleFunction;
-    json::value* attributes;
+    function <json::value(void*)> handleFunction;
+    void* attributes;
 } Handler;
 
 
 class HttpServer{
-
+private : 
+    json::value params;
 public:
     HttpServer(){}
     HttpServer(utility::string_t url);
@@ -27,8 +30,12 @@ public:
     void handle_post(http_request request);
     void handle_delete(http_request request);
     void handle_put(http_request request);
-    void addHandler(utility::string_t value,function <json::value(json::value*)> handleFunction,json::value* attributes);
+    void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
     void serve();
+    int getIntParam(string name);
+    string getStrParam(string name);
+    void * getAddrParam(string name);
+    static void log(FILE * fid);
     http_listener listener;
 
 };

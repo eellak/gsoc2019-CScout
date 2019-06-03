@@ -1,8 +1,9 @@
-#include "httpServer.h"
+#include "headers.h"
+// URI Path to func dictionary 
 map<utility::string_t, Handler> handler_dictionary;
 
-HttpServer::HttpServer(utility::string_t url) : listener(url){
-    
+//Server constructor binds handlers to methods
+HttpServer::HttpServer(utility::string_t url) : listener(url){  
     listener.support(methods::GET, std::bind(&HttpServer::handle_get,this, std::placeholders::_1));
     listener.support(methods::POST, std::bind(&HttpServer::handle_post,this, std::placeholders::_1));
     listener.support(methods::DEL, std::bind(&HttpServer::handle_delete,this, std::placeholders::_1));
@@ -10,7 +11,8 @@ HttpServer::HttpServer(utility::string_t url) : listener(url){
     cout << "HttpServer: constructor called listen at "<< url << endl;
 }
 
-void HttpServer::addHandler(utility::string_t value,function <json::value(json::value*)> handleFunction,json::value* attributes){
+//Adds functions to URI path Handlers
+void HttpServer::addHandler(utility::string_t value,function <json::value(void *)> handleFunction,void* attributes){
     Handler funcHandler;
     funcHandler.value = value;
     funcHandler.handleFunction = handleFunction;
@@ -20,6 +22,7 @@ void HttpServer::addHandler(utility::string_t value,function <json::value(json::
     cout << "HttpServer: addHandler " << value<< " called \n";
 }
 
+// Server start listening
 void HttpServer::serve(){
     http_listener * list = &(this->listener);
     cout <<"HttpServer: serve begin. Mapped functions\n";
@@ -37,8 +40,9 @@ void HttpServer::serve(){
     }
 }
 
+// HTTP GET handler
 void HttpServer::handle_get(http_request request){
- /* to add handler */
+ 
     cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
     utility::string_t path = request.relative_uri().path();
     cout << "HttpServer: Handle get of "<<path << endl;
@@ -47,6 +51,7 @@ void HttpServer::handle_get(http_request request){
     cout << "HttpServer: Handle get of "<<path << endl;
     cout <<"HttpServer: Get begin. Mapped functions\n";
   
+    // match path with dictionary
     auto it = handler_dictionary.find(path.substr(1));
     if (it == handler_dictionary.end()){
         //response = json::value(json::object["error"] = (U("Url Not found")));
@@ -56,22 +61,69 @@ void HttpServer::handle_get(http_request request){
     else{
         cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
         cout<<"URI:"<< request.request_uri().query()<<endl;
+        //Uri params to json value
         std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
-        json::value attr;
+        
         cout << "Attributes:" << endl;
 
         for(std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++){
-            attr[it->first] = json::value::string(it->second);
+            cout<<"start to go through:"<<server.params.serialize() << endl;
+            server.params[it->first] = json::value::string(it->second);
             cout<<it->first << "-"<<it->second<<endl;
-
         }
-        cout << attr.serialize().c_str() << endl;
-        response = it->second.handleFunction(&attr);
+        cout << "JSON:"<< server.params.serialize().c_str() << endl;
+        response = it->second.handleFunction(&(server.params));
         request.reply(status_codes::OK, response);
-        cout << "Get Respons:"<< response.serialize().c_str() << endl;
+        cout << "Get Response:"<< response.serialize().c_str() << endl;
     }
 }
-    
+
+void * HttpServer::getAddrParam(string name){
+     if(!(server.params.has_field(name))){
+        cout<<"zero"<<endl;
+        return NULL;
+    }
+    else
+        if(server.params[name].is_null())
+            return NULL;
+        else{
+            void * p;
+            sscanf(server.params[name].as_string().c_str(),"%p", (void**) p);
+            return p;
+        }
+
+}
+
+int HttpServer::getIntParam(string name){
+    cout<<"Get int "<<name<<"-"<< server.params.has_field(name)<<endl;
+    if(!(server.params.has_field(name))){
+        cout<<"zero"<<endl;
+        return 0;
+    }
+    else
+        if(server.params[name].is_null())
+            return 0;
+        else
+            return stoi(server.params[name].as_string());
+}
+
+string  HttpServer::getStrParam(string name){
+    cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
+    if(!(server.params.has_field(name))){
+        cout<<"zero"<<endl;
+        return {};
+    }
+    else{
+        cout << "params[name]:"<< server.params[name].serialize() << endl;
+    }
+        if(server.params[name].is_null())
+            return {};
+        else{
+            cout <<"name:"<< server.params[name].as_string()<<endl;
+            return server.params[name].as_string(); 
+        }
+}
+
 
 void HttpServer::handle_post(http_request request){
  /* to add handler */
@@ -85,4 +137,7 @@ void HttpServer::handle_put(http_request request){
 
 void HttpServer::handle_delete(http_request request){
  /* to add handler */
+}
+void HttpServer::log(FILE * fid){
+
 }
