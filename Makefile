@@ -25,17 +25,25 @@ HSQLDB_URL=http://downloads.sourceforge.net/project/hsqldb/hsqldb/hsqldb_2_4/hsq
 DEFAULT_HSQLDB_DIR=$(CSCOUT_DIR)/hsqldb-$(HSQLDB_VERSION)/hsqldb
 export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
-.PHONY: src/build/cscout swill/libswill.a btyacc/btyacc
+.PHONY: src/build/cscout cpprest btyacc/btyacc
 
-src/build/cscout: swill/libswill.a btyacc/btyacc
+src/build/cscout: casablanca/cpprest btyacc/btyacc
 	cd src && $(MAKE)
 
-swill/libswill.a: swill
-	cd swill && $(MAKE)
+cpprest: casablanca/build.debug ninja
+	cd casablanca/build.debug && sudo ninja install
 
-swill:
-	git clone https://github.com/dspinellis/swill.git
-	cd swill && ./configure
+casablanca/build.debug: casablanca
+	cd casablanca && mkdir build.debug
+	
+casablanca:
+	git clone https://github.com/Microsoft/cpprestsdk.git casablanca
+	
+ninja: build.ninja	
+	cd casablanca/build.debug && ninja
+
+build.ninja: 
+	cd casablanca/build.debug && cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
 
 btyacc/btyacc: btyacc
 	cd btyacc && $(MAKE)
