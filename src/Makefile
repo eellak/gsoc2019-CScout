@@ -27,7 +27,7 @@ WEBHOME=$(UH)/dds/pubs/web/home/cscout/
 
 .PHONY: test
 
-ADDLIBS+=../swill/libswill.a -lboost_system -lcrypto -lssl -lcpprest
+ADDLIBS+= -lboost_system -lcrypto -lssl -lcpprest
 
 # Common object files
 OBJBASE=eclass.o fchar.o fileid.o pdtoken.o pltoken.o debug.o \
@@ -68,10 +68,10 @@ CFILES=md5.c attr.cpp call.cpp cscout.cpp ctag.cpp ctconst.cpp \
 HEADERS=attr.h call.h compiledre.h cpp.h ctag.h ctconst.h ctoken.h \
   debug.h defs.h dirbrowse.h eclass.h error.h eval.h fcall.h fchar.h fdep.h \
   fifstream.h fileid.h filemetrics.h filequery.h fileutils.h funmetrics.h \
-  funquery.h gdisplay.h globobj.h html.h httpServer.cpp id.h idquery.h incs.h \
+  funquery.h gdisplay.h globobj.h headers.h html.h httpServer.h id.h idquery.h incs.h \
   logo.h macro.h mcall.h md5.h metrics.h mquery.h mscdefs.h mscincs.h \
   obfuscate.h option.h os.h pager.h pdtoken.h pltoken.h ptoken.h query.h sql.h \
-  stab.h swill.h tchar.h timer.h token.h tokid.h tokmap.h type.h type2.h \
+  stab.h tchar.h timer.h token.h tokid.h tokmap.h type.h type2.h \
   version.h wdefs.h wincs.h workdb.h ytoken.h ytoken.h
 
 OTHERSRC=style.css csmake.pl cswc.pl tokname.pl runtest.sh eval.y parse.y \
@@ -181,7 +181,7 @@ build/cscout: build/cscout.o $(OBJ)
 
 # CCmalloc version
 build/cscout-cc: build/cscout.o  $(OBJ)
-	ccmalloc $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o build/cscout-cc  $(OBJ) build/cscout.o -L${HOME}/lib/build -lswill
+	ccmalloc $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o build/cscout-cc  $(OBJ) build/cscout.o -L${HOME}/lib/build 
 
 # The only way to avoid having the rule beeing executed multiple times
 # under make -j in rules with multiple targets is to define a single
