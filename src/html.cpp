@@ -40,7 +40,7 @@
 #include <cstdlib>		// atoi
 #include <cerrno>		// errno
 
-#include "swill.h"
+
 #include "getopt.h"
 
 #include "cpp.h"
@@ -130,11 +130,16 @@ html(const string &s)
 }
 
 // Output s as HTML in of
-void
-html_string(FILE *of, string s)
+string
+html_string( string s)
 {
-	for (string::const_iterator i = s.begin(); i != s.end(); i++)
-		fputs(html(*i), of);
+	string to_ret;
+	// char * to_ret = new char[s.length()];
+	// cout << "html_string:"<<s<<endl;
+	for (char & c : s){
+		to_ret.append(html(c));
+	}
+	return to_ret;
 }
 
 
@@ -143,7 +148,7 @@ html_string(FILE *of, string s)
 void
 html_head(FILE *of, const string fname, const string title, const char *heading)
 {
-	swill_title(title.c_str());
+	//title.c_str();
 	if (DP())
 		cerr << "Write to " << fname << endl;
 	fprintf(of,

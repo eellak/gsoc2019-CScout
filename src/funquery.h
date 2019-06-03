@@ -25,7 +25,8 @@
 #define FUNQUERY_
 
 #include <string>
-#include <cpprest/json.h>
+
+
 
 using namespace std;
 
@@ -33,7 +34,7 @@ using namespace std;
 #include "mquery.h"
 #include "fileid.h"
 #include "call.h"
-
+#include "headers.h"
 
 class FunQuery : public Query {
 private:
@@ -83,7 +84,7 @@ private:
 	MQuery<FunMetrics, Call &> mquery;
 public:
 	// Construct object based on URL parameters
-	FunQuery(web::json::value *attr, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
+	FunQuery(bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
 	// Default
 	FunQuery() : Query(), match_fnre(false), match_fdre(false), match_fure(false), match_fre(false), match_fid(false)  {}
 

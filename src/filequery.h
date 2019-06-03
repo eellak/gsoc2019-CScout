@@ -32,6 +32,7 @@ using namespace std;
 #include "mquery.h"
 #include "filemetrics.h"
 #include "fileid.h"
+#include "headers.h"
 
 class FileQuery : public Query {
 private:

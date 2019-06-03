@@ -38,7 +38,7 @@
 #include <cstdlib>		// atoi
 
 #include <regex.h>
-#include "swill.h"
+
 #include "getopt.h"
 
 #include "cpp.h"
@@ -74,7 +74,7 @@ int FunQuery::specified_order::order;
 bool FunQuery::specified_order::reverse;
 
 // Construct an object based on URL parameters
-FunQuery::FunQuery(web::json::value * attr, bool icase, Attributes::size_type cp, bool e, bool r) :
+FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	Query(!e, r, true),
 	match_type('Y'),
 	match_fid(false),
@@ -83,80 +83,72 @@ FunQuery::FunQuery(web::json::value * attr, bool icase, Attributes::size_type cp
 	current_project(cp),
 	error(new char[256])
 {
+	cout << "FunQuery constructor" << endl;
 	if (lazy)
 		return;
 
 	valid = true;
 
 	// Query name
-	const char *qname = (*attr)["n"].as_string().c_str();
+	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
 		name = qname;
 
 	// Match specific file
-
-	if (!((*attr)["fid"].is_null())) {
+	int flid = server.getIntParam("fid");
+	if (!flid) {
 		match_fid = true;
-		fid = Fileid((*attr)["fid"].as_integer());
+		fid = Fileid(flid);
 	}
 
 	// Function call declaration direct match
-	if ((*attr)["call"].is_null())
-		call = NULL;
-	else
-		call = (Call *)(*attr)["call"].as_integer();
+	call = (Call *)server.getAddrParam("call");
 	
 	// Identifier EC match
-	if (!(*attr)["ec"].is_null()) {
-		id_ec = (Eclass *)(*attr)["ec"].as_integer();
-	} else {
-		id_ec = NULL;
+	id_ec = (Eclass *)server.getAddrParam("ec");
 
-		// Type of boolean match
-		const char *m;
-		if (!(m = (*attr)["match"].as_string().c_str())) {
-			sprintf(error, "Missing value: match");
-			valid = return_val = false;
-			lazy = true;
-			return;
-		}
-		match_type = *m;
+	// Type of boolean match
+	const char *m;
+	m = server.getStrParam("match").c_str();
+	if (!m) {
+		sprintf(error, "Missing value: match");
+		valid = return_val = false;
+		lazy = true;
+		return;
 	}
+	match_type = *m;
+
 	mquery.set_match_type(match_type);
 
-	cfun = !!(*attr)["cfun"].as_bool();
-	macro = !!(*attr)["macro"].as_bool();
-	writable = !!(*attr)["writable"].as_bool();
-	ro = !!(*attr)["ro"].as_bool();
-	pscope = !!(*attr)["pscope"].as_bool();
-	fscope = !!(*attr)["fscope"].as_bool();
-	defined = !!(*attr)["defined"].as_bool();
+	cfun = !!server.getIntParam("cfun");
+	macro = !!server.getIntParam("macro");
+	writable = !!server.getIntParam("writable");
+	ro = !!server.getIntParam("ro");
+	pscope = !!server.getIntParam("pscope");
+	fscope = !!server.getIntParam("fscope");
+	defined = !!server.getIntParam("defined");
 	// Identifier EC match
-	if ((*attr)["ncallers"].is_null() || ) {
+	if (!(ncallers = server.getIntParam("ncallers"))) {
 		ncallerop = ec_ignore;
-		ncaller = NULL;
 	} else {
-		ncallers = (*attr)["ncallers"].as_integer();
-		if((*attr)["ncallerop"].is_null())
+		if(!(ncallers = server.getIntParam("ncallerop")))
 			ncallerop = ec_ignore;
-		else		
-			ncallerop = (*attr)["ncallerop"].as_integer();
 	}
 
 
-	exclude_fnre = !!(*attr)["xfnre"].as_bool();
-	exclude_fure = !!(*attr)["xfure"].as_bool();
-	exclude_fdre = !!(*attr)["xfdre"].as_bool();
-	exclude_fre = !!(*attr)["xfre"].as_bool();
+	exclude_fnre = !!server.getIntParam("xfnre");
+	exclude_fure = !!server.getIntParam("xfure");
+	exclude_fdre = !!server.getIntParam("xfdre");
+	exclude_fre = !!server.getIntParam("xfre");
 
 	// Compile regular expression specs
-	if((error =compile_re(attr, "Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
+	if((error =compile_re("Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
 		return;
-	if((error =compile_re(attr, "Calling function name", "fure", fure, match_fure, str_fure))==NULL)
+	if((error =compile_re("Calling function name", "fure", fure, match_fure, str_fure))==NULL)
 		return;
-	if((error = compile_re(attr, "Called function name", "fdre", fdre, match_fdre, str_fdre))==NULL)
+	if((error = compile_re("Called function name", "fdre", fdre, match_fdre, str_fdre))==NULL)
 		return;
-	if((error =compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
+	if((error =compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
 		return;	
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }

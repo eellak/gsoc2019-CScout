@@ -19,7 +19,7 @@
 using namespace std;
 
 #include "query.h"
-#include "swill.h"
+#include "headers.h"
 #include "metrics.h"
 
 template <class M, class E>
@@ -42,12 +42,12 @@ public:
 
 			argspec << "|i(c" << i << ")";
 			argspec << "i(n" << i << ")";
-			op[i] = n[i] = 0;
-			(void)swill_getargs(argspec.str().c_str(), &(op[i]), &(n[i]));
+			op[i] = server.getIntParam("c"+to_string(i));
+			n[i] = server.getIntParam("n"+to_string(i));
 		}
-		if (!swill_getargs("i(order)", &sort_order))
+		if (!(sort_order = server.getIntParam("order")))
 			sort_order = -1;
-		reverse = !!swill_getvar("reverse");
+		reverse = !!server.getIntParam("reverse");
 	}
 
 	// Accessor methods

@@ -35,7 +35,7 @@ class Call;
 
 const char * html(char c);
 string html(const string &s);
-void html_string(FILE *of, string s);
+string html_string(string s);
 void html_head(FILE *of, const string fname, const string title, const char *heading = NULL);
 void html_tail(FILE *of);
 void html_perror(FILE *of, const string &user_msg, bool svg = false);

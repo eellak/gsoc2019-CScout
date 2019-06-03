@@ -40,7 +40,7 @@
 #include <cstdlib>		// atoi
 #include <cerrno>		// errno
 
-#include "swill.h"
+
 #include "getopt.h"
 
 #include <regex.h>

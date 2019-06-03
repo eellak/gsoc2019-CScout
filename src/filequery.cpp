@@ -22,7 +22,7 @@
 #include <cstdlib>		// atoi
 
 #include <regex.h>
-#include "swill.h"
+
 #include "getopt.h"
 
 #include "cpp.h"
@@ -69,13 +69,13 @@ FileQuery::FileQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, boo
 	valid = true;
 
 	// Query name
-	char *qname = swill_getvar("n");
+	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
 		name = qname;
 
 	// Type of boolean match
-	char *m;
-	if (!(m = swill_getvar("match"))) {
+	const char *m = server.getStrParam("match").c_str();
+	if (!m ) {
 		fprintf(of, "Missing value: match");
 		valid = return_val = false;
 		lazy = true;
@@ -84,12 +84,11 @@ FileQuery::FileQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, boo
 	match_type = *m;
 	mquery.set_match_type(match_type);
 
-	writable = !!swill_getvar("writable");
-	ro = !!swill_getvar("ro");
-	exclude_fre = !!swill_getvar("xfre");
-	web::json::value* attr;
+	writable = !!server.getIntParam("writable");
+	ro = !!server.getIntParam("ro");
+	exclude_fre = !!server.getIntParam("xfre");
 	// Compile regular expression specs
-	if (!compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
+	if (!compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
 	    	return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
