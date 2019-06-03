@@ -40,9 +40,8 @@
 #include <cstdlib>		// atoi
 #include <cerrno>		// errno
 
-#include "swill.h"
 #include "getopt.h"
-
+#include "headers.h"
 #include "cpp.h"
 #include "debug.h"
 #include "error.h"
@@ -59,7 +58,7 @@ class DirFile;
 class DirEntry {
 public:
 	// Display a link to the entry's contents as HTML on of
-	virtual void html(FILE *of) const = 0;
+	virtual string html() const = 0;
 	virtual ~DirEntry() {}
 };
 
@@ -71,9 +70,9 @@ public:
 	DirFile(Fileid i) : id(i) {}
 
 	// Display a link to the files's contents as HTML on of
-	virtual void html(FILE *of) const {
-		fprintf(of, "<a href=\"file.html?id=%u\">%s</a><br />",
-		    id.get_id(), id.get_fname().c_str());
+	virtual string html() const {
+		return "<a href=\"file.html?id="+to_string(id.get_id())+"\">"+
+			id.get_fname()+"</a><br />";
 	}
 	virtual ~DirFile() {}
 };
@@ -129,21 +128,23 @@ public:
 	}
 
 	// Display a link to the directory's contents as HTML on of with the specified name
-	void html(FILE *of, const char *n) const {
-		fprintf(of, "<a href=\"dir.html?dir=%p\">%s</a><br />", this, n);
+	string html(const char *n) const {
+		return "<a href=\"dir.html?dir="+to_string((long)this)+"\">"+n+"</a><br />";
 	}
 
 	// Display a link to the directory's contents as HTML on of
-	virtual void html(FILE *of) const {
-		html(of, name.c_str());
+	virtual string html() const {
+		return html(name.c_str());
 	}
 
 	// Display the directory's contents as HTML on of
-	void dirlist(FILE *of) const {
+	string dirlist() const {
+		string to_ret;
 		if (parent != this)
-			fprintf(of, "<a href=\"dir.html?dir=%p\">..</a><br />", parent);
+			to_ret = "<a href=\"dir.html?dir="+to_string((long)parent)+"\">..</a><br />" ;
 		for (DirContents::const_iterator i = dir.begin(); i != dir.end(); i++)
-			i->second->html(of);
+			to_ret.append(i->second->html());
+		return to_ret;
 	}
 	virtual ~DirDir() {}
 	// Return a pointer for browsing the project's top directory
@@ -188,23 +189,26 @@ dir_add_file(Fileid f)
 
 
 // Display a directory's contents
-void
-dir_page(FILE *of, void *p)
+web::json::value
+dir_page(void *p)
 {
 	DirDir *d;
-
-	if (!swill_getargs("p(dir)", &d)) {
-		fprintf(of, "Missing value");
-		return;
+	json::value to_return;
+	string to_ret;
+	d = (DirDir *)server.getAddrParam("dir");
+	if (d) {
+		to_return["error"]= json::value("Missing value");
+		return to_return;
 	}
-	html_head(of, "directory", string("Directory: ") + html(d->get_path()));
-	d->dirlist(of);
-	html_tail(of);
+	to_ret = "Directory: " + html(d->get_path());
+	to_ret.append(d->dirlist());
+	to_return["dir"] = json::value::string(to_ret);
+	return to_return;
 }
 
 // Display on of a URL for browsing the project's top dir
-void
-dir_top(FILE *of, const char *name)
+string
+dir_top( const char *name)
 {
-	DirDir::top()->html(of, name);
+	return DirDir::top()->html(name);
 }
