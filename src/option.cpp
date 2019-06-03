@@ -33,7 +33,7 @@
 #include <cstdarg>
 #include <cctype>
 
-#include "swill.h"
+
 #include "getopt.h"
 
 #include "cpp.h"

@@ -74,7 +74,7 @@
 IdProp Identifier::ids;
 
 // Construct an object based on URL parameters
-IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, bool e, bool r) :
+IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	Query(!e, r, true),
 	match(attr_end),
 	current_project(cp)
@@ -82,18 +82,19 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 	if (lazy)
 		return;
 	// Query name
-	const char *qname = (*attr)["n"].as_string().c_str();
+	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
 		name = qname;
 
 	// Identifier EC match to change
-	if (!(*attr)["ec"].is_null()) {
-		ec = (Eclass *)(*attr)["ec"].as_integer();
+	int t = server.getIntParam("ec"); 
+	if (!t) {
+		ec = (Eclass *)t;
 	} else {
 		ec = NULL;
 
 		// Type of boolean match
-		const char *m= (*attr)["match"].as_string().c_str();
+		const char *m= server.getStrParam("match").c_str();
 		if (!m ) {
 			error = "Missing value: match";
 			valid = return_val = false;
@@ -103,17 +104,17 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 		match_type = *m;
 	}
 
-	xfile = !!(*attr)["xfile"].as_bool();
-	unused = !!(*attr)["unused"].as_bool();
-	writable = !!(*attr)["writable"].as_bool();
-	exclude_ire = !!(*attr)["xire"].as_bool();
-	exclude_fre = !!(*attr)["xfre"].as_bool();
-	error = compile_re(attr, "Identifier", "ire", ire, match_ire, str_ire);
+	xfile = !!server.getIntParam("xfile");
+	unused = !!server.getIntParam("unused");
+	writable = !!server.getIntParam("writable");
+	exclude_ire = !!server.getIntParam("xire");
+	exclude_fre = !!server.getIntParam("xfre");
+	error = compile_re("Identifier", "ire", ire, match_ire, str_ire);
 	// Compile regular expression specs
 	if (error != NULL)
 		return;
 	
-	error = compile_re(attr, "Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
+	error = compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
 	if (error!=NULL)
 		return;
 
@@ -122,9 +123,10 @@ IdQuery::IdQuery(web::json::value *attr, bool icase, Attributes::size_type cp, b
 		ostringstream varname;
 
 		varname << "a" << i;
-		match[i] = !!(*attr)[varname.str().c_str()].as_bool();
-		if (DP())
+		match[i] = !!server.getIntParam(varname.str());
+		/*if (DP())
 			cout << "v=[" << varname.str() << "] m=" << match[i] << "\n";
+*/
 	}
 }
 

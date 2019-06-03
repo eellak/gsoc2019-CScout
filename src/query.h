@@ -25,7 +25,7 @@
 #define QUERY_
 
 #include <iostream>
-#include <cpprest/json.h>
+
 
 using namespace std;
 
@@ -33,6 +33,7 @@ using namespace std;
 #include "option.h"
 #include "compiledre.h"
 #include "debug.h"
+#include "headers.h"
 
 class Query {
 protected:
@@ -44,14 +45,14 @@ protected:
 	Query() : valid(false) {}
 	Query(bool l, bool r, bool v) : lazy(l), return_val(r), valid(v) {}
 	/*
-	 * Compile a regular expression name name, stored in SWILL varname
+	 * Compile a regular expression name name, stored in HttpServer varname
 	 * into re.
 	 * Set match to true if it was compiled and str to the RE string.
 	 * Compflags can supply additional compilation flags.
 	 * Return true if OK, false on error
 	 * Errors are sent to of
 	 */
-	char* compile_re(web::json::value *attr, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
+	char* compile_re(const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags = 0);
 public:
 	// Comparisson constants used for selections
 	enum e_cmp {

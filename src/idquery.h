@@ -26,12 +26,12 @@
 #define IDQUERY_
 
 #include <string>
-#include <cpprest/json.h>
 
 using namespace std;
 
 #include "query.h"
 #include "eclass.h"
+#include "headers.h"
 
 class Identifier;
 
@@ -100,7 +100,7 @@ private:
 	Attributes::size_type current_project;	// Restrict evaluation to this project
 public:
 	// Construct object based on URL parameters
-	IdQuery(web::json::value * attr, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
+	IdQuery(bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
 	// Construct object based on a string specification
 	IdQuery(const string &s);
 	// Default

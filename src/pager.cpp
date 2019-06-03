@@ -27,7 +27,7 @@
 #include <cstdio>		// FILE
 #include <cstdlib>		// atoi
 
-#include "swill.h"
+#include "headers.h"
 #include "getopt.h"
 
 #include "cpp.h"
@@ -36,8 +36,8 @@
 
 Pager::Pager(FILE *f, int ps, const string &qurl, bool bmk) : of(f), pagesize(ps), current(0), url(qurl), bookmarkable(bmk)
 {
-	if (!swill_getargs("I(skip)", &skip))
-		skip = 0;
+	skip = (unsigned int)server.getIntParam("skip");
+
 }
 
 bool

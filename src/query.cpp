@@ -67,9 +67,24 @@ Query::url(const string &s)
 
 // Compile regular expression specs
 char *
-Query::compile_re(web::json::value * attr, const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags)
+Query::compile_re(const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags)
 {
-	const char *s = (*attr)[varname].as_string().c_str();
+	cout << "compile_re" << endl;
+	
+	string t = server.getStrParam(varname);
+	char *s = NULL;
+	if(!t.empty()){
+		s = new char[50]; 
+		strcpy(s,t.c_str());
+	}else
+	{
+		cout<<"EMPTY PARAM" <<endl;
+	}
+	
+
+		
+	 //(t.empty())?NULL:t.c_str();
+
 	match = false;
 	char* to_return = NULL;
 	if (s && *s) {

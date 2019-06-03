@@ -33,7 +33,7 @@
 using namespace std;
 
 #include "error.h"
-#include "swill.h"
+#include "headers.h"
 
 class BoolOption;
 class IntegerOption;
@@ -116,7 +116,7 @@ public:
 	// Load from a file
 	void load(ifstream &ifs) { ifs >> v; }
 	// Set from a submitted page
-	void set() { v = !!swill_getvar(short_name); }
+	void set() { v = !!server.getIntParam(short_name); }
 	// Set from a submitted page
 	bool get() { return v; }
 	// Display on a web page
@@ -155,9 +155,9 @@ public:
 	void load(ifstream &ifs) { ifs >> v; }
 	// Set from a submitted page
 	void set() {
-		char *m;
+		const char *m ;
 
-		if ((m = swill_getvar(short_name)))
+		if ((m = server.getStrParam(short_name).c_str()))
 			v = *m;
 	}
 	// Return the value
@@ -179,7 +179,7 @@ public:
 	// Load from a file
 	void load(ifstream &ifs);
 	// Set from a submitted page
-	void set() { v = string(swill_getvar(short_name)); }
+	void set() { v = server.getStrParam(short_name); }
 	// Erase the value
 	void erase() { v.erase(); }
 	// Return the value
@@ -201,10 +201,9 @@ public:
 	void load(ifstream &ifs) { ifs >> v; }
 	// Set from a submitted page
 	void set() {
-		string arg = string("I(") + short_name + ")";
 		int vt;
-
-		if (swill_getargs(arg.c_str(), &vt) && vt > 0)
+		vt = (unsigned int)server.getIntParam(short_name);
+		if (vt > 0)
 			v = vt;
 	}
 	// Return the value
