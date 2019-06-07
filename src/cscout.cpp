@@ -428,20 +428,27 @@ file_hypertext( Fileid * fi,bool eval_query)
 	if (!qtype || strcmp(qtype, "id") == 0) {
 		idq = IdQuery(Option::file_icase->get(), current_project, eval_query);
 		have_idq = true;
-		if(idq.getError()!=NULL){
+		
+		//cout<<"out of idQuer -"<< to_return.as_string()<<endl;		
+	
+		if(eval_query)
+			if(idq.getError()!=NULL){
 			to_return["IdMsg"]=json::value::string(idq.getError());
 			cout<<"idq Error:" << idq.getError() << endl;
 		}
+		cout << "idq" <<endl;
 	} else if (strcmp(qtype, "fun") == 0) {
 		funq = FunQuery(Option::file_icase->get(), current_project, eval_query);
 		have_funq = true;
+		cout  << "out of funquer"<<endl;
+	
 		if(funq.getError()!=NULL)
 			to_return["FunMsg"]=json::value::string(funq.getError());
 	} else {
 		to_return["error"] = json::value::string("Unknown query type (try adding &qt=id to the URL).\n");
 		return to_return;
 	}
-
+	cout<<"out of Queries "<<endl;
 	if (DP())
 		cout << "Write to " << fname << endl;
 	if ((*fi).is_hand_edited()) {
@@ -2527,14 +2534,9 @@ json::value
 select_project_page(void *p)
 {
 	json::value to_return;
-	// html_head(fo, "sproject", "Select Active Project");
-	// fprintf(fo, "<ul>\n");
-	// fprintf(fo, "<li> <a href=\"setproj.html?projid=0\">All projects</a>\n");
 	for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-	//	fprintf(fo, "<li> <a href=\"setproj.html?projid=%u\">%s</a>\n", (unsigned)j, Project::get_projname(j).c_str());
 		to_return[to_string(j)]=json::value::string(Project::get_projname(j).c_str());
-	// fprintf(fo, "\n</ul>\n");
-	// html_tail(fo);
+
 	return to_return;
 }
 
@@ -2808,6 +2810,7 @@ source_page(void *p)
 		return to_return;
 	}
 	Fileid i(id);
+		cout<< id<<endl;
 	const string &pathname = i.get_path();
 	to_return["source"] = json::value::string(pathname);
 // 	modify file_hypertext
