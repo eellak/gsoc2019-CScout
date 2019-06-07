@@ -27,13 +27,13 @@ export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
 .PHONY: src/build/cscout cpprest btyacc/btyacc
 
-src/build/cscout: casablanca/cpprest btyacc/btyacc
+src/build/cscout: casablanca/build.debug btyacc/btyacc
 	cd src && $(MAKE)
 
 cpprest: casablanca/build.debug ninja
 	cd casablanca/build.debug && sudo ninja install
 
-casablanca/build.debug: casablanca
+casablanca/build.debug: casablanca 
 	cd casablanca && mkdir build.debug
 	
 casablanca:
