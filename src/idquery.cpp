@@ -79,13 +79,15 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	match(attr_end),
 	current_project(cp)
 {
-	if (lazy)
+	if (lazy){
+
 		return;
+		}
 	// Query name
 	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
 		name = qname;
-
+	cout<<"qname here" << endl;
 	// Identifier EC match to change
 	int t = server.getIntParam("ec"); 
 	if (!t) {
@@ -128,6 +130,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 			cout << "v=[" << varname.str() << "] m=" << match[i] << "\n";
 */
 	}
+	
 }
 
 // Report the string query specification usage
