@@ -94,6 +94,7 @@ void * HttpServer::getAddrParam(string name){
 
 }
 
+//Read Uri parameter as an integer
 int HttpServer::getIntParam(string name){
     cout<<"Get int "<<name<<"-"<< server.params.has_field(name)<<endl;
     if(!(server.params.has_field(name))){
@@ -106,7 +107,7 @@ int HttpServer::getIntParam(string name){
         else
             return stoi(server.params[name].as_string());
 }
-
+//Read Uri Parameter as a string
 string  HttpServer::getStrParam(string name){
     cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
     if(!(server.params.has_field(name))){

@@ -12,7 +12,7 @@ using namespace web::http::experimental::listener;
  
 class HttpServer;
 
-
+// Struct to hold functions to respond  
 typedef struct{
     utility::string_t value;
     function <json::value(void*)> handleFunction;
@@ -25,17 +25,27 @@ private :
     json::value params;
 public:
     HttpServer(){}
+    //Constructor for HttpServer on a url
     HttpServer(utility::string_t url);
+    //HTTP GET handler
     void handle_get(http_request request);
+    //HTTP POST handler
     void handle_post(http_request request);
     void handle_delete(http_request request);
     void handle_put(http_request request);
+    //adds a function to a map based on the path of the request
     void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
+    //starts the server to listen on the url
     void serve();
+    //get request parameter from uri as int
     int getIntParam(string name);
+    //get request parameter from uri as string
     string getStrParam(string name);
+    //get request parameter from uri as a pointer
     void * getAddrParam(string name);
+    //log server to a file
     static void log(FILE * fid);
+    // listener sturct 
     http_listener listener;
 
 };
