@@ -96,7 +96,7 @@ using namespace picoQL;
 #include "sql.h"
 #include "workdb.h"
 #include "obfuscate.h"
-
+using namespace web;
 #define ids Identifier::ids
 
 #define prohibit_remote_access(file)
@@ -2705,97 +2705,56 @@ index_page(FILE *of, void *data)
 
 }
 
-void
-file_page(FILE *of, void *p)
+json::value
+file_page(void *p)
 {
 	int id;
+	json::value to_return;
 	if (!(id = server.getIntParam("id"))) {
-		fprintf(of, "Missing value");
-		return;
+		to_return["error"] = json::value::string("Missing value");
+		return to_return;
 	}
 	Fileid i(id);
 	const string &pathname = i.get_path();
-	html_head(of, "file", string("File: ") + html(pathname));
-	fprintf(of, "<h2>Details</h2><ul>\n");
-	fprintf(of, "<li> Read-only: %s", i.get_readonly() ? "Yes" : "No");
+	to_return["pathname"] = json::value::string(pathname);
+	to_return["readonly"] = json::value::string(to_string(i.get_readonly()));
+	
 	if (Option::show_projects->get()) {
-		fprintf(of, "\n<li> Used in project(s): \n<ul>");
+		int no = 0;
 		for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
 			if (i.get_attribute(j))
-				fprintf(of, "<li>%s\n", Project::get_projname(j).c_str());
-		fprintf(of, "</ul>\n");
+				to_return["files"][no++]= json::value::string(Project::get_projname(j));
+
 	}
 	if (Option::show_identical_files->get()) {
 		const set <Fileid> &copies(i.get_identical_files());
-		fprintf(of, "<li>Other exact copies:%s\n", copies.size() > 1 ? "<ul>\n" : " (none)");
+		//to_return["copies"]["size"] = json::value::value(copies.size());
+		int no = 0;
 		for (set <Fileid>::const_iterator j = copies.begin(); j != copies.end(); j++) {
-			if (*j != i) {
-				fprintf(of, "<li>");
-				//html_string(of, j->get_path());
+			
+			if (*j != i) {				
+				to_return["copies"][no++] = json::value::string(j->get_path());
 			}
 		}
-		if (copies.size() > 1)
-			fprintf(of, "</ul>\n");
+
 	}
-	if (i.is_hand_edited())
-		fprintf(of, "<li>Hand edited\n");
-	fprintf(of, "<li> <a href=\"dir.html?dir=%p\">File's directory</a>", dir_add_file(i));
 
-	fprintf(of, "</ul>\n<h2>Listings</h2><ul>\n<li> <a href=\"src.html?id=%u\">Source code</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"src.html?id=%u&marku=1\">Source code with unprocessed regions marked</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"qsrc.html?qt=id&id=%u&match=Y&writable=1&a%d=1&n=Source+Code+With+Identifier+Hyperlinks\">Source code with identifier hyperlinks</a>\n", i.get_id(), is_readonly);
-	fprintf(of, "<li> <a href=\"qsrc.html?qt=id&id=%u&match=L&writable=1&a%d=1&n=Source+Code+With+Hyperlinks+to+Project-global+Writable+Identifiers\">Source code with hyperlinks to project-global writable identifiers</a>\n", i.get_id(), is_lscope);
-	fprintf(of, "<li> <a href=\"qsrc.html?qt=fun&id=%u&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations\">Source code with hyperlinks to function and macro declarations</a>\n", i.get_id());
+	to_return["handEdit"] = json::value::string(to_string(i.is_hand_edited()));
+	to_return["fileDir"] = json::value((uint64_t)dir_add_file(i));
+	to_return["queries"]["id"] = json::value(i.get_id());
+	to_return["queries"]["readOnly"] = json::value::string(to_string(is_readonly));
+	to_return["queries"]["lscope"] = json::value(is_lscope);
 	if (modification_state != ms_subst && !browse_only)
-		fprintf(of, "<li> <a href=\"fedit.html?id=%u\">Edit the file</a>", i.get_id());
+		to_return["queries"]["fedit"] = json::value(true);
 
-	fprintf(of, "</ul>\n<h2>Functions</h2><ul>\n");
-	fprintf(of, "<li> <a href=\"xfunquery.html?fid=%d&pscope=1&match=L&ncallerop=0&ncallers=&n=Defined+Project-scoped+Functions+in+%s&qi=x\">Defined project-scoped functions</a>\n"
-		"<li> <a href=\"xfunquery.html?fid=%d&fscope=1&match=L&ncallerop=0&ncallers=&n=Defined+File-scoped+Functions+in+%s&qi=x\">Defined file-scoped functions</a>\n",
-		i.get_id(), i.get_fname().c_str(), i.get_id(), i.get_fname().c_str());
-	fprintf(of, "<li> <a href=\"cgraph%s?fid=%d&all=1\">Function and macro call graph</a>", graph_suffix(), i.get_id());
+	to_return["queries"]["fname"] = json::value::string(i.get_fname());
+	to_return["queries"]["graph"] = json::value(graph_suffix());
 
-	fprintf(of, "</ul>\n<h2>File Dependencies</h2><ul>\n");
-	fprintf(of, "<li> Graph of files that depend on this file at compile time: "
-	    "<a href=\"fgraph%s?gtype=C&f=%d&n=D\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=C&all=1&f=%d&n=D\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-	fprintf(of, "<li> Graph of files on which this file depends at compile time: "
-	    "<a href=\"fgraph%s?gtype=C&f=%d&n=U\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=C&all=1&f=%d&n=U\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-	fprintf(of, "<li> Graph of files whose functions this file calls (control dependency): "
-	    "<a href=\"fgraph%s?gtype=F&f=%d&n=D\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=F&all=1&f=%d&n=D\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-	fprintf(of, "<li> Graph of files calling this file's functions (control dependency): "
-	    "<a href=\"fgraph%s?gtype=F&f=%d&n=U\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=F&all=1&f=%d&n=U\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-	fprintf(of, "<li> Graph of files whose global variables this file accesses (data dependency): "
-	    "<a href=\"fgraph%s?gtype=G&f=%d&n=D\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=G&all=1&f=%d&n=D\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-	fprintf(of, "<li> Graph of files accessing this file's global variables (data dependency): "
-	    "<a href=\"fgraph%s?gtype=G&f=%d&n=U\">writable</a>, "
-	    "<a href=\"fgraph%s?gtype=G&all=1&f=%d&n=U\">all</a>",
-	    graph_suffix(), i.get_id(), graph_suffix(), i.get_id());
-
-	fprintf(of, "</ul>\n<h2>Include Files</h2><ul>\n");
-	fprintf(of, "<li> <a href=\"qinc.html?id=%u&direct=1&writable=1&includes=1&n=Directly+Included+Writable+Files\">Writable files that this file directly includes</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"qinc.html?id=%u&includes=1&n=All+Included+Files\">All files that this file includes</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"fgraph%s?gtype=I&all=1&f=%d&n=U\">Include graph of all included files</a>", graph_suffix(), i.get_id());
-	fprintf(of, "<li> <a href=\"fgraph%s?gtype=I&f=%d&n=U\">Include graph of writable included files</a>", graph_suffix(), i.get_id());
-	fprintf(of, "<li> <a href=\"fgraph%s?gtype=I&all=1&f=%d&n=D\">Include graph of all including files</a>", graph_suffix(), i.get_id());
-	fprintf(of, "<li> <a href=\"qinc.html?id=%u&includes=1&used=1&writable=1&n=All+Required+Included+Writable+Files\">All writable files that this file must include</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"qinc.html?id=%u&direct=1&unused=1&includes=1&n=Unused+Directly+Included+Files\">Unused directly included files</a>\n", i.get_id());
-	fprintf(of, "<li> <a href=\"qinc.html?id=%u&n=Files+Including+the+File\">Files including this file</a>\n", i.get_id());
-	fprintf(of, "</ul>\n");
-	fprintf(of, "<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th><th>Value</th></tr>\n");
+	
+	
 	for (int j = 0; j < FileMetrics::metric_max; j++)
-		fprintf(of, "<tr><td>%s</td><td align='right'>%g</td></tr>", Metrics::get_name<FileMetrics>(j).c_str(), i.metrics().get_metric(j));
-	fprintf(of, "</table>\n");
-	html_tail(of);
+			to_return["metrics"][Metrics::get_name<FileMetrics>(j)]=json::value(i.metrics().get_metric(j));
+	return to_return;
 }
 
 json::value
@@ -3572,7 +3531,7 @@ main(int argc, char *argv[])
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
 		// server.addHandler("fedit.html", fedit_page, NULL);
-		// server.addHandler("file.html", file_page, NULL);
+		 server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
 
 		// Identifier query and execution
