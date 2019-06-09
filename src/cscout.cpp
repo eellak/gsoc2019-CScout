@@ -99,14 +99,14 @@ using namespace picoQL;
 using namespace web;
 #define ids Identifier::ids
 
-#define prohibit_remote_access(ostringstream)
-#define prohibit_browsers(ostringstream) \
+#define prohibit_remote_access(fs)
+#define prohibit_browsers(fs) \
 	do { \
-		if (browse_only) { \
-			nonbrowse_operation_prohibited(ostringstream); \
-			 return;\
+		if (browse_only)  {\
+			nonbrowse_operation_prohibited(fs); \
+			return; \
 		} \
-	} while (0)
+ 	} while (0)
 
 
 // Global command-line options
@@ -960,9 +960,9 @@ change_prohibited()
 }
 
 static void
-nonbrowse_operation_prohibited(ostringstream of)
+nonbrowse_operation_prohibited(std::ostringstream *fs)
 {
-	of << "This is a multiuser browse-only CScout session."
+	(*fs)<<"This is a multiuser browse-only CScout session."
 		"Non-browsing operations are disabled.";
 }
 
@@ -1316,7 +1316,8 @@ static json::value
 xiquery_page(void * p)
 {
 	Timer timer;
-	prohibit_remote_access(of);
+	
+	prohibit_remote_access()
 
 	Sids sorted_ids;
 	IFSet sorted_files;
@@ -1371,7 +1372,8 @@ xiquery_page(void * p)
 static void
 xfunquery_page(FILE *of,  void *p)
 {
-	prohibit_remote_access(of);
+
+	prohibit_remote_access();
 	Timer timer;
 
 	Sfuns sorted_funs;
@@ -1472,9 +1474,9 @@ identifier_page(FILE *fo, void *p)
 					fprintf(fo, "<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n");
 					found = true;
 				}
-				fprintf(fo, "\n<li>");
-				html_string(fo, i->second);
-				fprintf(fo, " &mdash; <a href=\"fun.html?f=%p\">function page</a>", i->second);
+				fprintf(fovoid, "\n<li>");
+				html_strinvoidg(fo, i->second);
+				fprintf(fovoid, " &mdash; <a href=\"fun.html?f=%p\">function page</a>", i->second);
 			}
 		}
 		if (found)
@@ -1521,11 +1523,12 @@ function_page(FILE *fo, void *p)
 			return;
 		}
 		if (modification_state == ms_hand_edit) {
-			change_prohibited(fo);
+			change_prohibited();
 			return;
 		}
-		prohibit_browsers(fo);
-		prohibit_remote_access(fo);
+		std::ostringstream fs;
+		prohibit_browsers(&fs);
+		prohibit_remote_access(&fs);
 		RefFunCall::store.insert(RefFunCall::store_type::value_type(ec, RefFunCall(f, subst)));
 		modification_state = ms_subst;
 	}
@@ -2402,7 +2405,7 @@ graph_dot_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 static void
 graph_svg_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 {
-	prohibit_remote_access(fo);
+	prohibit_remote_access();
 	GDSvg gd(fo);
 	graph_fun(&gd);
 }
@@ -2411,7 +2414,7 @@ graph_svg_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 static void
 graph_gif_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 {
-	prohibit_remote_access(fo);
+	prohibit_remote_access();
 	GDGif gd(fo);
 	graph_fun(&gd);
 }
@@ -2421,7 +2424,7 @@ graph_gif_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 static void
 graph_png_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 {
-	prohibit_remote_access(fo);
+	prohibit_remote_access();
 	GDPng gd(fo);
 	graph_fun(&gd);
 }
@@ -2431,7 +2434,7 @@ graph_png_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 static void
 graph_pdf_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
 {
-	prohibit_remote_access(fo);
+	prohibit_remote_access();
 	GDPdf gd(fo);
 	graph_fun(&gd);
 }
@@ -2543,8 +2546,9 @@ select_project_page(void *p)
 void
 set_project_page(FILE *fo, void *p)
 {
-	prohibit_browsers(fo);
-	prohibit_remote_access(fo);
+	std::ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
 
 	if (!(current_project = server.getIntParam("projid)"))) {
 		fprintf(fo, "Missing value");
@@ -2786,14 +2790,14 @@ fedit_page(void *p)
 		to_return["error"]=change_prohibited();
 		return to_return;
 	}
-	std::ostringstream of; 
-//	prohibit_browsers(of);
-//	prohibit_remote_access(of);
+	std::ostringstream fs;
+	//prohibit_browsers(&fs);
+	//prohibit_remote_access(&fs);
 
 	int id;
 	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("Missing value");
-		return;
+		return to_return;
 	}
 	Fileid i(id);
 	i.hand_edit();
@@ -2801,15 +2805,18 @@ fedit_page(void *p)
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
 	//BEGIN HERE to change
-	//  cerr << "Running " << buff << endl;
-	// if (system(buff) != 0) {
-	// 	html_error(of, string("Launching ") + buff + " failed");
-	// 	return;
-	// }
-	// html_head(of, "fedit", "External Editor");
-	// fprintf(of, "The editor should have started in a separate window");
-	// html_tail(of);
-	// modification_state = ms_hand_edit;
+	char * s;
+	sprintf(s,"Running %s\n",buff);
+	cerr << s;
+	
+	if (system(buff) != 0) {
+		to_return["error"] = json::value::string(string("Launching") +s + "failed");
+		return to_return;
+	}
+	
+//	fprintf(of, "The editor should have started in a separate window");
+	
+	modification_state = ms_hand_edit;
 }
 
 json::value
