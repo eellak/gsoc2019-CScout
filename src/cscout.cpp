@@ -1160,34 +1160,25 @@ display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &so
 
 
 // Identifier query page
-static void
-iquery_page(FILE *of,  void *p)
+static json::value
+iquery_page(void *p)
 {
-	html_head(of, "iquery", "Identifier Query");
-	fputs("<FORM ACTION=\"xiquery.html\" METHOD=\"GET\">\n"
-	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n", of);
+	json::value to_return;
+	to_return["action"]=json::value::string("xiquery.html"); 
+	to_return["method"]=json::value::string("GET");
+	to_return["input"]["checkbox"][0] = json::value::string("writable");
 	for (int i = attr_begin; i < attr_end; i++)
-		fprintf(of, "<input type=\"checkbox\" name=\"a%d\" value=\"1\">%s<br>\n", i,
-			Attributes::name(i).c_str());
-	fputs(
-	"<input type=\"checkbox\" name=\"xfile\" value=\"1\">Crosses file boundary<br>\n"
-	"<input type=\"checkbox\" name=\"unused\" value=\"1\">Unused<br>\n"
-	"<p>\n"
-	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
-	"<br><hr>\n"
-	"<table>\n"
-	"<tr><td>\n"
-	"Identifier names should "
-	"(<input type=\"checkbox\" name=\"xire\" value=\"1\"> not) \n"
-	" match RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"ire\" SIZE=20 MAXLENGTH=256>\n"
+		to_return["input"]["checkbox"][i+1] = json::value::string(Attributes::name(i));
+	
+	to_return["input"]["checkbox"][attr_end+1]=json::value::string("xfile");
+	to_return["input"]["checkbox"][attr_end+2]=json::value::string("unused");
+	to_return["input"]["radio"]["match"][0]["Y"] = json::value::string("Match any marked");
+	to_return["input"]["radio"]["match"][1]["L"] = json::value::string("Match all marked");
+	to_return["input"]["radio"]["match"][2]["E"] = json::value::string("Exclude marked");
+	to_return["input"]["radio"]["match"][3]["T"] = json::value::string("Exact match");
+	to_return["table"][0][0]["input"]["checkbox"]["xire"]= json::value::string("match RE");
+	to_return["table"][0][1]["input"]["text"]["ire"]= json::value::string("size = 20 maxlength =256");
+	to_return["table"][1][0]["input"]["checkbox"]["xire"]= json::value::string("match RE");
 	"</td></tr>\n"
 	"<tr><td>\n"
 	"Select identifiers from filenames "
@@ -1202,9 +1193,6 @@ iquery_page(FILE *of,  void *p)
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show identifiers\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qfun\" VALUE=\"Show functions\">\n"
-	"</FORM>\n"
-	, of);
-	html_tail(of);
 }
 
 // Function query page
@@ -1316,7 +1304,7 @@ static json::value
 xiquery_page(void * p)
 {
 	Timer timer;
-	
+	json::value to_return;
 	prohibit_remote_access()
 
 	Sids sorted_ids;
@@ -1325,13 +1313,12 @@ xiquery_page(void * p)
 	bool q_id = !!server.getIntParam("qi");	// Show matching identifiers
 	bool q_file = !!server.getIntParam("qf");	// Show matching files
 	bool q_fun = !!server.getIntParam("qfun");	// Show matching functions
-	json::value to_return;
 	const char *qname = server.getStrParam("n").c_str();
 	IdQuery query(Option::file_icase->get(), current_project);
 
 	if (!query.is_valid()) {
-		//html_tail(of);
-		return NULL;
+		to_return["error"]=json::value::string("Invalid query");
+		return to_return;
 	}
 
 	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
@@ -3539,12 +3526,12 @@ main(int argc, char *argv[])
 	
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
-		// server.addHandler("fedit.html", fedit_page, NULL);
+		server.addHandler("fedit.html", fedit_page, NULL);
 		server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
 
 		// Identifier query and execution
-	//	server.addHandler("iquery.html", iquery_page, NULL);
+		server.addHandler("iquery.html", iquery_page, NULL);
 		
 		server.addHandler("xiquery.html", xiquery_page, NULL);
 	/*	// File query and execution
