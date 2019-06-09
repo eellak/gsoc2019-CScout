@@ -99,12 +99,12 @@ using namespace picoQL;
 using namespace web;
 #define ids Identifier::ids
 
-#define prohibit_remote_access(file)
-#define prohibit_browsers(file) \
+#define prohibit_remote_access(ostringstream)
+#define prohibit_browsers(ostringstream) \
 	do { \
 		if (browse_only) { \
-			nonbrowse_operation_prohibited(file); \
-			return; \
+			nonbrowse_operation_prohibited(ostringstream); \
+			 return;\
 		} \
 	} while (0)
 
@@ -948,23 +948,22 @@ file_refactor(FILE *of, Fileid fid)
 	return;
 }
 
-static void
-change_prohibited(FILE *fo)
+static json::value
+change_prohibited()
 {
-	html_head(fo, "nochange", "Change Prohibited");
-	fputs("Identifier substitutions or function argument refactoring are not allowed "
-		"to be performed together with and the hand-editing of files"
-		"within the same CScout session.", fo);
-	html_tail(fo);
+	string to_ret;
+	to_ret = "Identifier substitutions or function argument refactoring "
+	"are not allowed to be performed together with and the hand-editing "
+	"of files within the same CScout session.";
+	return json::value::string(to_ret);
+	
 }
 
 static void
-nonbrowse_operation_prohibited(FILE *fo)
+nonbrowse_operation_prohibited(ostringstream of)
 {
-	html_head(fo, "nochange", "Non-browsing Operations Disabled");
-	fputs("This is a multiuser browse-only CScout session."
-		"Non-browsing operations are disabled.", fo);
-	html_tail(fo);
+	of << "This is a multiuser browse-only CScout session."
+		"Non-browsing operations are disabled.";
 }
 
 // Call before the start of a file list
@@ -2779,19 +2778,21 @@ source_page(void *p)
 
 }
 
-static void
-fedit_page(FILE *of, void *p)
+static json::value
+fedit_page(void *p)
 {
+	json::value to_return;
 	if (modification_state == ms_subst) {
-		change_prohibited(of);
-		return;
+		to_return["error"]=change_prohibited();
+		return to_return;
 	}
-	prohibit_browsers(of);
-	prohibit_remote_access(of);
+	std::ostringstream of; 
+//	prohibit_browsers(of);
+//	prohibit_remote_access(of);
 
 	int id;
 	if (!(id = server.getIntParam("id"))) {
-		fprintf(of, "Missing value");
+		to_return["error"] = json::value::string("Missing value");
 		return;
 	}
 	Fileid i(id);
@@ -2799,15 +2800,16 @@ fedit_page(FILE *of, void *p)
 	const char *re = server.getStrParam("re").c_str();
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
-	cerr << "Running " << buff << endl;
-	if (system(buff) != 0) {
-		html_error(of, string("Launching ") + buff + " failed");
-		return;
-	}
-	html_head(of, "fedit", "External Editor");
-	fprintf(of, "The editor should have started in a separate window");
-	html_tail(of);
-	modification_state = ms_hand_edit;
+	//BEGIN HERE to change
+	//  cerr << "Running " << buff << endl;
+	// if (system(buff) != 0) {
+	// 	html_error(of, string("Launching ") + buff + " failed");
+	// 	return;
+	// }
+	// html_head(of, "fedit", "External Editor");
+	// fprintf(of, "The editor should have started in a separate window");
+	// html_tail(of);
+	// modification_state = ms_hand_edit;
 }
 
 json::value
@@ -3531,7 +3533,7 @@ main(int argc, char *argv[])
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
 		// server.addHandler("fedit.html", fedit_page, NULL);
-		 server.addHandler("file.html", file_page, NULL);
+		server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
 
 		// Identifier query and execution
