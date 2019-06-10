@@ -1107,37 +1107,41 @@ xfilequery_page(FILE *of,  void *p)
  * for properly aligning the output.
  */
 template <typename container>
-static void
+static json::value
 display_sorted(FILE *of, const Query &query, const container &sorted_ids)
 {
-	string to_ret;
+	json::value to_return;
+	
 	if (Option::sort_rev->get())
-		to_ret = "<table><tr><td width=\"50%\" align=\"right\">\n";
+		to_return["start"] = json::value::string("<table><tr><td width=\"50%\" align=\"right\">\n");
 	else
-		to_ret = "<p>\n";
+		to_return["start"] = json::value::string("<p>\n");
 
 	Pager pager(of, Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
+	int no=0;
+
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			//html(of, **i);
-			fputs("<br>\n", of);
+			to_return["ids"][no++] = json::value::string(html(**i));
 		}
 	}
-
 	if (Option::sort_rev->get())
-		fputs("</td> <td width=\"50%\"> </td></tr></table>\n", of);
+		to_return["end"] = json::value::string("</td> <td width=\"50%\"> </td></tr></table>\n");
 	else
-		fputs("</p>\n", of);
-	pager.end();
+		to_return["end"] = json::value::string("</p>\n");
+
+	to_return["element_page"] = pager.end();
+
+	return to_return;
 }
 
 /*
  * Display the sorted functions with their metrics,
  * taking into account the reverse sort property
  * for properly aligning the output.
- */
-static void
+ *///change here
+static json::value
 display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &sorted_ids)
 {
 	fprintf(of, "<table class=\"metrics\"><tr>"
@@ -1155,7 +1159,7 @@ display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &so
 		}
 	}
 	fputs("</table>\n", of);
-	pager.end();
+	return pager.end();
 }
 
 
@@ -1164,21 +1168,31 @@ static json::value
 iquery_page(void *p)
 {
 	json::value to_return;
-	to_return["action"]=json::value::string("xiquery.html"); 
-	to_return["method"]=json::value::string("GET");
-	to_return["input"]["checkbox"][0] = json::value::string("writable");
-	for (int i = attr_begin; i < attr_end; i++)
-		to_return["input"]["checkbox"][i+1] = json::value::string(Attributes::name(i));
-	
-	to_return["input"]["checkbox"][attr_end+1]=json::value::string("xfile");
-	to_return["input"]["checkbox"][attr_end+2]=json::value::string("unused");
-	to_return["input"]["radio"]["match"][0]["Y"] = json::value::string("Match any marked");
-	to_return["input"]["radio"]["match"][1]["L"] = json::value::string("Match all marked");
-	to_return["input"]["radio"]["match"][2]["E"] = json::value::string("Exclude marked");
-	to_return["input"]["radio"]["match"][3]["T"] = json::value::string("Exact match");
-	to_return["table"][0][0]["input"]["checkbox"]["xire"]= json::value::string("match RE");
-	to_return["table"][0][1]["input"]["text"]["ire"]= json::value::string("size = 20 maxlength =256");
-	to_return["table"][1][0]["input"]["checkbox"]["xire"]= json::value::string("match RE");
+	to_return["iquery"]["form"] = json::value::string("<FORM ACTION=\"xiquery.html\""
+	" METHOD=\"GET\">\n"
+	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n");
+	int i;
+	for (i = attr_begin; i < attr_end; i++)
+		to_return["iquery"]["input"][i] =json::value::string("<input type=\"checkbox\" name=\"a"
+		+ to_string(i)+"\" value=\"1\">"+Attributes::name(i)+"<br>\n" );
+	to_return["iquery"]["restIn"]=json::value::string("<input type=\"checkbox\" name=\"xfile\" value=\"1\">Crosses file boundary<br>\n"
+	"<input type=\"checkbox\" name=\"unused\" value=\"1\">Unused<br>\n"
+	"<p>\n"
+	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
+	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+	"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
+	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
+	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
+	"<br><hr>\n");
+	to_return["iquery"]["table"]= json::value::string("<table>\n"
+	"<tr><td>\n"
+	"Identifier names should "
+	"(<input type=\"checkbox\" name=\"xire\" value=\"1\"> not) \n"
+	" match RE\n"
+	"</td><td>\n"
+	"<INPUT TYPE=\"text\" NAME=\"ire\" SIZE=20 MAXLENGTH=256>\n"
 	"</td></tr>\n"
 	"<tr><td>\n"
 	"Select identifiers from filenames "
@@ -1187,12 +1201,14 @@ iquery_page(void *p)
 	"</td><td>\n"
 	"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
 	"</td></tr>\n"
-	"</table>\n"
-	"<hr>\n"
-	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
+	"</table>\n");
+	to_return["iquery"]["Query Title"] = json::value::string(
+	"<INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show identifiers\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qfun\" VALUE=\"Show functions\">\n"
+	"</FORM>");
+	return to_return;
 }
 
 // Function query page
@@ -1305,7 +1321,8 @@ xiquery_page(void * p)
 {
 	Timer timer;
 	json::value to_return;
-	prohibit_remote_access()
+	std::ostringstream fs;
+	prohibit_remote_access(fs);
 
 	Sids sorted_ids;
 	IFSet sorted_files;
@@ -1337,22 +1354,25 @@ xiquery_page(void * p)
 			funs.insert(ecfuns.begin(), ecfuns.end());
 		}
 	}
-	cerr << endl;
+	cerr <<q_id<<endl;
 	if (q_id) {
-		fputs("<h2>Matching Identifiers</h2>\n", stdout);
-		display_sorted(stdout, query, sorted_ids);
+	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
+		to_return["ids"] = display_sorted(stdout, query, sorted_ids);
 	}
+	cout <<"checkpoint1"<<endl;
 	if (q_file)
 		display_files(stdout, query, sorted_files);
+	cout <<"checkpoint2"<<endl;
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
 		sorted_funs.insert(funs.begin(), funs.end());
-		display_sorted(stdout, query, sorted_funs);
+		to_return["funs"]=display_sorted(stdout, query, sorted_funs);
 	}
 
 	timer.print_elapsed(stdout);
 	//html_tail(of);
+	return to_return;
 }
 
 // Process a function query
