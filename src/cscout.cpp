@@ -104,7 +104,6 @@ using namespace web;
 	do { \
 		if (browse_only)  {\
 			nonbrowse_operation_prohibited(fs); \
-			return; \
 		} \
  	} while (0)
 
@@ -1025,15 +1024,15 @@ html_file(FILE *of, Fileid fi)
 }
 
 // File query page
-static void
-filequery_page(FILE *of,  void *p)
+static json::value
+filequery_page(void *p)
 {
-	html_head(of, "filequery", "File Query");
-	fputs("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
+	json::value to_return;
+	to_return["FileQuery"]=json::value::string("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
 	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n"
-	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n", of);
-	MQuery<FileMetrics, Fileid &>::metrics_query_form(of);
-	fputs("<p>"
+	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n");
+	to_return["mquery"]=MQuery<FileMetrics, Fileid &>::metrics_query_form();
+	to_return["inputs"]=json::value::string("<p>"
 	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any of the above\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
 	"<input type=\"radio\" name=\"match\" value=\"L\">Match all of the above\n"
@@ -1046,8 +1045,8 @@ filequery_page(FILE *of,  void *p)
 	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
 	"</FORM>\n"
-	, of);
-	html_tail(of);
+	);
+	return to_return;
 }
 
 struct ignore : public binary_function <int, int, bool> {
@@ -1224,7 +1223,7 @@ funquery_page(FILE *of,  void *p)
 	"<input type=\"checkbox\" name=\"pscope\" value=\"1\">Project scope<br>\n"
 	"<input type=\"checkbox\" name=\"fscope\" value=\"1\">File scope<br>\n"
 	"<input type=\"checkbox\" name=\"defined\" value=\"1\">Defined<br>\n", of);
-	MQuery<FunMetrics, Call &>::metrics_query_form(of);
+	MQuery<FunMetrics, Call &>::metrics_query_form();
 	fputs("<p>"
 	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
@@ -1240,7 +1239,7 @@ funquery_page(FILE *of,  void *p)
 	"Number of direct callers\n"
 	"<select name=\"ncallerop\" value=\"1\">\n",
 	of);
-	Query::equality_selection(of);
+	Query::equality_selection();
 	fputs(
 	"</td><td>\n"
 	"<INPUT TYPE=\"text\" NAME=\"ncallers\" SIZE=5 MAXLENGTH=10>\n"
@@ -2798,9 +2797,12 @@ fedit_page(void *p)
 		return to_return;
 	}
 	std::ostringstream fs;
-	//prohibit_browsers(&fs);
-	//prohibit_remote_access(&fs);
-
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 	int id;
 	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("Missing value");
@@ -2811,7 +2813,7 @@ fedit_page(void *p)
 	const char *re = server.getStrParam("re").c_str();
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
-	//BEGIN HERE to change
+
 	char * s;
 	sprintf(s,"Running %s\n",buff);
 	cerr << s;
@@ -2820,9 +2822,7 @@ fedit_page(void *p)
 		to_return["error"] = json::value::string(string("Launching") +s + "failed");
 		return to_return;
 	}
-	
-//	fprintf(of, "The editor should have started in a separate window");
-	
+		
 	modification_state = ms_hand_edit;
 }
 
@@ -3554,9 +3554,9 @@ main(int argc, char *argv[])
 		server.addHandler("iquery.html", iquery_page, NULL);
 		
 		server.addHandler("xiquery.html", xiquery_page, NULL);
-	/*	// File query and execution
+		// File query and execution
 		server.addHandler("filequery.html", filequery_page, NULL);
-		server.addHandler("xfilequery.html", xfilequery_page, NULL);
+	/*	server.addHandler("xfilequery.html", xfilequery_page, NULL);
 		server.addHandler("qinc.html", query_include_page, NULL);
 
 		// Function query and execution
