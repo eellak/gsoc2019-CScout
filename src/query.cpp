@@ -102,15 +102,16 @@ Query::compile_re(const char *name, const char *varname, CompiledRE &re, bool &m
 }
 
 // Display an equality selection box
-void
-Query::equality_selection(FILE *of)
+string
+Query::equality_selection()
 {
-	fprintf(of,
-		"<option value=\"%d\">ignore"
-		"<option value=\"%d\">=="
-		"<option value=\"%d\">!="
-		"<option value=\"%d\">&lt;"
-		"<option value=\"%d\">&gt;"
-		"</select>",
-		ec_ignore, ec_eq, ec_ne, ec_lt, ec_gt);
+	
+	return(
+		"<option value=\""+to_string(ec_ignore)+"\">ignore"
+		"<option value=\""+to_string(ec_eq)+"\">=="
+		"<option value=\""+to_string(ec_ne)+"\">!="
+		"<option value=\""+to_string(ec_lt)+"\">&lt;"
+		"<option value=\""+to_string(ec_gt)+"\">&gt;"
+		"</select>"
+		);
 }

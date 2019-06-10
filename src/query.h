@@ -63,7 +63,7 @@ public:
 		ec_gt
 	};
 	// Display an equality selection box
-	static void equality_selection(FILE *of);
+	static string equality_selection();
 	// Return the result of applying operator op on a, b
 	static inline bool apply(int op, double a, double b);
 	// URL-encode the given string

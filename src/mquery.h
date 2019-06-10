@@ -107,25 +107,32 @@ public:
 	}
 
 	// Generate a form's metrics query part
-	static void metrics_query_form(FILE *of) {
-		fputs("<table>"
-		"<tr><th>Sort-by</th><th>Metric</th><th>Compare</th><th>Value</th></tr>\n", of);
+	static json::value metrics_query_form() {
+		json::value to_return;
+		cout<<"metrics query form ok"<<endl;
+		to_return["header"]=json::value::string("<table>"
+		"<tr><th>Sort-by</th><th>Metric</th><th>Compare</th><th>Value</th></tr>\n");
+		cout<<"max:"<<M::metric_max<<endl;
 		for (int i = 0; i < M::metric_max; i++) {
+			cout<<i<<endl;
 			if (Metrics::is_internal<M>(i))
 				continue;
-			fprintf(of, "<tr><td><input type=\"radio\" name=\"order\" value=\"%d\"> </td>\n", i);
-			fprintf(of, "<td>%s</td><td><select name=\"c%d\" value=\"1\">\n",
-				Metrics::get_name<M>(i).c_str(), i);
-			Query::equality_selection(of);
-			fprintf(of, "</td><td><INPUT TYPE=\"text\" NAME=\"n%d\" SIZE=5 MAXLENGTH=10></td></tr>\n", i);
+			to_return["table"][i]=json::value::string("<tr><td><input type=\"radio\" name=\"order\" value=\""
+			+to_string(i)+"\"> </td>\n"
+			"<td>"+Metrics::get_name<M>(i)+"</td><td><select name=\"c"+
+			to_string(i)+"\" value=\"1\">\n"+
+			Query::equality_selection()+
+			"</td><td><INPUT TYPE=\"text\" NAME=\"n"+to_string(i)+"\" SIZE=5 MAXLENGTH=10></td></tr>\n");
 		}
-		fputs(	"<tr>"
+		
+		to_return["end"]=json::value::string("<tr>"
 			"<td><input type=\"radio\" name=\"order\" value=\"-1\" CHECKED></td>\n"
 			"<td>Entity name</td>"
 			"<td></td><td></td></tr>"
 			"</table>\n"
 			"<p>"
-			"<input type=\"checkbox\" name=\"reverse\" value=\"0\">Reverse sort order\n", of);
+			"<input type=\"checkbox\" name=\"reverse\" value=\"0\">Reverse sort order\n");
+		return to_return;
 	}
 };
 
