@@ -48,7 +48,7 @@ Pager::show_next()
 	return (ret);
 }
 
-void
+json::value
 Pager::end()
 {
 	// Total number of elements
@@ -56,40 +56,43 @@ Pager::end()
 	// Total number of pages
 	int npages = nelem / pagesize + (nelem % pagesize ? 1 : 0);
 	int thispage = skip / pagesize;
-
+	json::value to_return;
 	switch (nelem) {
 	case 0:
-		fprintf(of, "<p>No elements found.<br />");
+		to_return["total"]=json::value(0);
 		break;
 	case 1:
-		fprintf(of, "<p>One element found.<br />");
+		to_return["total"]=json::value(1);
 		break;
 	default:
-		if (skip == -1)
-			fprintf(of, "<p>Elements 1 to %d of %d.<br />", nelem, nelem);
-		else
-			fprintf(of, "<p>Elements %d to %d of %d.<br />",
-				thispage * pagesize + 1,
-				min(thispage * pagesize + pagesize, nelem),
-				nelem);
+		if (skip == -1){
+			to_return["start"]=json::value(1);
+			to_return["end"]=json::value(nelem);
+		}	
+		else{
+			to_return["start"]=json::value(thispage * pagesize + 1);
+			to_return["end"]=json::value(min(thispage * pagesize + pagesize, nelem));			
+		}
+		to_return["total"]=json::value(nelem);
 		break;
 	}
+	
 	if (nelem > pagesize) {
-		fputs("Page: ", of);
 		if (skip > 0)
-			fprintf(of, "<a class='pagen prev' href=\"%s&skip=%d\">previous</a> ", url.c_str(), skip - pagesize);
-		for (int i = 0; i < npages; i++)
+			to_return["prev"] =json::value::string(url+"&skip=" +to_string(skip - pagesize));
+				for (int i = 0; i < npages; i++)
 			if (i == thispage && skip != -1)
-				fprintf(of, "<span class='pagen this'>%d</span> ", i + 1);
+				to_return[i] = json::value::string("this");
 			else
-				fprintf(of, "<a class='pagen' href=\"%s&skip=%d\">%d</a> ", url.c_str(), i * pagesize, i + 1);
+				to_return["others"][i] = json::value::string(url+"skip="+to_string(i * pagesize));
+		cout<<to_return.as_string()<<endl;
 		if (skip != -1 && thispage + 1 < npages)
-			fprintf(of, "<a class='pagen next' href=\"%s&skip=%d\">next</a> ", url.c_str(), skip + pagesize);
+			to_return["next"] =json::value::string(url+"&skip=" +to_string(skip + pagesize));
 		if (skip != -1)
-			fprintf(of, "<a class='pagen all' href=\"%s&skip=-1\">all</a>", url.c_str());
-		fputs("<br clear='all'/>", of);
+			to_return["all"] =json::value::string(url+"&skip=-1");
 	}
 	if (bookmarkable)
-		fprintf(of, "You can bookmark <a href=\"%s\">this link</a> to save the respective query.", url.c_str());
-	fputs("</p>\n", of);
+		to_return["url"] = json::value::string(url);
+	cout<<to_return.serialize()<<endl;
+	return to_return;
 }

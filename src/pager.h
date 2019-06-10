@@ -40,7 +40,7 @@ private:
 public:
 	Pager(FILE *f, int ps, const string &qurl, bool bmk);
 	bool show_next();
-	void end();
+	json::value end();
 };
 
 #endif // PAGER_
