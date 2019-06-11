@@ -31,14 +31,13 @@ using namespace std;
 
 class Pager {
 private:
-	FILE *of;		// Output file
 	int pagesize;		// Elements per page
 	int current;		// Number of current element
 	int skip;		// Elements to skip; -1 means show all
 	string url;		// Query URL
 	bool bookmarkable;	// True if result is bookmarkable
 public:
-	Pager(FILE *f, int ps, const string &qurl, bool bmk);
+	Pager(int ps, const string &qurl, bool bmk);
 	bool show_next();
 	json::value end();
 };

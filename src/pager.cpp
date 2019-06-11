@@ -34,7 +34,7 @@
 #include "debug.h"
 #include "pager.h"
 
-Pager::Pager(FILE *f, int ps, const string &qurl, bool bmk) : of(f), pagesize(ps), current(0), url(qurl), bookmarkable(bmk)
+Pager::Pager(int ps, const string &qurl, bool bmk) : pagesize(ps), current(0), url(qurl), bookmarkable(bmk)
 {
 	skip = (unsigned int)server.getIntParam("skip");
 
@@ -80,12 +80,13 @@ Pager::end()
 	if (nelem > pagesize) {
 		if (skip > 0)
 			to_return["prev"] =json::value::string(url+"&skip=" +to_string(skip - pagesize));
-				for (int i = 0; i < npages; i++)
+		for (int i = 0; i < npages; i++){
+			
 			if (i == thispage && skip != -1)
-				to_return[i] = json::value::string("this");
+				to_return["others"][i] = json::value::string("this");
 			else
 				to_return["others"][i] = json::value::string(url+"skip="+to_string(i * pagesize));
-		cout<<to_return.as_string()<<endl;
+		}
 		if (skip != -1 && thispage + 1 < npages)
 			to_return["next"] =json::value::string(url+"&skip=" +to_string(skip + pagesize));
 		if (skip != -1)
@@ -93,6 +94,5 @@ Pager::end()
 	}
 	if (bookmarkable)
 		to_return["url"] = json::value::string(url);
-	cout<<to_return.serialize()<<endl;
 	return to_return;
 }
