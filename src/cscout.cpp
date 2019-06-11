@@ -966,45 +966,43 @@ nonbrowse_operation_prohibited(std::ostringstream *fs)
 }
 
 // Call before the start of a file list
-static void
-html_file_begin(FILE *of)
+static string
+html_file_begin()
 {
 	if (Option::fname_in_context->get())
-		fprintf(of, "<table class='dirlist'><tr><th>Directory</th><th>File</th>");
+		return "<table class='dirlist'><tr><th>Directory</th><th>File</th>";
 	else
-		fprintf(of, "<table><tr><th></th><th></th>");
+		return "<table><tr><th></th><th></th>";
 }
 
 // Call before actually listing files (after printing additional headers)
-static void
-html_file_set_begin(FILE *of)
+static string
+html_file_set_begin()
 {
-	fprintf(of, "</tr>\n");
+	return "</tr>\n";
 }
 
 // Called after html_file (after printing additional columns)
-static void
-html_file_record_end(FILE *of)
+static string
+html_file_record_end()
 {
-	fprintf(of, "</tr>\n");
+	return "</tr>\n";
 }
 
 // Called at the end
-static void
-html_file_end(FILE *of)
+static string
+html_file_end()
 {
-	fprintf(of, "</table>\n");
+	return "</table>\n";
 }
 
 // Display a filename of an html file
-static void
-html_file(FILE *of, Fileid fi)
+static string
+html_file(Fileid fi)
 {
 	if (!Option::fname_in_context->get()) {
-		fprintf(of, "\n<tr><td></td><td><a href=\"file.html?id=%u\">%s</a></td>",
-			fi.get_id(),
-			fi.get_path().c_str());
-		return;
+		return("\n<tr><td></td><td><a href=\"file.html?id="+to_string(fi.get_id())+"\">"
+		+fi.get_path()+"</a></td>");
 	}
 
 	// Split path into dir and fname
@@ -1017,10 +1015,9 @@ html_file(FILE *of, Fileid fi)
 	string dir(s, 0, k);
 	string fname(s, k);
 
-	fprintf(of, "<tr><td align=\"right\">%s\n</td>\n", dir.c_str());
-	fprintf(of, "<td><a href=\"file.html?id=%u\">%s</a></td>",
-		fi.get_id(),
-		fname.c_str());
+	return "<tr><td align=\"right\">"+dir+"\n</td>\n"
+		"<td><a href=\"file.html?id="+to_string(fi.get_id())+"\">"
+		+fname.c_str()+"</a></td>";
 }
 
 // File query page
@@ -1055,49 +1052,59 @@ struct ignore : public binary_function <int, int, bool> {
 
 
 // Process a file query
-static void
-xfilequery_page(FILE *of,  void *p)
+static json::value
+xfilequery_page(void *p)
 {
 	Timer timer;
+	json::value to_return;
 	const char *qname = server.getStrParam("n").c_str();
-	FileQuery query(of, Option::file_icase->get(), current_project);
+	std::ostringstream fs;
+	FileQuery query(&fs, Option::file_icase->get(), current_project);
 
-	if (!query.is_valid())
-		return;
-
+	if(!(fs.str().empty()))
+		to_return["Xerror"]= json::value::string(fs.str());
+	if (!query.is_valid()){
+		to_return["error"]=json::value::string("Non valid query");
+		return to_return;
+	}
 	multiset <Fileid, FileQuery::specified_order> sorted_files;
-
-	html_head(of, "xfilequery", (qname && *qname) ? qname : "File Query Results");
+	to_return["xfilequery"]=json::value::string((qname && *qname) ? qname : "File Query Results");
 
 	for (vector <Fileid>::iterator i = files.begin(); i != files.end(); i++) {
 		if (query.eval(*i))
 			sorted_files.insert(*i);
 	}
-	html_file_begin(of);
-	if (modification_state != ms_subst && !browse_only)
-		fprintf(of, "<th></th>\n");
-	if (query.get_sort_order() != -1)
-		fprintf(of, "<th>%s</th>\n", Metrics::get_name<FileMetrics>(query.get_sort_order()).c_str());
-	Pager pager(of, Option::entries_per_page->get(), query.base_url(), query.bookmarkable());
-	html_file_set_begin(of);
+	to_return["table"]["h"]=json::value::string(html_file_begin());
+	if (modification_state != ms_subst && !browse_only){
+		to_return["table"]["h1"]=json::value::string("<th></th>");
+		cout<<to_return.serialize()<<endl;
+	}
+	if (query.get_sort_order() != -1){
+		
+		to_return["table"]["h2"]=json::value::string("<th>"+Metrics::get_name<FileMetrics>(query.get_sort_order())+"</th>\n");
+	}
+	Pager pager(Option::entries_per_page->get(), query.base_url(), query.bookmarkable());	
+	to_return["table"]["hend"]=json::value::string(html_file_set_begin());
+	fs.flush();
 	for (multiset <Fileid, FileQuery::specified_order>::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
-			html_file(of, *i);
+			fs<<html_file(*i);
 			if (modification_state != ms_subst && !browse_only)
-				fprintf(of, "<td><a href=\"fedit.html?id=%u\">edit</a></td>",
-				i->get_id());
+				fs<<"<td><a href=\"fedit.html?id="+to_string(i->get_id())+"\">edit</a></td>";
 			if (query.get_sort_order() != -1)
-				fprintf(of, "<td align=\"right\">%g</td>", i->const_metrics().get_metric(query.get_sort_order()));
-			html_file_record_end(of);
+				fs<< "<td align=\"right\">"<<to_string(i->const_metrics().get_metric(query.get_sort_order()))<<"</td>";
+			fs<<html_file_record_end();
 		}
 	}
-	html_file_end(of);
-	pager.end();
-	timer.print_elapsed(of);
-	html_tail(of);
+	to_return["table"]["contents"] = json::value::string(fs.str());
+	to_return["table"]["end"]=json::value::string(html_file_end());
+
+	to_return["pager"]=pager.end();
+	to_return["timer"]=json::value::string(timer.print_elapsed());
+	return to_return;
 }
 
 
@@ -1116,7 +1123,7 @@ display_sorted(FILE *of, const Query &query, const container &sorted_ids)
 	else
 		to_return["start"] = json::value::string("<p>\n");
 
-	Pager pager(of, Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
+	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
 	int no=0;
 
@@ -1148,7 +1155,7 @@ display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &so
 	    "<th width='50%%' align='right'>%s</th>\n",
 	    Metrics::get_name<FunMetrics>(query.get_sort_order()).c_str());
 
-	Pager pager(of, Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
+	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
 			fputs("<tr><td witdh='50%'>", of);
@@ -1292,25 +1299,25 @@ display_files(FILE *of, const Query &query, const IFSet &sorted_files)
 	const string query_url(query.param_url());
 
 	fputs("<h2>Matching Files</h2>\n", of);
-	html_file_begin(of);
-	html_file_set_begin(of);
-	Pager pager(of, Option::entries_per_page->get(), query.base_url() + "&qf=1", query.bookmarkable());
+	html_file_begin();
+	html_file_set_begin();
+	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qf=1", query.bookmarkable());
 	for (IFSet::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
-			html_file(of, *i);
+			html_file(*i);
 			fprintf(of, "<td><a href=\"qsrc.html?id=%u&%s\">marked source</a></td>",
 				f.get_id(),
 				query_url.c_str());
 			if (modification_state != ms_subst && !browse_only)
 				fprintf(of, "<td><a href=\"fedit.html?id=%u\">edit</a></td>",
 				f.get_id());
-			html_file_record_end(of);
+			html_file_record_end();
 		}
 	}
-	html_file_end(of);
+	html_file_end();
 	pager.end();
 }
 
@@ -1369,8 +1376,8 @@ xiquery_page(void * p)
 		to_return["funs"]=display_sorted(stdout, query, sorted_funs);
 	}
 
-	timer.print_elapsed(stdout);
-	//html_tail(of);
+	to_return["timer"] = json::value::string(timer.print_elapsed());
+
 	return to_return;
 }
 
@@ -1413,7 +1420,7 @@ xfunquery_page(FILE *of,  void *p)
 	}
 	if (q_file)
 		display_files(of, query, sorted_files);
-	timer.print_elapsed(of);
+	timer.print_elapsed();
 	html_tail(of);
 }
 
@@ -2877,8 +2884,8 @@ query_include_page(FILE *of, void *p)
 	bool used = !!server.getIntParam("used");
 	bool includes = !!server.getIntParam("includes");
 	const FileIncMap &m = includes ? f.get_includes() : f.get_includers();
-	html_file_begin(of);
-	html_file_set_begin(of);
+	html_file_begin();
+	html_file_set_begin();
 	for (FileIncMap::const_iterator i = m.begin(); i != m.end(); i++) {
 		Fileid f2 = (*i).first;
 		const IncDetails &id = (*i).second;
@@ -2886,7 +2893,7 @@ query_include_page(FILE *of, void *p)
 		    (!direct || id.is_directly_included()) &&
 		    (!used || id.is_required()) &&
 		    (!unused || !id.is_required())) {
-			html_file(of, f2);
+			html_file(f2);
 			if (id.is_directly_included()) {
 				fprintf(of, "<td>line ");
 				const set <int> &lines = id.include_line_numbers();
@@ -2896,10 +2903,10 @@ query_include_page(FILE *of, void *p)
 					fprintf(of, " (not required)");
 				fprintf(of, "</td>");
 			}
-			html_file_record_end(of);
+			html_file_record_end();
 		}
 	}
-	html_file_end(of);
+	html_file_end();
 	fputs("</ul>\n", of);
 	html_tail(of);
 }
@@ -3556,8 +3563,8 @@ main(int argc, char *argv[])
 		server.addHandler("xiquery.html", xiquery_page, NULL);
 		// File query and execution
 		server.addHandler("filequery.html", filequery_page, NULL);
-	/*	server.addHandler("xfilequery.html", xfilequery_page, NULL);
-		server.addHandler("qinc.html", query_include_page, NULL);
+		server.addHandler("xfilequery.html", xfilequery_page, NULL);
+	/*	server.addHandler("qinc.html", query_include_page, NULL);
 
 		// Function query and execution
 		server.addHandler("funquery.html", funquery_page, NULL);
