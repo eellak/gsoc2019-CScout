@@ -81,7 +81,7 @@ public:
 	};
 
 	// Construct object based on URL parameters
-	FileQuery(FILE *f, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
+	FileQuery(std::ostringstream *f, bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
 	// Default
 	FileQuery() : Query(), match_fre(false) {}
 

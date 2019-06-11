@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<string>
 
 class Timer {
 private:
@@ -6,5 +7,5 @@ private:
 public:
 	Timer();
 	~Timer();
-	void print_elapsed(FILE *f);
+	std::string print_elapsed();
 };

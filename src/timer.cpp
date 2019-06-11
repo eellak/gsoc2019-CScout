@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+
 #include "timer.h"
 
 #if defined(unix) || defined(__unix__) || defined(__MACH__)
@@ -20,20 +21,19 @@ Timer::~Timer()
 	delete reinterpret_cast<struct rusage *>(storage);
 }
 
-void
-Timer::print_elapsed(FILE *f)
+std::string
+Timer::print_elapsed()
 {
 	struct rusage end;
 
 	getrusage(RUSAGE_SELF, &end);
 	struct rusage &begin = *(reinterpret_cast<struct rusage *>(storage));
-	fprintf(f, "%.1fms CPU time<br />",
-		(
+	return std::to_string((
 			(double)(end.ru_utime.tv_sec - begin.ru_utime.tv_sec) +
 			(double)(end.ru_utime.tv_usec - begin.ru_utime.tv_usec) * 1.e-6 +
 			(double)(end.ru_stime.tv_sec - begin.ru_stime.tv_sec) +
 			(double)(end.ru_stime.tv_usec - begin.ru_stime.tv_usec) * 1.e-6
-		) * 1000);
+		) * 1000)+"ms CPU time<br />";
 }
 
 #else
@@ -69,7 +69,7 @@ Timer::~Timer()
 }
 
 
-void
+std::string
 Timer::print_elapsed(FILE *f) {
 	RUsage &ru = *reinterpret_cast<struct RUsage *>(storage);
 	ULARGE_INTEGER &beginUser = ru.user;
@@ -84,7 +84,7 @@ Timer::print_elapsed(FILE *f) {
 	endKernel.LowPart = kernelTime.dwLowDateTime;
 	endKernel.HighPart = kernelTime.dwHighDateTime;
 	diff.QuadPart = endUser.QuadPart - beginUser.QuadPart + endKernel.QuadPart - beginKernel.QuadPart;
-	fprintf(f, "%.1fms CPU time<br />", (double)diff.QuadPart / 10000);
+	return to_string((double)diff.QuadPart / 10000)+"ms CPU time<br />";
 }
 
 #endif // Unix / Windows

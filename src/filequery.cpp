@@ -59,7 +59,7 @@ int FileQuery::specified_order::order;
 bool FileQuery::specified_order::reverse;
 
 // Construct an object based on URL parameters
-FileQuery::FileQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, bool r) :
+FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type cp, bool e, bool r) :
 	Query(!e, r, true),
 	current_project(cp)
 {
@@ -76,7 +76,7 @@ FileQuery::FileQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, boo
 	// Type of boolean match
 	const char *m = server.getStrParam("match").c_str();
 	if (!m ) {
-		fprintf(of, "Missing value: match");
+		(*of) << "Missing value: match";
 		valid = return_val = false;
 		lazy = true;
 		return;
@@ -88,7 +88,8 @@ FileQuery::FileQuery(FILE *of, bool icase, Attributes::size_type cp, bool e, boo
 	ro = !!server.getIntParam("ro");
 	exclude_fre = !!server.getIntParam("xfre");
 	// Compile regular expression specs
-	if (!compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))
+	(*of) << compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
+	if (!(of->str().empty()))
 	    	return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
