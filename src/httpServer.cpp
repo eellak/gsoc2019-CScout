@@ -104,8 +104,13 @@ int HttpServer::getIntParam(string name){
     else
         if(server.params[name].is_null())
             return 0;
-        else
+        else{
+            cout<<server.params[name].as_string()<<endl;
             return stoi(server.params[name].as_string());
+        }
+}
+bool HttpServer::getBoolParam(string name){
+    return server.params.has_field(name);
 }
 //Read Uri Parameter as a string
 string  HttpServer::getStrParam(string name){

@@ -43,6 +43,8 @@ public:
     string getStrParam(string name);
     //get request parameter from uri as a pointer
     void * getAddrParam(string name);
+    //get request paramete from uri as bool
+    bool getBoolParam(string name);
     //log server to a file
     static void log(FILE * fid);
     // listener sturct 
