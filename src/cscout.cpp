@@ -1115,7 +1115,7 @@ xfilequery_page(void *p)
  */
 template <typename container>
 static json::value
-display_sorted(FILE *of, const Query &query, const container &sorted_ids)
+display_sorted(const Query &query, const container &sorted_ids)
 {
 	json::value to_return;
 	
@@ -1149,24 +1149,29 @@ display_sorted(FILE *of, const Query &query, const container &sorted_ids)
  * for properly aligning the output.
  *///change here
 static json::value
-display_sorted_function_metrics(FILE *of, const FunQuery &query, const Sfuns &sorted_ids)
+display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 {
-	fprintf(of, "<table class=\"metrics\"><tr>"
+	json::value to_return;
+	to_return["start"]=json::value::string("<table class=\"metrics\"><tr>"
 	    "<th width='50%%' align='left'>Name</th>"
-	    "<th width='50%%' align='right'>%s</th>\n",
-	    Metrics::get_name<FunMetrics>(query.get_sort_order()).c_str());
+	    "<th width='50%%' align='right'>"+
+		Metrics::get_name<FunMetrics>(query.get_sort_order())
+		+"</th>\n");
 
 	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
+	int no = 0;
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			fputs("<tr><td witdh='50%'>", of);
-		//	html(of, **i);
-			fprintf(of, "</td><td witdh='50%%' align='right'>%g</td></tr>\n",
-			    (*i)->const_metrics().get_metric(query.get_sort_order()));
+			to_return["funs"][no++]=json::value::string("<tr><td witdh='50%'>"+
+			html(**i)+
+			"</td><td witdh='50%%' align='right'>"+
+			to_string((*i)->const_metrics().get_metric(query.get_sort_order()))
+			+"</td></tr>\n");
 		}
 	}
-	fputs("</table>\n", of);
-	return pager.end();
+	to_return["end"]=json::value::string("</table>\n");
+	to_return["pager"]= pager.end();
+	return to_return;
 }
 
 
@@ -1293,32 +1298,32 @@ funquery_page(void *p)
 	return to_return;
 }
 
-void
-display_files(FILE *of, const Query &query, const IFSet &sorted_files)
+json::value
+display_files(const Query &query, const IFSet &sorted_files)
 {
 	const string query_url(query.param_url());
-
-	fputs("<h2>Matching Files</h2>\n", of);
-	html_file_begin();
-	html_file_set_begin();
+	json::value to_return;
+	
+	to_return["start"]= json::value::string(html_file_begin()+html_file_set_begin());
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qf=1", query.bookmarkable());
+	ostringstream fs;
 	for (IFSet::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
-			html_file(*i);
-			fprintf(of, "<td><a href=\"qsrc.html?id=%u&%s\">marked source</a></td>",
-				f.get_id(),
-				query_url.c_str());
+			fs << html_file(*i);
+			fs<<"<td><a href=\"qsrc.html?id="<<f.get_id()<<"&"
+			<<query_url<<"\">marked source</a></td>";
 			if (modification_state != ms_subst && !browse_only)
-				fprintf(of, "<td><a href=\"fedit.html?id=%u\">edit</a></td>",
-				f.get_id());
-			html_file_record_end();
+				fs<<"<td><a href=\"fedit.html?id="<<f.get_id()<<"\">edit</a></td>";
+			fs<<html_file_record_end();
 		}
 	}
-	html_file_end();
-	pager.end();
+	to_return["files"] = json::value::string(fs.str());
+	to_return["end"]=json::value::string(html_file_end());
+	to_return["pager"]=pager.end();
+	return to_return;
 }
 
 // Process an identifier query
@@ -1333,9 +1338,9 @@ xiquery_page(void * p)
 	Sids sorted_ids;
 	IFSet sorted_files;
 	set <Call *> funs;
-	bool q_id = !!server.getIntParam("qi");	// Show matching identifiers
-	bool q_file = !!server.getIntParam("qf");	// Show matching files
-	bool q_fun = !!server.getIntParam("qfun");	// Show matching functions
+	bool q_id = !!server.getBoolParam("qi");	// Show matching identifiers
+	bool q_file = !!server.getBoolParam("qf");	// Show matching files
+	bool q_fun = !!server.getBoolParam("qfun");	// Show matching functions
 	const char *qname = server.getStrParam("n").c_str();
 	IdQuery query(Option::file_icase->get(), current_project);
 
@@ -1363,17 +1368,17 @@ xiquery_page(void * p)
 	cerr <<q_id<<endl;
 	if (q_id) {
 	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
-		to_return["ids"] = display_sorted(stdout, query, sorted_ids);
+		to_return["ids"] = display_sorted(query, sorted_ids);
 	}
 	cout <<"checkpoint1"<<endl;
 	if (q_file)
-		display_files(stdout, query, sorted_files);
+		display_files(query, sorted_files);
 	cout <<"checkpoint2"<<endl;
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
 		sorted_funs.insert(funs.begin(), funs.end());
-		to_return["funs"]=display_sorted(stdout, query, sorted_funs);
+		to_return["funs"]=display_sorted(query, sorted_funs);
 	}
 
 	to_return["timer"] = json::value::string(timer.print_elapsed());
@@ -1382,24 +1387,33 @@ xiquery_page(void * p)
 }
 
 // Process a function query
-static void
-xfunquery_page(FILE *of,  void *p)
+static json::value
+xfunquery_page(void *p)
 {
-
-	prohibit_remote_access();
+	ostringstream fs;
+	cout<<"in xfunquer"<<endl;
+	json::value to_return;
+	prohibit_remote_access(&fs);
+	if(!fs.str().empty())
+		to_return["error"] =json::value::string(fs.str()); 
 	Timer timer;
 
 	Sfuns sorted_funs;
 	IFSet sorted_files;
-	bool q_id = !!server.getIntParam("qi");	// Show matching identifiers
-	bool q_file = !!server.getIntParam("qf");	// Show matching files
+
+	bool q_id =!!server.getBoolParam("qi");
+	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	const char *qname = server.getStrParam("n").c_str();
 	FunQuery query(NULL, Option::file_icase->get(), current_project);
+	cout<<"hello"<<endl;
+	if (!query.is_valid()){
+		to_return["error"]=json::value::string("Invalid Query");
+		return to_return;
+	}
+		
 
-//	if (!query.is_valid())
-//		return;
-
-//	html_head(of, "xfunquery", (qname && *qname) ? qname : "Function Query Results");
+	if(qname && *qname)
+		to_return["qname"]=json::value::string(qname);
 	cerr << "Evaluating function query" << endl;
 	for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 		progress(i, Call::functions());
@@ -1412,16 +1426,15 @@ xfunquery_page(FILE *of,  void *p)
 	}
 	cerr << endl;
 	if (q_id) {
-		fputs("<h2>Matching Functions</h2>\n", of);
 		if (query.get_sort_order() != -1)
-			display_sorted_function_metrics(of, query, sorted_funs);
+			to_return["funs"]=display_sorted_function_metrics(query, sorted_funs);
 		else
-			display_sorted(of, query, sorted_funs);
+			to_return["funs"]= display_sorted(query, sorted_funs);
 	}
 	if (q_file)
-		display_files(of, query, sorted_files);
-	timer.print_elapsed();
-	html_tail(of);
+		to_return["files"]=display_files(query, sorted_files);
+	to_return["timer"]=json::value::string(timer.print_elapsed());
+	return to_return;
 }
 
 // Display an identifier property
@@ -2183,7 +2196,7 @@ cgraph_page(GraphDisplay *gd)
 {
 	bool all, only_visited;
 	if (gd->uses_swill) {
-		all = !!server.getIntParam("all");
+		all = !!server.getBoolParam("all");
 		only_visited = (single_function_graph() || single_file_function_graph());
 	}
 	else {
@@ -2251,7 +2264,7 @@ fgraph_page(GraphDisplay *gd)
 	EdgeMatrix edges;
 	bool empty_node = (Option::fgraph_show->get() == 'e');
 	if (gd->uses_swill) {
-		all = !!server.getIntParam("all");		// Otherwise exclude read-only files
+		all = !!server.getBoolParam("all");		// Otherwise exclude read-only files
 		only_visited = single_file_graph(*gtype, edges);
 	}
 	else {
@@ -2880,11 +2893,11 @@ query_include_page(void *p)
 	
 	to_return["pathname"]= json::value::string(html(pathname));
 	
-	bool writable = !!server.getIntParam("writable");
-	bool direct = !!server.getIntParam("direct");
-	bool unused = !!server.getIntParam("unused");
-	bool used = !!server.getIntParam("used");
-	bool includes = !!server.getIntParam("includes");
+	bool writable = !!server.getBoolParam("writable");
+	bool direct = !!server.getBoolParam("direct");
+	bool unused = !!server.getBoolParam("unused");
+	bool used = !!server.getBoolParam("used");
+	bool includes = !!server.getBoolParam("includes");
 	const FileIncMap &m = includes ? f.get_includes() : f.get_includers();
 	to_return["table"]["h"]=json::value::string(html_file_begin());
 	to_return["table"]["hend"]=json::value::string(html_file_set_begin());
@@ -2975,7 +2988,7 @@ xreplacements_page(void *p)
 			}
 
 			snprintf(varname, sizeof(varname), "a%p", &(i->second));
-			i->second.set_active(!!server.getIntParam(varname));
+			i->second.set_active(!!server.getBoolParam(varname));
 		}
 	}
 	cerr << endl;
@@ -3031,7 +3044,7 @@ xfunargrefs_page(void *p)
 		}
 
 		snprintf(varname, sizeof(varname), "a%p", i->first);
-		i->second.set_active(!!server.getIntParam(varname));
+		i->second.set_active(!!server.getBoolParam(varname));
 	}
 	index_page(of, p);
 	*/
@@ -3572,8 +3585,8 @@ main(int argc, char *argv[])
 
 		// Function query and execution
 		server.addHandler("funquery.html", funquery_page, NULL);
-	/*	server.addHandler("xfunquery.html", xfunquery_page, NULL);
-
+		server.addHandler("xfunquery.html", xfunquery_page, NULL);
+/*
 		server.addHandler("id.html", identifier_page, NULL);
 		server.addHandler("fun.html", function_page, NULL);
 		server.addHandler("funlist.html", funlist_page, NULL);
