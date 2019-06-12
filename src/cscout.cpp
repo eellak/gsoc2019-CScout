@@ -2863,29 +2863,32 @@ query_source_page(void *)
 	return to_return;
 }
 
-void
-query_include_page(FILE *of, void *p)
+json::value
+query_include_page(void *p)
 {
 	int id;
+	json::value to_return;
 	if (!(id = server.getIntParam("id"))) {
-		fprintf(of, "Missing value");
-		return;
+		to_return["error"]=json::value::string("Missing value");
+		return to_return;
 	}
 	Fileid f(id);
 	const string &pathname = f.get_path();
 	const char *qname = server.getStrParam("n").c_str();
 	if (qname && *qname)
-		html_head(of, "qinc", string(qname) + ": " + html(pathname));
-	else
-		html_head(of, "qinc", string("Include File Query: ") + html(pathname));
+		to_return["qname"]=json::value(qname);
+	
+	to_return["pathname"]= json::value::string(html(pathname));
+	
 	bool writable = !!server.getIntParam("writable");
 	bool direct = !!server.getIntParam("direct");
 	bool unused = !!server.getIntParam("unused");
 	bool used = !!server.getIntParam("used");
 	bool includes = !!server.getIntParam("includes");
 	const FileIncMap &m = includes ? f.get_includes() : f.get_includers();
-	html_file_begin();
-	html_file_set_begin();
+	to_return["table"]["h"]=json::value::string(html_file_begin());
+	to_return["table"]["hend"]=json::value::string(html_file_set_begin());
+	std::ostringstream fs;
 	for (FileIncMap::const_iterator i = m.begin(); i != m.end(); i++) {
 		Fileid f2 = (*i).first;
 		const IncDetails &id = (*i).second;
@@ -2893,22 +2896,23 @@ query_include_page(FILE *of, void *p)
 		    (!direct || id.is_directly_included()) &&
 		    (!used || id.is_required()) &&
 		    (!unused || !id.is_required())) {
-			html_file(f2);
+			fs<<html_file(f2);
 			if (id.is_directly_included()) {
-				fprintf(of, "<td>line ");
+				fs << "<td>line ";
 				const set <int> &lines = id.include_line_numbers();
 				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++)
-					fprintf(of, " <a href=\"src.html?id=%u#%d\">%d</a> ", (includes ? f : f2).get_id(), *j, *j);
+					fs<< " <a href=\"src.html?id="<<(includes ? f : f2).get_id()<<"#"<<*j<<"\">"<<*j<<"</a> ";
 				if (!id.is_required())
-					fprintf(of, " (not required)");
-				fprintf(of, "</td>");
+					fs<< " (not required)";
+				fs<< "</td>";
 			}
-			html_file_record_end();
+			fs<<html_file_record_end();
 		}
 	}
-	html_file_end();
-	fputs("</ul>\n", of);
-	html_tail(of);
+	to_return["table"]["content"] = json::value::string(fs.str());
+	to_return["table"]["end"] = json::value::string(html_file_end());
+	to_return["end"]=json::value::string("</ul>\n");
+	return to_return;
 }
 
 static void
@@ -3564,10 +3568,10 @@ main(int argc, char *argv[])
 		// File query and execution
 		server.addHandler("filequery.html", filequery_page, NULL);
 		server.addHandler("xfilequery.html", xfilequery_page, NULL);
-	/*	server.addHandler("qinc.html", query_include_page, NULL);
+		server.addHandler("qinc.html", query_include_page, NULL);
 
 		// Function query and execution
-		server.addHandler("funquery.html", funquery_page, NULL);
+	/*	server.addHandler("funquery.html", funquery_page, NULL);
 		server.addHandler("xfunquery.html", xfunquery_page, NULL);
 
 		server.addHandler("id.html", identifier_page, NULL);
