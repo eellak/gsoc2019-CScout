@@ -544,6 +544,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	cout<<"ending file_hypertext";
 	delete in;
 	to_return["file"] = json::value::string(file);
+	return to_return;
 }
 
 
@@ -1218,20 +1219,21 @@ iquery_page(void *p)
 }
 
 // Function query page
-static void
-funquery_page(FILE *of,  void *p)
+static json::value
+funquery_page(void *p)
 {
-	html_head(of, "funquery", "Function Query");
-	fputs("<FORM ACTION=\"xfunquery.html\" METHOD=\"GET\">\n"
+	json::value to_return;
+	to_return["form"]=json::value::string("<FORM ACTION=\"xfunquery.html\" METHOD=\"GET\">\n"
 	"<input type=\"checkbox\" name=\"cfun\" value=\"1\">C function<br>\n"
 	"<input type=\"checkbox\" name=\"macro\" value=\"1\">Function-like macro<br>\n"
 	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable declaration<br>\n"
 	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only declaration<br>\n"
 	"<input type=\"checkbox\" name=\"pscope\" value=\"1\">Project scope<br>\n"
 	"<input type=\"checkbox\" name=\"fscope\" value=\"1\">File scope<br>\n"
-	"<input type=\"checkbox\" name=\"defined\" value=\"1\">Defined<br>\n", of);
-	MQuery<FunMetrics, Call &>::metrics_query_form();
-	fputs("<p>"
+	"<input type=\"checkbox\" name=\"defined\" value=\"1\">Defined<br>\n");
+	to_return["mquery"]=MQuery<FunMetrics, Call &>::metrics_query_form();
+	to_return["inputs"]=json::value::string(
+	"<p>"
 	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
 	"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
@@ -1239,15 +1241,13 @@ funquery_page(FILE *of,  void *p)
 	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
 	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
-	"<br><hr>\n"
+	"<br><hr>\n");
+	to_return["table"]=json::value::string(
 	"<table>\n"
-
 	"<tr><td>\n"
 	"Number of direct callers\n"
-	"<select name=\"ncallerop\" value=\"1\">\n",
-	of);
-	Query::equality_selection();
-	fputs(
+	"<select name=\"ncallerop\" value=\"1\">\n"
+	+Query::equality_selection()+
 	"</td><td>\n"
 	"<INPUT TYPE=\"text\" NAME=\"ncallers\" SIZE=5 MAXLENGTH=10>\n"
 	"</td><td>\n"
@@ -1283,14 +1283,14 @@ funquery_page(FILE *of,  void *p)
 	"</td><td>\n"
 	"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
 	"</td></tr>\n"
-	"</table>\n"
-	"<hr>\n"
+	"</table>\n");
+	to_return["end"]=json::value::string("<hr>\n"
 	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show functions\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
 	"</FORM>\n"
-	, of);
-	html_tail(of);
+	);
+	return to_return;
 }
 
 void
@@ -2831,6 +2831,7 @@ fedit_page(void *p)
 	}
 		
 	modification_state = ms_hand_edit;
+	return to_return;
 }
 
 json::value
@@ -2854,8 +2855,7 @@ query_source_page(void *)
 
 	if (qname && *qname)
 		to_return["qname"] = json::value::string(qname);		
-	else
-		to_return["qname"] = NULL;
+
 	to_return["pathname"] = json::value::string(pathname);
 	cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
 	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
@@ -3571,8 +3571,8 @@ main(int argc, char *argv[])
 		server.addHandler("qinc.html", query_include_page, NULL);
 
 		// Function query and execution
-	/*	server.addHandler("funquery.html", funquery_page, NULL);
-		server.addHandler("xfunquery.html", xfunquery_page, NULL);
+		server.addHandler("funquery.html", funquery_page, NULL);
+	/*	server.addHandler("xfunquery.html", xfunquery_page, NULL);
 
 		server.addHandler("id.html", identifier_page, NULL);
 		server.addHandler("fun.html", function_page, NULL);
