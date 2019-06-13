@@ -1439,31 +1439,37 @@ xfunquery_page(void *p)
 
 // Display an identifier property
 static void
-show_id_prop(FILE *fo, const string &name, bool val)
+show_id_prop(ostringstream *fs, const string &name, bool val)
 {
 	if (!Option::show_true->get() || val)
-		fprintf(fo, ("<li>" + name + ": %s\n").c_str(), val ? "Yes" : "No");
+		*fs<< "<li>" << name << ": "<< (val ? "Yes" : "No") <<"\n" ;
 }
 
 // Details for each identifier
-void
-identifier_page(FILE *fo, void *p)
+json::value
+identifier_page(void *p)
 {
-	/*Eclass *e;
-	e = (Eclass *)server.getIntParam("id");
-	if (e) {
-		fprintf(fo, "Missing value");
-		return;
+	json::value to_return;
+	Eclass *e;
+	e = (Eclass*)server.getAddrParam("id");
+	if (!e) {
+		to_return["error"]=json::value::string("Missing value");
+		return to_return;
 	}
-	char *subst;
+	const char *subst;
 	Identifier &id = ids[e];
 	if ((subst = server.getStrParam("sname").c_str())) {
 		if (modification_state == ms_hand_edit) {
-			change_prohibited(fo);
-			return;
+			to_return["error"]=change_prohibited();
+			return to_return;
 		}
-		prohibit_browsers(fo);
-		prohibit_remote_access(fo);
+		ostringstream fs;
+		prohibit_browsers(&fs);
+		prohibit_remote_access(&fs);
+		if (fs.str().length() > 0){
+			to_return["error"] = json::value::string(fs.str());
+			return to_return;
+		}
 
 		// Passing subst directly core-dumps under
 		// gcc version 2.95.4 20020320 [FreeBSD 4.7]
@@ -1471,26 +1477,34 @@ identifier_page(FILE *fo, void *p)
 		id.set_newid(ssubst);
 		modification_state = ms_subst;
 	}
-	html_head(fo, "id", string("Identifier: ") + html(id.get_id()));
-	fprintf(fo, "<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
+	to_return["id"]= json::value(id.get_id());
+	to_return["form"] =json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
+	ostringstream fs;
 	for (int i = attr_begin; i < attr_end; i++)
-		show_id_prop(fo, Attributes::name(i), e->get_attribute(i));
-	show_id_prop(fo, "Crosses file boundary", id.get_xfile());
-	show_id_prop(fo, "Unused", e->is_unused());
-	fprintf(fo, "<li> Matches %d occurence(s)\n", e->get_size());
+		show_id_prop(&fs, Attributes::name(i), e->get_attribute(i));
+	show_id_prop(&fs, "Crosses file boundary", id.get_xfile());
+	show_id_prop(&fs, "Unused", e->is_unused());
+	fs<<"<li> Matches "<< e->get_size() <<" occurence(s)\n";
+	to_return["info"] = json::value::string(fs.str());
+	fs.flush();
+	int no = 0;
 	if (Option::show_projects->get()) {
-		fprintf(fo, "<li> Appears in project(s): \n<ul>\n");
+		
 		if (DP()) {
 			cout << "First project " << attr_end << endl;
 			cout << "Last project " <<  Attributes::get_num_attributes() - 1 << endl;
 		}
 		for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
 			if (e->get_attribute(j))
-				fprintf(fo, "<li>%s\n", Project::get_projname(j).c_str());
-		fprintf(fo, "</ul>\n");
+				to_return["projects"][no++]= json::value::string("<li>"+Project::get_projname(j)+"\n");
+		to_return["endlist"]= json::value::string("</ul>\n");
 	}
-	fprintf(fo, "<li><a href=\"xiquery.html?ec=%p&n=Dependent+Files+for+Identifier+%s&qf=1\">Dependent files</a>", e, id.get_id().c_str());
-	fprintf(fo, "<li><a href=\"xfunquery.html?ec=%p&qi=1&n=Functions+Containing+Identifier+%s\">Associated functions</a>", e, id.get_id().c_str());
+	fs<< "<li><a href=\"xiquery.html?ec="
+		<<e<<"&n=Dependent+Files+for+Identifier+"<<
+		id.get_id()<<"&qf=1\">Dependent files</a>";
+	fs<< "<li><a href=\"xfunquery.html?ec="<<e
+	<<"&qi=1&n=Functions+Containing+Identifier+"<<id.get_id()<<
+	"\">Associated functions</a>";
 	if (e->get_attribute(is_cfunction) || e->get_attribute(is_macro)) {
 		bool found = false;
 		// Loop through all declared functions
@@ -1523,7 +1537,7 @@ identifier_page(FILE *fo, void *p)
 	fprintf(fo, "</ul>\n");
 	fprintf(fo, "</FORM>\n");
 	html_tail(fo);
-*/
+
 }
 
 // Details for each function
@@ -1555,6 +1569,7 @@ function_page(FILE *fo, void *p)
 		std::ostringstream fs;
 		prohibit_browsers(&fs);
 		prohibit_remote_access(&fs);
+		
 		RefFunCall::store.insert(RefFunCall::store_type::value_type(ec, RefFunCall(f, subst)));
 		modification_state = ms_subst;
 	}
@@ -3586,9 +3601,9 @@ main(int argc, char *argv[])
 		// Function query and execution
 		server.addHandler("funquery.html", funquery_page, NULL);
 		server.addHandler("xfunquery.html", xfunquery_page, NULL);
-/*
+
 		server.addHandler("id.html", identifier_page, NULL);
-		server.addHandler("fun.html", function_page, NULL);
+/*		server.addHandler("fun.html", function_page, NULL);
 		server.addHandler("funlist.html", funlist_page, NULL);
 		server.addHandler("funmetrics.html", function_metrics_page, NULL);
 		server.addHandler("filemetrics.html", file_metrics_page, NULL);
