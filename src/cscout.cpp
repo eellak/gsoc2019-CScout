@@ -228,18 +228,20 @@ progress(typename container::const_iterator i, const container &c)
 static string
 html(const IdPropElem &i)
 {
-	string to_ret;
-	to_ret = "<a href=\"id.html?id="+to_string((long long)&i.first)+"\">" +
+	ostringstream to_ret;
+	cout<<"test in print"<<i.first;
+	to_ret << "<a href=\"id.html?id="<<i.first<<"\">" <<
 		html_string((i.second).get_id())+"</a>";
-	return to_ret;
+	return to_ret.str();
 }
 
 static string
 html(const Call &c)
 {
-	string to_ret;
-	to_ret = "<a href=\"fun.html?f=%p\">"+html_string(c.get_name())+ "</a>";
-	return to_ret;
+	ostringstream to_ret;
+	to_ret << "<a href=\"fun.html?f="<< &c<<"\">"
+	<<html_string(c.get_name())<< "</a>";
+	return to_ret.str();
 }
 
 // Display a hyperlink based on a string and its starting tokid
@@ -1130,6 +1132,7 @@ display_sorted(const Query &query, const container &sorted_ids)
 
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
+			cout<<"pager.next"<<endl;
 			to_return["ids"][no++] = json::value::string(html(**i));
 		}
 	}
@@ -1355,8 +1358,9 @@ xiquery_page(void * p)
 		progress(i, ids);
 		if (!query.eval(*i))
 			continue;
-		if (q_id)
+		if (q_id){
 			sorted_ids.insert(&*i);
+		}
 		else if (q_file) {
 			IFSet f = i->first->sorted_files();
 			sorted_files.insert(f.begin(), f.end());
@@ -1372,7 +1376,7 @@ xiquery_page(void * p)
 	}
 	cout <<"checkpoint1"<<endl;
 	if (q_file)
-		display_files(query, sorted_files);
+		to_return["files"]= display_files(query, sorted_files);
 	cout <<"checkpoint2"<<endl;
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
@@ -1441,6 +1445,7 @@ xfunquery_page(void *p)
 static void
 show_id_prop(ostringstream *fs, const string &name, bool val)
 {
+	cout<<"here:"<<endl;
 	if (!Option::show_true->get() || val)
 		*fs<< "<li>" << name << ": "<< (val ? "Yes" : "No") <<"\n" ;
 }
@@ -1451,14 +1456,20 @@ identifier_page(void *p)
 {
 	json::value to_return;
 	Eclass *e;
+	
+	
 	e = (Eclass*)server.getAddrParam("id");
+	cout<<"E:"<<e<<endl;;
 	if (!e) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
 	}
+
 	const char *subst;
 	Identifier &id = ids[e];
+	
 	if ((subst = server.getStrParam("sname").c_str())) {
+
 		if (modification_state == ms_hand_edit) {
 			to_return["error"]=change_prohibited();
 			return to_return;
@@ -1477,17 +1488,25 @@ identifier_page(void *p)
 		id.set_newid(ssubst);
 		modification_state = ms_subst;
 	}
+
 	to_return["id"]= json::value(id.get_id());
 	to_return["form"] =json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
 	ostringstream fs;
-	for (int i = attr_begin; i < attr_end; i++)
+	cout<<"before for"<<endl;
+	for (int i = attr_begin; i < attr_end; i++){
+		cout<<"made it here:"<<i<<endl;
+		cout<< Attributes::name(i)<<endl;
+		cout<<e->get_attribute(i)<<endl;
 		show_id_prop(&fs, Attributes::name(i), e->get_attribute(i));
+		
+	}
 	show_id_prop(&fs, "Crosses file boundary", id.get_xfile());
 	show_id_prop(&fs, "Unused", e->is_unused());
 	fs<<"<li> Matches "<< e->get_size() <<" occurence(s)\n";
 	to_return["info"] = json::value::string(fs.str());
 	fs.flush();
 	int no = 0;
+	cout<<"before if options"<<endl;
 	if (Option::show_projects->get()) {
 		
 		if (DP()) {
@@ -1497,7 +1516,7 @@ identifier_page(void *p)
 		for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
 			if (e->get_attribute(j))
 				to_return["projects"][no++]= json::value::string("<li>"+Project::get_projname(j)+"\n");
-		to_return["endlist"]= json::value::string("</ul>\n");
+		to_return["projects"][no]= json::value::string("</ul>\n");
 	}
 	fs<< "<li><a href=\"xiquery.html?ec="
 		<<e<<"&n=Dependent+Files+for+Identifier+"<<
@@ -1505,38 +1524,41 @@ identifier_page(void *p)
 	fs<< "<li><a href=\"xfunquery.html?ec="<<e
 	<<"&qi=1&n=Functions+Containing+Identifier+"<<id.get_id()<<
 	"\">Associated functions</a>";
+	cout<<"getatrrib cfunc"<<endl;
 	if (e->get_attribute(is_cfunction) || e->get_attribute(is_macro)) {
 		bool found = false;
 		// Loop through all declared functions
 		for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 			if (i->second->contains(e)) {
 				if (!found) {
-					fprintf(fo, "<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n");
+					fs<< "<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n";
 					found = true;
 				}
-				fprintf(fovoid, "\n<li>");
-				html_strinvoidg(fo, i->second);
-				fprintf(fovoid, " &mdash; <a href=\"fun.html?f=%p\">function page</a>", i->second);
+				fs<< "\n<li>";
+				fs<< html_string(i->second);
+				fs<< " &mdash; <a href=\"fun.html?f="<<i->second<<"\">function page</a>";
 			}
 		}
 		if (found)
-			fprintf(fo, "</ol><br />\n");
+			fs<<"</ol><br />\n";
 	}
-
+	to_return["contains"]=json::value::string(fs.str());
+	cout<<"isreadonly"<<endl;
+	fs.flush();
 	if ((!e->get_attribute(is_readonly) || Option::rename_override_ro->get()) &&
 	    modification_state != ms_hand_edit &&
 	    !browse_only) {
-		fprintf(fo, "<li> Substitute with: \n"
+		fs<<"<li> Substitute with: \n"
 			"<INPUT TYPE=\"text\" NAME=\"sname\" VALUE=\"%s\" SIZE=10 MAXLENGTH=256> "
-			"<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n",
-			(id.get_replaced() ? id.get_newid() : id.get_id()).c_str());
-		fprintf(fo, "<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\"%p\">\n", e);
+			"<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n"+
+			(id.get_replaced() ? id.get_newid() : id.get_id())+
+		 "<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""<<e<<"\">\n";
+		to_return["substitute"]= json::value::string(fs.str());
 		if (!id.get_active())
-			fputs("<br>(This substitution is inactive.  Visit the <a href='replacements.html'>replacements page</a> to activate it again.)", fo);
+			to_return["inactive"]=json::value::string("<a href='replacements.html'>replacements page</a> ");
 	}
-	fprintf(fo, "</ul>\n");
-	fprintf(fo, "</FORM>\n");
-	html_tail(fo);
+	to_return["end"]=json::value::string("</ul>\n</FORM>\n");
+	return to_return;
 
 }
 
