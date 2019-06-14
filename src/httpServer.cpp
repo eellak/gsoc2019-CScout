@@ -88,7 +88,7 @@ void * HttpServer::getAddrParam(string name){
             return NULL;
         else{
             void * p;
-            sscanf(server.params[name].as_string().c_str(),"%p", (void**) p);
+            sscanf(server.params[name].as_string().c_str(),"%p",  &p);
             return p;
         }
 
@@ -99,11 +99,11 @@ int HttpServer::getIntParam(string name){
     cout<<"Get int "<<name<<"-"<< server.params.has_field(name)<<endl;
     if(!(server.params.has_field(name))){
         cout<<"zero"<<endl;
-        return 0;
+        return -1;
     }
     else
         if(server.params[name].is_null())
-            return 0;
+            return -1;
         else{
             cout<<server.params[name].as_string()<<endl;
             return stoi(server.params[name].as_string());
