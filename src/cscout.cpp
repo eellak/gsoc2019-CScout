@@ -1030,7 +1030,7 @@ filequery_page(void *p)
 	json::value to_return;
 	to_return["FileQuery"]=json::value::string("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
 	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n"
-	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n");
+	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n",true);
 	to_return["mquery"]=MQuery<FileMetrics, Fileid &>::metrics_query_form();
 	to_return["inputs"]=json::value::string("<p>"
 	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any of the above\n"
@@ -1044,7 +1044,7 @@ filequery_page(void *p)
 	"<hr>\n"
 	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
-	"</FORM>\n"
+	"</FORM>\n",true
 	);
 	return to_return;
 }
@@ -1084,10 +1084,10 @@ xfilequery_page(void *p)
 	}
 	if (query.get_sort_order() != -1){
 		
-		to_return["table"]["h2"]=json::value::string("<th>"+Metrics::get_name<FileMetrics>(query.get_sort_order())+"</th>\n");
+		to_return["table"]["h2"]=json::value::string("<th>"+Metrics::get_name<FileMetrics>(query.get_sort_order())+"</th>\n",true);
 	}
 	Pager pager(Option::entries_per_page->get(), query.base_url(), query.bookmarkable());	
-	to_return["table"]["hend"]=json::value::string(html_file_set_begin());
+	to_return["table"]["hend"]=json::value::string(html_file_set_begin(),true);
 	fs.flush();
 	for (multiset <Fileid, FileQuery::specified_order>::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
@@ -1102,11 +1102,11 @@ xfilequery_page(void *p)
 			fs<<html_file_record_end();
 		}
 	}
-	to_return["table"]["contents"] = json::value::string(fs.str());
-	to_return["table"]["end"]=json::value::string(html_file_end());
+	to_return["table"]["contents"] = json::value::string(fs.str(),true);
+	to_return["table"]["end"]=json::value::string(html_file_end(),true);
 
 	to_return["pager"]=pager.end();
-	to_return["timer"]=json::value::string(timer.print_elapsed());
+	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
 	return to_return;
 }
 
@@ -1133,13 +1133,13 @@ display_sorted(const Query &query, const container &sorted_ids)
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
 			cout<<"pager.next"<<endl;
-			to_return["ids"][no++] = json::value::string(html(**i));
+			to_return["ids"][no++] = json::value::string(html(**i),true);
 		}
 	}
 	if (Option::sort_rev->get())
-		to_return["end"] = json::value::string("</td> <td width=\"50%\"> </td></tr></table>\n");
+		to_return["end"] = json::value::string("</td> <td width=\"50%\"> </td></tr></table>\n",true);
 	else
-		to_return["end"] = json::value::string("</p>\n");
+		to_return["end"] = json::value::string("</p>\n",true);
 
 	to_return["element_page"] = pager.end();
 
@@ -1159,7 +1159,7 @@ display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 	    "<th width='50%%' align='left'>Name</th>"
 	    "<th width='50%%' align='right'>"+
 		Metrics::get_name<FunMetrics>(query.get_sort_order())
-		+"</th>\n");
+		+"</th>\n",true);
 
 	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	int no = 0;
@@ -1169,10 +1169,10 @@ display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 			html(**i)+
 			"</td><td witdh='50%%' align='right'>"+
 			to_string((*i)->const_metrics().get_metric(query.get_sort_order()))
-			+"</td></tr>\n");
+			+"</td></tr>\n",true);
 		}
 	}
-	to_return["end"]=json::value::string("</table>\n");
+	to_return["end"]=json::value::string("</table>\n",true);
 	to_return["pager"]= pager.end();
 	return to_return;
 }
@@ -1185,11 +1185,11 @@ iquery_page(void *p)
 	json::value to_return;
 	to_return["iquery"]["form"] = json::value::string("<FORM ACTION=\"xiquery.html\""
 	" METHOD=\"GET\">\n"
-	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n");
+	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n",true);
 	int i;
 	for (i = attr_begin; i < attr_end; i++)
 		to_return["iquery"]["input"][i] =json::value::string("<input type=\"checkbox\" name=\"a"
-		+ to_string(i)+"\" value=\"1\">"+Attributes::name(i)+"<br>\n" );
+		+ to_string(i)+"\" value=\"1\">"+Attributes::name(i)+"<br>\n",true );
 	to_return["iquery"]["restIn"]=json::value::string("<input type=\"checkbox\" name=\"xfile\" value=\"1\">Crosses file boundary<br>\n"
 	"<input type=\"checkbox\" name=\"unused\" value=\"1\">Unused<br>\n"
 	"<p>\n"
@@ -1200,7 +1200,7 @@ iquery_page(void *p)
 	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
 	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
-	"<br><hr>\n");
+	"<br><hr>\n",true);
 	to_return["iquery"]["table"]= json::value::string("<table>\n"
 	"<tr><td>\n"
 	"Identifier names should "
@@ -1216,13 +1216,13 @@ iquery_page(void *p)
 	"</td><td>\n"
 	"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
 	"</td></tr>\n"
-	"</table>\n");
+	"</table>\n",true);
 	to_return["iquery"]["Query Title"] = json::value::string(
 	"<INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show identifiers\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
 	"<INPUT TYPE=\"submit\" NAME=\"qfun\" VALUE=\"Show functions\">\n"
-	"</FORM>");
+	"</FORM>",true);
 	return to_return;
 }
 
@@ -1437,7 +1437,7 @@ xfunquery_page(void *p)
 	}
 	if (q_file)
 		to_return["files"]=display_files(query, sorted_files);
-	to_return["timer"]=json::value::string(timer.print_elapsed());
+	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
 	return to_return;
 }
 
@@ -1576,12 +1576,14 @@ function_page(void *p)
 {
 	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
+	cout <<f;
 	if (f == NULL) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
 	}
 	const char *subst;
-	if ((subst = server.getStrParam("ncall").c_str())) {
+	if (!server.getStrParam("ncall").empty()) {
+		subst = subst = server.getStrParam("ncall").c_str();
 		string ssubst(subst);
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
@@ -1643,11 +1645,11 @@ function_page(void *p)
 	to_return["definition"]=json::value::string(fs.str());
 	fs.flush();
 	fs<<f;
+	cout<<fs.str()<<endl;
 	// Functions that are Down from us in the call graph
 	to_return["list"][0]=json::value::string("<li> Calls directly "+
 	to_string(f->get_num_call())+" functions" );
-	to_return["list"][1]=json::value::string("<li> <a href=\"funlist.html?f="+
-	fs.str()+"&n=d&e=1\">Explore directly called functions</a>\n");
+	to_return["list"][1]=json::value::string("<li> <a href=\"funlist.html?f="+fs.str()+"&n=d&e=1\">Explore directly called functions</a>\n");
 	to_return["list"][2]=json::value::string("<li> <a href=\"funlist.html?f="+
 	fs.str()+"&n=D\">List of all called functions</a>\n");
 	to_return["list"][3]=json::value::string("<li> <a href=\"cgraph"+
@@ -1734,28 +1736,37 @@ function_page(void *p)
  * If show is true, then a function hyperlink is printed, otherwise
  * only the visited flag is set to visit_id.
  */
-static void
-visit_functions(FILE *fo, const char *call_path, Call *f,
+static json::value
+visit_functions(const char *call_path, Call *f,
 	Call::const_fiterator_type (Call::*fbegin)() const,
 	Call::const_fiterator_type (Call::*fend)() const,
 	bool recurse, bool show, int level, int visit_id = 1)
 {
+	json::value to_return;
 	if (level == 0)
-		return;
+		return json::value::array();
 
 	Call::const_fiterator_type i;
-
+	int no=0;
+	char * s=new char[256];
+	
 	f->set_visited(visit_id);
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {
-		if (show && (!(*i)->is_visited(visit_id) || *i == f)) {
-			fprintf(fo, "<li> ");
-	//		html(fo, **i);
-			if (recurse && call_path)
-				fprintf(fo, call_path, *i);
+		if (show && (!(*i)->is_visited(visit_id) || *i == f)) {			
+			if (recurse && call_path){
+				sprintf(s, call_path, *i);
+				to_return[no]["cgraph"] = json::value(s);
+			}
+			to_return[no++]["fid"]=json::value::string(html(**i));			
 		}
-		if (recurse && !(*i)->is_visited(visit_id))
-			visit_functions(fo, call_path, *i, fbegin, fend, recurse, show, level - 1, visit_id);
+		if (recurse && !(*i)->is_visited(visit_id)){
+			if(show || *i == f)
+				to_return[no-1]["call"] = visit_functions(call_path, *i, fbegin, fend, recurse, show, level - 1, visit_id);
+			else 
+				to_return[no++]["call"] = visit_functions(call_path, *i, fbegin, fend, recurse, show, level - 1, visit_id);
+		}
 	}
+	return to_return;
 }
 
 /*
@@ -1847,66 +1858,42 @@ visit_fcall_files(Fileid f, Call::const_fiterator_type (Call::*abegin)() const, 
  * Print a list of callers or called functions for the given function,
  * recursively expanding functions that the user has specified.
  */
-static void
-explore_functions(FILE *fo, Call *f,
+static json::value
+explore_functions(Call *f,
 	Call::const_fiterator_type (Call::*fbegin)() const,
 	Call::const_fiterator_type (Call::*fend)() const,
-	int level)
+	bool recursive)
 {
 	Call::const_fiterator_type i;
-
-	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {
-		fprintf(fo, "<div style=\"margin-left: %dem\">", level * 2);
-		if (((*i)->*fbegin)() != ((*i)->*fend)()) {
-			/* Functions below; create +/- hyperlink. */
-			char param[1024];
-			sprintf(param, "f%02d%p", level, &(**i));
-			const char *pval = server.getStrParam(param).c_str();
-
-			if (pval) {
-				// Colapse hyperlink
-				string nquery(swill_getquerystring());
-				string::size_type start = nquery.find(param);
-				if (start != string::npos && start > 0)
-					// Erase &param=1 (i.e. param + 3 chars)
-					nquery.erase(start - 1, strlen(param) + 3);
-				fprintf(fo, "<table class=\"box\"> <tr><th><a class=\"plain\" href=\"%s?%s\">&ndash;</a></th><td>",
-				    server.getStrParam("__uri__").c_str(), nquery.c_str());
-			} else
-				// Expand hyperlink
-				fprintf(fo, "<table class=\"box\"> <tr><th><a class=\"plain\" href=\"%s?%s&%s=1\">+</a></th><td>",
-				     server.getStrParam("__uri__").c_str(),
-				     swill_getquerystring(), param);
-		//	html(fo, **i);
-			fputs("</td></tr></table></div>\n", fo);
-			if (pval && *pval == '1')
-				explore_functions(fo, *i, fbegin, fend, level + 1);
-		} else {
-			/* No functions below. Just display the function. */
-			fputs("<table class=\"unbox\"> <tr><th></th><td>", fo);
-		//	html(fo, **i);
-			fputs("</td></tr></table></div>\n", fo);
+	json::value to_return = NULL;
+	int no = 0;
+	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {				
+		to_return[no++][(**i).get_name()] = json::value::string(html(**i));
+		if(recursive){
+			to_return[no-1]["called"] = explore_functions(f, fbegin, fend, true);
 		}
-	}
+	} 
+	return to_return;		
 }
 
+
 // List of functions associated with a given one
-static void
-funlist_page(FILE *fo, void *p)
+static json::value
+funlist_page(void *p)
 {
+	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
 	char buff[256];
 
 	const char *ltype = server.getStrParam("n").c_str();
 	
 	if (f == NULL || !ltype) {
-		fprintf(fo, "Missing value");
-		return;
+		to_return["error"]=json::value::string("Missing value");
+		return to_return;
 	}
-	html_head(fo, "funlist", "Function List");
-	fprintf(fo, "<h2>Function ");
-	//html(fo, *f);
-	fprintf(fo, "</h2>");
+	
+	to_return["start"]=json::value::string("<h2>Function "+html(*f)+"</h2>");
+
 	const char *calltype;
 	bool recurse;
 	switch (*ltype) {
@@ -1919,8 +1906,8 @@ funlist_page(FILE *fo, void *p)
 		recurse = true;
 		break;
 	default:
-		fprintf(fo, "Illegal value");
-		return;
+		to_return["error"]=json::value::string("Illegal value");
+		return to_return;
 	}
 	// Pointers to the ...begin and ...end methods
 	Call::const_fiterator_type (Call::*fbegin)() const;
@@ -1931,27 +1918,24 @@ funlist_page(FILE *fo, void *p)
 	case 'U':
 		fbegin = &Call::caller_begin;
 		fend = &Call::caller_end;
-		fprintf(fo, "List of %s calling functions\n", calltype);
-		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%%p&to=%p\">call path from function</a>", graph_suffix(), f);
+		to_return["title"] = json::value::string("List of "+string(calltype)+" calling functions\n");
+		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%%p&to=%p\">call path from function</a>", graph_suffix().c_str(), f);
 		break;
 	case 'd':
 	case 'D':
 		fbegin = &Call::call_begin;
 		fend = &Call::call_end;
-		fprintf(fo, "List of %s called functions\n", calltype);
-		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix(), f);
+		to_return["title"]=json::value::string("List of "+string(calltype)+" called functions\n");
+		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix().c_str(), f);
 		break;
 	}
-	if (server.getIntParam("e")) {
-		fprintf(fo, "<br />\n");
-		explore_functions(fo, f, fbegin, fend, 0);
+	if (server.getBoolParam("e")) {
+		to_return["funs"]=explore_functions(f, fbegin, fend, false);
 	} else {
-		fprintf(fo, "<ul>\n");
 		Call::clear_visit_flags();
-		visit_functions(fo, buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
-		fprintf(fo, "</ul>\n");
+		to_return["funs"]=visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
 	}
-	html_tail(fo);
+	return to_return;
 }
 
 // Display the call paths between functions from and to
@@ -2164,15 +2148,15 @@ single_function_graph()
 	// No output, just set the visited flag
 	switch (*ltype) {
 	case 'D':
-		visit_functions(NULL, NULL, f, &Call::call_begin, &Call::call_end, true, false, Option::cgraph_depth->get());
+		visit_functions( NULL, f, &Call::call_begin, &Call::call_end, true, false, Option::cgraph_depth->get());
 		break;
 	case 'U':
-		visit_functions(NULL, NULL, f, &Call::caller_begin, &Call::caller_end, true, false, Option::cgraph_depth->get());
+		visit_functions( NULL, f, &Call::caller_begin, &Call::caller_end, true, false, Option::cgraph_depth->get());
 
 		break;
 	case 'B':
-		visit_functions(NULL, NULL, f, &Call::call_begin, &Call::call_end, true, false, Option::cgraph_depth->get(), 1);
-		visit_functions(NULL, NULL, f, &Call::caller_begin, &Call::caller_end, true, false, Option::cgraph_depth->get(), 2);
+		visit_functions( NULL, f, &Call::call_begin, &Call::call_end, true, false, Option::cgraph_depth->get(), 1);
+		visit_functions( NULL, f, &Call::caller_begin, &Call::caller_end, true, false, Option::cgraph_depth->get(), 2);
 
 		break;
 	}
@@ -2737,14 +2721,14 @@ index_page(FILE *of, void *data)
 		"<div class=\"mainblock\">\n"
 		"<h2>File Dependencies</h2>"
 		"<ul>\n", of);
-	fprintf(of, "<li> File include graph: <a href=\"fgraph%s?gtype=I\">writable files</a>, ", graph_suffix());
-	fprintf(of, "<a href=\"fgraph%s?gtype=I&all=1\">all files</a>", graph_suffix());
-	fprintf(of, "<li> Compile-time dependency graph: <a href=\"fgraph%s?gtype=C\">writable files</a>, ", graph_suffix());
-	fprintf(of, "<a href=\"fgraph%s?gtype=C&all=1\">all files</a>", graph_suffix());
-	fprintf(of, "<li> Control dependency graph (through function calls): <a href=\"fgraph%s?gtype=F&n=D\">writable files</a>, ", graph_suffix());
-	fprintf(of, "<a href=\"fgraph%s?gtype=F&n=D&all=1\">all files</a>", graph_suffix());
-	fprintf(of, "<li> Data dependency graph (through global variables): <a href=\"fgraph%s?gtype=G\">writable files</a>, ", graph_suffix());
-	fprintf(of, "<a href=\"fgraph%s?gtype=G&all=1\">all files</a>", graph_suffix());
+	fprintf(of, "<li> File include graph: <a href=\"fgraph%s?gtype=I\">writable files</a>, ", graph_suffix().c_str());
+	fprintf(of, "<a href=\"fgraph%s?gtype=I&all=1\">all files</a>", graph_suffix().c_str());
+	fprintf(of, "<li> Compile-time dependency graph: <a href=\"fgraph%s?gtype=C\">writable files</a>, ", graph_suffix().c_str());
+	fprintf(of, "<a href=\"fgraph%s?gtype=C&all=1\">all files</a>", graph_suffix().c_str());
+	fprintf(of, "<li> Control dependency graph (through function calls): <a href=\"fgraph%s?gtype=F&n=D\">writable files</a>, ", graph_suffix().c_str());
+	fprintf(of, "<a href=\"fgraph%s?gtype=F&n=D&all=1\">all files</a>", graph_suffix().c_str());
+	fprintf(of, "<li> Data dependency graph (through global variables): <a href=\"fgraph%s?gtype=G\">writable files</a>, ", graph_suffix().c_str());
+	fprintf(of, "<a href=\"fgraph%s?gtype=G&all=1\">all files</a>", graph_suffix().c_str());
 	fputs("</ul></div>", of);
 
 	fputs(
@@ -2757,8 +2741,8 @@ index_page(FILE *of, void *data)
 		"<li> <a href=\"xfunquery.html?writable=1&fscope=1&match=L&ncallerop=0&ncallers=&n=File-scoped+Writable+Functions&qi=x\">File-scoped writable functions</a>\n"
 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=0&n=Writable+Functions+that+Are+Not+Directly+Called&qi=x\">Writable functions that are not directly called</a>\n"
 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=1&n=Writable+Functions+that+Are++Called+Exactly+Once&qi=x\">Writable functions that are called exactly once</a>\n", of);
-	fprintf(of, "<li> <a href=\"cgraph%s\">Non-static function call graph</a>", graph_suffix());
-	fprintf(of, "<li> <a href=\"cgraph%s?all=1\">Function and macro call graph</a>", graph_suffix());
+	fprintf(of, "<li> <a href=\"cgraph%s\">Non-static function call graph</a>", graph_suffix().c_str());
+	fprintf(of, "<li> <a href=\"cgraph%s?all=1\">Function and macro call graph</a>", graph_suffix().c_str());
 	fputs("<li> <a href=\"funquery.html\">Specify new function query</a>\n"
 		"</ul></div>\n", of);
 
@@ -3420,7 +3404,7 @@ main(int argc, char *argv[])
 
 	vector<string> call_graphs;
 	Debug::db_read();
-
+	ofstream *logfile = NULL;
 	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:" PICO_QL_OPTIONS)) != EOF)
 		switch (c) {
 		case '3':
@@ -3492,12 +3476,12 @@ main(int argc, char *argv[])
 		case 'l':
 			if (!optarg)
 				usage(argv[0]);
-			FILE *logfile;
-			if ((logfile = fopen(optarg, "a")) == NULL) {
+			logfile = new ofstream(optarg);
+			if (!(*logfile).is_open()) {
 				perror(optarg);
 				exit(1);
 			}
-			server.log(logfile);
+			
 			break;
 		case 'o':
 			if (process_mode)
@@ -3535,7 +3519,7 @@ main(int argc, char *argv[])
 		
 
 		
-		server = HttpServer(address);
+		server = HttpServer(address,logfile);
 		Option::initialize();
 		options_load();
 		parse_acl();
@@ -3661,11 +3645,11 @@ main(int argc, char *argv[])
 
 		server.addHandler("id.html", identifier_page, NULL);
 		server.addHandler("fun.html", function_page, NULL);
-/*		server.addHandler("funlist.html", funlist_page, NULL);
-		server.addHandler("funmetrics.html", function_metrics_page, NULL);
-		server.addHandler("filemetrics.html", file_metrics_page, NULL);
-		server.addHandler("idmetrics.html", id_metrics_page, NULL);
-*/
+		server.addHandler("funlist.html", funlist_page, NULL);
+		// server.addHandler("funmetrics.html", function_metrics_page, NULL);
+		// server.addHandler("filemetrics.html", file_metrics_page, NULL);
+		// server.addHandler("idmetrics.html", id_metrics_page, NULL);
+
 		graph_handle("cgraph", cgraph_page);
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
