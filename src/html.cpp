@@ -134,8 +134,7 @@ string
 html_string( string s)
 {
 	string to_ret;
-	// char * to_ret = new char[s.length()];
-	// cout << "html_string:"<<s<<endl;
+
 	for (char & c : s){
 		to_ret.append(html(c));
 	}

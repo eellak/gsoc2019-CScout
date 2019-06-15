@@ -79,13 +79,13 @@ Pager::end()
 	
 	if (nelem > pagesize) {
 		if (skip > 0)
-			to_return["prev"] =json::value::string(url+"&skip=" +to_string(skip - pagesize));
+			to_return["prev"] =json::value::string(url+"&skip=" +to_string(skip - pagesize),true);
 		for (int i = 0; i < npages; i++){
 			
 			if (i == thispage && skip != -1)
 				to_return["others"][i] = json::value::string("this");
 			else
-				to_return["others"][i] = json::value::string(url+"skip="+to_string(i * pagesize));
+				to_return["others"][i] = json::value::string(url+"skip="+to_string(i * pagesize),true);
 		}
 		if (skip != -1 && thispage + 1 < npages)
 			to_return["next"] =json::value::string(url+"&skip=" +to_string(skip + pagesize));

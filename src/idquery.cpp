@@ -89,7 +89,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		name = qname;
 	cout<<"qname here" << endl;
 	// Identifier EC match to change
-	int t = server.getIntParam("ec"); 
+	void * t = server.getAddrParam("ec"); 
 	if (!t) {
 		ec = (Eclass *)t;
 	} else {

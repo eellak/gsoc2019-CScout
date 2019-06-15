@@ -3,7 +3,7 @@
 map<utility::string_t, Handler> handler_dictionary;
 
 //Server constructor binds handlers to methods
-HttpServer::HttpServer(utility::string_t url) : listener(url){  
+HttpServer::HttpServer(utility::string_t url, ofstream * log) : listener(url),log_file(log){
     listener.support(methods::GET, std::bind(&HttpServer::handle_get,this, std::placeholders::_1));
     listener.support(methods::POST, std::bind(&HttpServer::handle_post,this, std::placeholders::_1));
     listener.support(methods::DEL, std::bind(&HttpServer::handle_delete,this, std::placeholders::_1));
@@ -57,6 +57,10 @@ void HttpServer::handle_get(http_request request){
         //response = json::value(json::object["error"] = (U("Url Not found")));
         response["error"] = json::value::string("Url Not Found");
         request.reply(status_codes::NotFound,response);
+        if(this->log_file != NULL){
+            cout<<"write to log"<<endl;
+            *(this->log_file)<<response.serialize();
+        }
     }
     else{
         cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
@@ -75,6 +79,10 @@ void HttpServer::handle_get(http_request request){
         response = it->second.handleFunction(&(server.params));
         request.reply(status_codes::OK, response);
         cout << "Get Response:"<< response.serialize().c_str() << endl;
+        if(this->log_file != NULL){
+            cout<<"write to log"<<endl;
+            *(this->log_file)<<response.serialize();
+        }
     }
 }
 
@@ -145,5 +153,6 @@ void HttpServer::handle_delete(http_request request){
  /* to add handler */
 }
 void HttpServer::log(FILE * fid){
-
+    cout<<"logging"<<endl;
+    //this->log_file = fid;
 }

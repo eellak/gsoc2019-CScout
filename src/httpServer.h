@@ -23,10 +23,11 @@ typedef struct{
 class HttpServer{
 private : 
     json::value params;
+    ofstream *log_file;
 public:
     HttpServer(){}
     //Constructor for HttpServer on a url
-    HttpServer(utility::string_t url);
+    HttpServer(utility::string_t url, ofstream * log);
     //HTTP GET handler
     void handle_get(http_request request);
     //HTTP POST handler
@@ -46,7 +47,7 @@ public:
     //get request paramete from uri as bool
     bool getBoolParam(string name);
     //log server to a file
-    static void log(FILE * fid);
+    void log(FILE * fid);
     // listener sturct 
     http_listener listener;
 
