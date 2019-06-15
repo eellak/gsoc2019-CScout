@@ -193,7 +193,7 @@ static int num_fun_call_refactorings = 0;
 void index_page(FILE *of, void *data);
 
 // Return the page suffix for the select call graph type
-static const char *
+static string
 graph_suffix()
 {
 	switch (Option::cgraph_type->get()) {
@@ -1442,12 +1442,14 @@ xfunquery_page(void *p)
 }
 
 // Display an identifier property
-static void
-show_id_prop(ostringstream *fs, const string &name, bool val)
+static string
+show_id_prop(const string &name, bool val)
 {
-	cout<<"here:"<<endl;
+	
 	if (!Option::show_true->get() || val)
-		*fs<< "<li>" << name << ": "<< (val ? "Yes" : "No") <<"\n" ;
+		return "<li>" + name + ": "+ (val ? "Yes" : "No") +"\n" ;
+	else 
+		return "";
 }
 
 // Details for each identifier
@@ -1456,7 +1458,7 @@ identifier_page(void *p)
 {
 	json::value to_return;
 	Eclass *e;
-	
+	int no=0;
 	
 	e = (Eclass*)server.getAddrParam("id");
 	cout<<"E:"<<e<<endl;;
@@ -1491,69 +1493,75 @@ identifier_page(void *p)
 
 	to_return["id"]= json::value(id.get_id());
 	to_return["form"] =json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
-	ostringstream fs;
-	cout<<"before for"<<endl;
-	for (int i = attr_begin; i < attr_end; i++){
-		cout<<"made it here:"<<i<<endl;
-		cout<< Attributes::name(i)<<endl;
-		cout<<e->get_attribute(i)<<endl;
-		show_id_prop(&fs, Attributes::name(i), e->get_attribute(i));
-		
+	string s;
+	for (int i = attr_begin; i < attr_end; i++){		
+		s = show_id_prop(Attributes::name(i), e->get_attribute(i));		
+		if(!s.empty())
+			to_return["attribute"][no++] = json::value::string(s);
 	}
-	show_id_prop(&fs, "Crosses file boundary", id.get_xfile());
-	show_id_prop(&fs, "Unused", e->is_unused());
-	fs<<"<li> Matches "<< e->get_size() <<" occurence(s)\n";
-	to_return["info"] = json::value::string(fs.str());
-	fs.flush();
-	int no = 0;
-	cout<<"before if options"<<endl;
+	s = show_id_prop("Crosses file boundary", id.get_xfile());
+	if(!s.empty())
+			to_return["attribute"][no++] = json::value::string(s);
+	s = show_id_prop("Unused", e->is_unused());
+	if(!s.empty())
+			to_return["attribute"][no++] = json::value::string(s);
+	to_return["match"]["tite"]=json::value::string("<li> Matches "+to_string(e->get_size()) +" occurence(s)\n");
+	
+	no = 0;
 	if (Option::show_projects->get()) {
-		
+		to_return["projects"]["start"] = json::value::string("Appears in project(s): \n");
 		if (DP()) {
 			cout << "First project " << attr_end << endl;
 			cout << "Last project " <<  Attributes::get_num_attributes() - 1 << endl;
 		}
 		for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
 			if (e->get_attribute(j))
-				to_return["projects"][no++]= json::value::string("<li>"+Project::get_projname(j)+"\n");
-		to_return["projects"][no]= json::value::string("</ul>\n");
+				to_return["projects"]["content"][no++]= json::value::string(Project::get_projname(j));
+		to_return["projects"]["end"]= json::value::string("</ul>\n");
 	}
-	fs<< "<li><a href=\"xiquery.html?ec="
-		<<e<<"&n=Dependent+Files+for+Identifier+"<<
-		id.get_id()<<"&qf=1\">Dependent files</a>";
-	fs<< "<li><a href=\"xfunquery.html?ec="<<e
-	<<"&qi=1&n=Functions+Containing+Identifier+"<<id.get_id()<<
-	"\">Associated functions</a>";
-	cout<<"getatrrib cfunc"<<endl;
+	ostringstream fs;
+	fs<<e;
+	to_return["endAttr"][0]=json::value::string("<li><a href=\"xiquery.html?ec="
+		+fs.str()+"&n=Dependent+Files+for+Identifier+"+
+		id.get_id()+"&qf=1\">Dependent files</a>");
+	to_return["endAttr"][1]=json::value::string("<li><a href=\"xfunquery.html?ec="+
+	fs.str()+"&qi=1&n=Functions+Containing+Identifier+"
+	+id.get_id()+"\">Associated functions</a>");
+	no = 0;
+	
 	if (e->get_attribute(is_cfunction) || e->get_attribute(is_macro)) {
 		bool found = false;
 		// Loop through all declared functions
 		for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 			if (i->second->contains(e)) {
+				fs.flush();
+				fs<<i->second;
 				if (!found) {
-					fs<< "<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n";
+					to_return["functions"]["start"]=json::value::string(
+						"<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n");
 					found = true;
 				}
-				fs<< "\n<li>";
-				fs<< html_string(i->second);
-				fs<< " &mdash; <a href=\"fun.html?f="<<i->second<<"\">function page</a>";
+				to_return["functions"]["content"][no++]=json::value::string("\n<li>"+ html_string(i->second)
+				+" &mdash; <a href=\"fun.html?f="+fs.str()+"\">function page</a>");
 			}
 		}
 		if (found)
-			fs<<"</ol><br />\n";
+			to_return["functions"]["end"]=json::value::string("</ol><br />\n");
 	}
 	to_return["contains"]=json::value::string(fs.str());
-	cout<<"isreadonly"<<endl;
+	
 	fs.flush();
 	if ((!e->get_attribute(is_readonly) || Option::rename_override_ro->get()) &&
 	    modification_state != ms_hand_edit &&
 	    !browse_only) {
-		fs<<"<li> Substitute with: \n"
-			"<INPUT TYPE=\"text\" NAME=\"sname\" VALUE=\"%s\" SIZE=10 MAXLENGTH=256> "
-			"<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n"+
-			(id.get_replaced() ? id.get_newid() : id.get_id())+
-		 "<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""<<e<<"\">\n";
-		to_return["substitute"]= json::value::string(fs.str());
+		to_return["substitute"]["start"]=json::value::string("<li> Substitute with: \n");
+		to_return["substitute"]["content"][0]=json::value::string("<INPUT TYPE=\"text\" NAME=\"sname\" VALUE=\""
+			+(id.get_replaced() ? id.get_newid() : id.get_id())+"\" SIZE=10 MAXLENGTH=256> ");
+		to_return["substitute"]["content"][1]=json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
+		fs.flush();
+		fs<<e;
+		to_return["substitute"]["content"][2]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
+		+fs.str()+"\">\n");
 		if (!id.get_active())
 			to_return["inactive"]=json::value::string("<a href='replacements.html'>replacements page</a> ");
 	}
@@ -1563,84 +1571,101 @@ identifier_page(void *p)
 }
 
 // Details for each function
-void
-function_page(FILE *fo, void *p)
+json::value
+function_page(void *p)
 {
+	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
 	if (f == NULL) {
-		fprintf(fo, "Missing value");
-		return;
+		to_return["error"]=json::value::string("Missing value");
+		return to_return;
 	}
 	const char *subst;
 	if ((subst = server.getStrParam("ncall").c_str())) {
 		string ssubst(subst);
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
-			fprintf(fo, "Invalid function call refactoring template: %s", error);
-			return;
+			to_return["error"]=json::value(
+				"Invalid function call refactoring template: "+ string(error));
+			return to_return;
 		}
 		Eclass *ec = (Eclass *)server.getAddrParam("id");
 		if (ec == NULL) {
-			fprintf(fo, "Missing value");
-			return;
+			to_return["error"]=json::value::string("Missing value");
+			return to_return;
 		}
 		if (modification_state == ms_hand_edit) {
-			change_prohibited();
-			return;
+			to_return["error"]=change_prohibited();
+			return to_return;
 		}
 		std::ostringstream fs;
 		prohibit_browsers(&fs);
 		prohibit_remote_access(&fs);
-		
+		if (fs.str().length() > 0){
+			to_return["error"] = json::value::string(fs.str());
+			return to_return;
+		}
 		RefFunCall::store.insert(RefFunCall::store_type::value_type(ec, RefFunCall(f, subst)));
 		modification_state = ms_subst;
 	}
-	html_head(fo, "fun", string("Function: ") + html(f->get_name()) + " (" + f->entity_type_name() + ')');
-	fprintf(fo, "<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n");
-	fprintf(fo, "<h2>Details</h2>\n");
-	fprintf(fo, "<ul>\n");
-	fprintf(fo, "<li> Associated identifier(s): ");
-	//html_string(fo, f);
+	std::ostringstream fs;
+	to_return["fun_name"]= json::value::string(html(f->get_name()) + " (" + f->entity_type_name() + ')');
+	to_return["form"]=json::value::string("<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n"
+	"<ul>\n <li> Associated identifier(s): "+ html_string(f));
 	Tokid t = f->get_tokid();
 	if (f->is_declared()) {
-		fprintf(fo, "\n<li> Declared in file <a href=\"file.html?id=%u\">%s</a>",
-			t.get_fileid().get_id(),
-			t.get_fileid().get_path().c_str());
+		fs<<"\n<li> Declared in file <a href=\"file.html?id="<<t.get_fileid().get_id()
+		<<"\">"<<t.get_fileid().get_path()<<"</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fprintf(fo, " <a href=\"src.html?id=%u#%d\">line %d</a><br />(and possibly in other places)\n",
-			t.get_fileid().get_id(), lnum, lnum);
-			fprintf(fo, " &mdash; <a href=\"qsrc.html?qt=fun&id=%u&match=Y&call=%p&n=Declaration+of+%s\">marked source</a>",
-				t.get_fileid().get_id(),
-				f, f->get_name().c_str());
+		fs<<" <a href=\"src.html?id="<< t.get_fileid().get_id()<<"#"<<lnum
+		 <<"\">line "<<lnum<<"</a><br />(and possibly in other places)\n"
+		 <<" &mdash; <a href=\"qsrc.html?qt=fun&id="<<t.get_fileid().get_id()
+		 <<"&match=Y&call="<<f<<"&n=Declaration+of+"<<f->get_name() 
+		 <<"\">marked source</a>";
 			if (modification_state != ms_subst && !browse_only)
-				fprintf(fo, " &mdash; <a href=\"fedit.html?id=%u&re=%s\">edit</a>",
-				t.get_fileid().get_id(), f->get_name().c_str());
+				fs<<" &mdash; <a href=\"fedit.html?id="<<t.get_fileid().get_id()<<
+				"&re="<<f->get_name()<<"\">edit</a>";
 	}
+	to_return["declared"]=json::value::string(fs.str());
+	fs.flush();
 	if (f->is_defined()) {
 		t = f->get_definition();
-		fprintf(fo, "<li> Defined in file <a href=\"file.html?id=%u\">%s</a>",
-			t.get_fileid().get_id(),
-			t.get_fileid().get_path().c_str());
+		fs<<"<li> Defined in file <a href=\"file.html?id="
+		<<t.get_fileid().get_id()<<"\">"<<t.get_fileid().get_path()<<"</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fprintf(fo, " <a href=\"src.html?id=%u#%d\">line %d</a>\n",
-			t.get_fileid().get_id(), lnum, lnum);
+		fs<<" <a href=\"src.html?id="<<	t.get_fileid().get_id()
+		<<"#"<<lnum<<"\">line "<<lnum<<"</a>\n";
 		if (modification_state != ms_subst && !browse_only)
-			fprintf(fo, " &mdash; <a href=\"fedit.html?id=%u&re=%s\">edit</a>",
-			t.get_fileid().get_id(), f->get_name().c_str());
+			fs<<" &mdash; <a href=\"fedit.html?id="<<t.get_fileid().get_id()
+			<<"&re="<<f->get_name()<<"\">edit</a>";
 	} else
-		fprintf(fo, "<li> No definition found\n");
+		fs<<"<li> No definition found\n";
+	to_return["definition"]=json::value::string(fs.str());
+	fs.flush();
+	fs<<f;
 	// Functions that are Down from us in the call graph
-	fprintf(fo, "<li> Calls directly %d functions", f->get_num_call());
-	fprintf(fo, "<li> <a href=\"funlist.html?f=%p&n=d&e=1\">Explore directly called functions</a>\n", f);
-	fprintf(fo, "<li> <a href=\"funlist.html?f=%p&n=D\">List of all called functions</a>\n", f);
-	fprintf(fo, "<li> <a href=\"cgraph%s?all=1&f=%p&n=D\">Call graph of all called functions</a>", graph_suffix(), f);
+	to_return["list"][0]=json::value::string("<li> Calls directly "+
+	to_string(f->get_num_call())+" functions" );
+	to_return["list"][1]=json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str()+"&n=d&e=1\">Explore directly called functions</a>\n");
+	to_return["list"][2]=json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str()+"&n=D\">List of all called functions</a>\n");
+	to_return["list"][3]=json::value::string("<li> <a href=\"cgraph"+
+	graph_suffix()+"?all=1&f="+fs.str()+"&n=D\">Call graph of all called functions</a>");
 	// Functions that are Up from us in the call graph
-	fprintf(fo, "<li> Called directly by %d functions", f->get_num_caller());
-	fprintf(fo, "<li> <a href=\"funlist.html?f=%p&n=u&e=1\">Explore direct callers</a>\n", f);
-	fprintf(fo, "<li> <a href=\"funlist.html?f=%p&n=U\">List of all callers</a>\n", f);
-	fprintf(fo, "<li> <a href=\"cgraph%s?all=1&f=%p&n=U\">Call graph of all callers</a>", graph_suffix(), f);
-	fprintf(fo, "<li> <a href=\"cgraph%s?all=1&f=%p&n=B\">Call graph of all calling and called functions</a> (function in context)", graph_suffix(), f);
-
+	to_return["list"][4]=json::value::string("<li> Called directly by "+to_string(f->get_num_caller())+" functions");
+	to_return["list"][5]=json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str()+"&n=u&e=1\">Explore direct callers</a>\n");
+	to_return["list"][6]=json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str()+"&n=U\">List of all callers</a>\n");
+	to_return["list"][7]=json::value::string("<li> <a href=\"cgraph"
+	+graph_suffix()+"?all=1&f="+ fs.str()+"&n=U\">Call graph of all callers</a>");
+	to_return["list"][8]=json::value::string("<li> <a href=\"cgraph"
+	+graph_suffix()+"?all=1&f="+fs.str()+"&n=B\">Call graph of all calling and called functions</a> (function in context)");
+	to_return["f"]=json::value::string(fs.str());
+	to_return["graph_suffix"]=json::value::string(graph_suffix());
+	to_return["no_call"]=json::value(f->get_num_call());
+	to_return["no_called"]=json::value(f->get_num_caller());
 	// Allow function call refactoring only if there is a one to one relationship between the identifier and the function
 	Eclass *ec;
 	if (f->get_token().get_parts_size() == 1 &&
@@ -1665,26 +1690,36 @@ function_page(FILE *fo, void *p)
 					if (i + 1 < f->metrics().get_metric(FunMetrics::em_nparam))
 						repl_temp << ", ";
 				}
-			fprintf(fo, "<li> Refactor arguments into: \n"
-				"<INPUT TYPE=\"text\" NAME=\"ncall\" VALUE=\"%s\" SIZE=40 MAXLENGTH=256> "
-				"<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n",
-				repl_temp.str().c_str());
-			fprintf(fo, "<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\"%p\">\n", ec);
-			fprintf(fo, "<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\"%p\">\n", f);
+			to_return["refractor"]["start"]=json::value::string("<li> Refactor arguments into: \n");
+			to_return["refractor"]["content"][0]=json::value::string("<INPUT TYPE=\"text\" NAME=\"ncall\" VALUE=\""
+			+repl_temp.str()+ "\" SIZE=40 MAXLENGTH=256> ");
+			
+			to_return["refractor"]["content"][1]=json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
+			to_return["refractor"]["hidden"]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\""+fs.str()+"\">\n");
+			fs.flush();
+			fs<<ec;
+			to_return["refractor"]["content"][2]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
+			+fs.str()+"\">\n");
+			to_return["ec"]=json::value::string(fs.str());
 			if (rfc != RefFunCall::store.end() && !rfc->second.is_active())
-				fputs("<br>(This refactoring is inactive.  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)", fo);
+				to_return["refractor"]["inactive"]=json::value::string("<br>(This refactoring is inactive."
+				"  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)");
 		}
 	}
-	fprintf(fo, "</ul>\n");
+	to_return["end_list"]=json::value::string("</ul>\n");
+	int no = 0;
 	if (f->is_defined()) {
-		fprintf(fo, "<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th><th>Value</th></tr>\n");
+		to_return["metrics"]["start"]=json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
+		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
 			if (!Metrics::is_internal<FunMetrics>(j))
-				fprintf(fo, "<tr><td>%s</td><td align='right'>%g</td></tr>", Metrics::get_name<FunMetrics>(j).c_str(), f->metrics().get_metric(j));
-		fprintf(fo, "</table>\n");
+				to_return["metrics"]["content"][no++]=json::value::string("<tr><td>"+
+				Metrics::get_name<FunMetrics>(j)+"</td><td align='right'>"+
+				to_string(f->metrics().get_metric(j))+"</td></tr>");
+		to_return["metrics"]["end"]=json::value::string("</table>\n");
 	}
-	fprintf(fo, "</FORM>\n");
-	html_tail(fo);
+	to_return["end"]=json::value::string("</FORM>\n");
+	return to_return;
 }
 
 /*
@@ -3625,8 +3660,8 @@ main(int argc, char *argv[])
 		server.addHandler("xfunquery.html", xfunquery_page, NULL);
 
 		server.addHandler("id.html", identifier_page, NULL);
-/*		server.addHandler("fun.html", function_page, NULL);
-		server.addHandler("funlist.html", funlist_page, NULL);
+		server.addHandler("fun.html", function_page, NULL);
+/*		server.addHandler("funlist.html", funlist_page, NULL);
 		server.addHandler("funmetrics.html", function_metrics_page, NULL);
 		server.addHandler("filemetrics.html", file_metrics_page, NULL);
 		server.addHandler("idmetrics.html", id_metrics_page, NULL);
