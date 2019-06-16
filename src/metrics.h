@@ -40,6 +40,7 @@
 #include <vector>
 #include <limits>
 #include <ostream>
+#include <cpprest/json.h>
 
 using namespace std;
 
@@ -171,6 +172,7 @@ public:
 	template <class UnaryFunction>
 	void add(Eclass *ec, UnaryFunction f);
 	friend ostream& operator<<(ostream& o, const IdMetricsSet &m);
+	friend web::json::value to_json(const IdMetricsSet &m);
 };
 
 class Fileid;
@@ -187,6 +189,7 @@ class IdMetricsSet {
 	IdCount all;	// Each identifier counted for every occurance in a file
 public:
 	friend ostream& operator<<(ostream& o, const IdMetricsSet &m);
+	friend web::json::value to_json(const IdMetricsSet &m);
 };
 
 // This can be kept per project and globally
@@ -197,6 +200,13 @@ public:
 	void add_id(Eclass *ec);
 	// Called for every unique identifier occurence (EC)
 	void add_unique_id(Eclass *ec);
+	web::json::value json(){
+		web::json::value to_return;
+		to_return["writable"] = to_json(rw[0]);
+		to_return["read-only"] = to_json(rw[1]);
+		return to_return;
+	}
+	
 	friend ostream& operator<<(ostream& o,const IdMetricsSummary &ms);
 };
 
@@ -322,8 +332,34 @@ public:
 	{}
 	template <class MM, class EE>
 	friend ostream& operator<<(ostream& o, const MetricsRange &m);
+	template <class MM, class EE>
+	friend web::json::value to_json(const MetricsRange &m);
 	double get_total(int i) { return total.get_metric(i); }
 };
+
+template <class M, class E>
+web::json::value to_json(const MetricsRange<M,E> &m){
+	web::json::value to_return;
+	to_return["no_elements"]=web::json::value(m.total.get_nelement());
+	if(m.total.get_nelement() == 0)
+		return to_return;
+	to_return["head"][0]=web::json::value("Metric");
+	to_return["head"][1]=web::json::value("Total");
+	to_return["head"][2]=web::json::value("Min");
+	to_return["head"][3]=web::json::value("Max");
+	to_return["head"][4]=web::json::value("Avg");
+	
+	int no =0;
+	for (int i = 0; i < M::metric_max; i++)
+		if (!Metrics::is_internal<M>(i)){
+			to_return["metrics"][no][0]=web::json::value(Metrics::get_name<M>(i));
+			to_return["metrics"][no][1]=web::json::value(m.total.get_metric(i));
+			to_return["metrics"][no][2]=web::json::value(m.min.get_metric(i));
+			to_return["metrics"][no][3]=web::json::value(m.max.get_metric(i));
+			to_return["metrics"][no++][4]=web::json::value(avg(m.total.get_metric(i), m.total.get_nelement()));
+		}   
+	return to_return;
+}
 
 template <class M, class E>
 ostream&

@@ -176,6 +176,36 @@ IdMetricsSummary::add_unique_id(Eclass *ec)
 	rw[ec->get_attribute(is_readonly)].minlen.add(ec, set_min(ec->get_len()));
 }
 
+web::json::value to_json(const IdMetricsSet &mi)
+{
+	web::json::value to_return;
+	IdMetricsSet &m = (IdMetricsSet &)mi;
+	to_return["head"][0] = web::json::value("Identifier class");
+	to_return["head"][1] = web::json::value("Distinct # ids");
+	to_return["head"][2] = web::json::value("Total # ids");
+	to_return["head"][3] = web::json::value("Avg length");
+	to_return["head"][4] = web::json::value("Min length");
+	to_return["head"][5] = web::json::value("Max length");
+
+	to_return["content"][0][0] = web::json::value("All identifiers");
+	to_return["content"][0][1] = web::json::value(m.once.total);
+	to_return["content"][0][2] = web::json::value(m.all.total);
+	to_return["content"][0][3] = web::json::value(avg(m.len.total, m.once.total));
+	to_return["content"][0][4] = web::json::value(m.minlen.total);
+	to_return["content"][0][5] = web::json::value(m.maxlen.total);
+	
+	int no = 1;
+	for (int i = is_readonly + 1; i < attr_end; i++){
+		to_return["content"][no][0] = web::json::value(Attributes::name(i));
+		to_return["content"][no][1] = web::json::value(m.once.get_count(i));
+		to_return["content"][no][2] = web::json::value(m.all.get_count(i));
+		to_return["content"][no][3] = web::json::value(avg(m.len.get_count(i), m.once.get_count(i)));
+		to_return["content"][no][4] = web::json::value(m.minlen.get_count(i));
+		to_return["content"][no++][5] = web::json::value(m.maxlen.get_count(i));
+	}
+	return to_return;
+}
+
 ostream&
 operator<<(ostream& o, const IdMetricsSet &mi)
 {

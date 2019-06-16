@@ -100,6 +100,12 @@ public:
 	// Create file-based summary
 	void summarize_files();
 	friend ostream& operator<<(ostream& o,const FileMetricsSummary &ms);
+	web::json::value json(){
+		web::json::value to_return;
+		to_return["writable"] = to_json(rw[false]);
+		to_return["read-only"] = to_json(rw[true]);
+		return to_return;
+		}
 	double get_total(int i) { return rw[0].get_total(i) + rw[1].get_total(i); }
 	double get_readonly(int i) { return rw[1].get_total(i); }
 	double get_writable(int i) { return rw[0].get_total(i); }
