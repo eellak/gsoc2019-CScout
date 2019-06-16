@@ -2102,35 +2102,22 @@ options_load()
 	fprintf(stderr, "Options loaded from %s\n", fname.c_str());
 }
 
-void
-file_metrics_page(FILE *fo, void *p)
+json::value
+file_metrics_page(void *p)
 {
-	// html_head(fo, "filemetrics", "File Metrics");
-	// ostringstream mstring;
-	// mstring << file_msum;
-	// fputs(mstring.str().c_str(), fo);
-	// html_tail(fo);
-
+	return file_msum.json();
 }
 
-void
-function_metrics_page(FILE *fo, void *p)
+json::value
+function_metrics_page(void *p)
 {
-	html_head(fo, "funmetrics", "Function Metrics");
-	ostringstream mstring;
-	mstring << fun_msum;
-	fputs(mstring.str().c_str(), fo);
-	html_tail(fo);
+	return fun_msum.json();
 }
 
-void
-id_metrics_page(FILE *fo, void *p)
+json::value
+id_metrics_page(void *p)
 {
-	html_head(fo, "idmetrics", "Identifier Metrics");
-	ostringstream mstring;
-	mstring << id_msum;
-	fputs(mstring.str().c_str(), fo);
-	html_tail(fo);
+	return id_msum.json();
 }
 
 /*
@@ -2625,18 +2612,23 @@ select_project_page(void *p)
 }
 
 // Select a single project (or none) to restrict file/identifier results
-void
-set_project_page(FILE *fo, void *p)
+json::value
+set_project_page(void *p)
 {
 	std::ostringstream fs;
+	json::value to_return;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 
 	if (!(current_project = server.getIntParam("projid)"))) {
-		fprintf(fo, "Missing value");
-		return;
+		to_return["error"] = json::value::string("Missing value");
+		return to_return;
 	}
-	index_page(fo, p);
+	//index_page(fo, p);
 }
 
 // Return version information
@@ -3563,10 +3555,10 @@ main(int argc, char *argv[])
 	
 
 	if (process_mode != pm_compile) {
-		server.addHandler("sproject",select_project_page, 0);
+		server.addHandler("sproject.html",select_project_page, 0);
 		/*change these functions*/
-		server.addHandler("replacements", replacements_page, 0);
-		server.addHandler("xreplacements", xreplacements_page, NULL);
+		server.addHandler("replacements.html", replacements_page, 0);
+		server.addHandler("xreplacements.html", xreplacements_page, NULL);
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
 		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
@@ -3646,16 +3638,16 @@ main(int argc, char *argv[])
 		server.addHandler("id.html", identifier_page, NULL);
 		server.addHandler("fun.html", function_page, NULL);
 		server.addHandler("funlist.html", funlist_page, NULL);
-		// server.addHandler("funmetrics.html", function_metrics_page, NULL);
-		// server.addHandler("filemetrics.html", file_metrics_page, NULL);
-		// server.addHandler("idmetrics.html", id_metrics_page, NULL);
+		server.addHandler("funmetrics.html", function_metrics_page, NULL);
+		server.addHandler("filemetrics.html", file_metrics_page, NULL);
+		server.addHandler("idmetrics.html", id_metrics_page, NULL);
 
 		graph_handle("cgraph", cgraph_page);
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
 
-		// server.addHandler("about.html", about_page, NULL);
-		// server.addHandler("setproj.html", set_project_page, NULL);
+	//	server.addHandler("about.html", about_page, NULL);
+		server.addHandler("setproj.html", set_project_page, NULL);
 		// server.addHandler("logo.png", logo_page, NULL);
 		//server.addHandler("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
 	}
