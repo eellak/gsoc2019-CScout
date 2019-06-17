@@ -2985,31 +2985,44 @@ logo_page(FILE *fo, void *p)
 static json::value
 replacements_page(void *p)
 {
-	/* define JSON func
-	html_head(of, "replacements", "Identifier Replacements");
-	cerr << "Creating i
-	prohibit_remote_access(of);dentifier list" << endl;
-	fputs("<p><form action=\"xreplacements.html\" method=\"get\">\n"
-		"<table><tr><th>Identifier</th><th>Replacement</th><th>Active</th></tr>\n"
-	, of);
+	json::value to_return;
+	// define JSON func
+	cerr << "Creating identifier list"<<endl;
+	ostringstream fs;
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
+	to_return["form"]=json::value::string("<form action=\"xreplacements.html\" method=\"put\">\n"
+		"<table><tr><th>Identifier</th><th>Replacement</th><th>Active</th></tr>\n");
 	
+	int no = 0;
+	
+
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 		if (i->second.get_replaced()) {
-			fputs("<tr><td>", of);
-			html(of, *i);
-			fprintf(of,
-				"</td><td><input type=\"text\" name=\"r%p\" value=\"%s\" size=\"10\" maxlength=\"256\"></td>"
-				"<td><input type=\"checkbox\" name=\"a%p\" value=\"1\" %s></td></tr>\n",
-				&(i->second), i->second.get_newid().c_str(),
-				&(i->second), i->second.get_active() ? "checked" : "");
+			fs.flush();
+			to_return["content"][no]["start"]=json::value::string("<tr><td>");
+			to_return["content"][no]["name"]=json::value::string(html(*i));
+			fs<<"</td><td><input type=\"text\" name=\"r"<<&(i->second)
+			<<"\" value=\""<<i->second.get_newid()<<"\" size=\"10\" maxlength=\"256\"></td>";
+			to_return["content"][no]["text"]=json::value::string(fs.str());
+			fs.flush();
+			fs<<"<td><input type=\"checkbox\" name=\"a"<<&(i->second)<<"\" value=\"1\" "
+			<<(i->second.get_active() ? "checked" : "")<<"></td></tr>\n";
+			to_return["content"][no]["checkbox"] = json::value::string(fs.str());
+			fs.flush();
+			fs<<&(i->second);
+			to_return["content"][no]["id_adress"] = json::value::string(fs.str());
+			to_return["content"][no]["new_id"] = json::value::string(i->second.get_newid());
+			to_return["content"][no++]["active"] = json::value(i->second.get_active());
 		}
 	}
 	cerr << endl;
-	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
-	html_tail(of);
-	*/
-	json::value to_return = json::value(utility::string_t("replacements_page"));
+	to_return["end"]=json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
+
 	return to_return;
 
 }
@@ -3018,10 +3031,14 @@ replacements_page(void *p)
 static json::value
 xreplacements_page(void *p)
 {
-	/* define JSON func
-	prohibit_browsers(of);
-	prohibit_remote_access(of);
-
+	json::value to_return;
+	ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 	cerr << "Creating identifier list" << endl;
 
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
@@ -3040,10 +3057,8 @@ xreplacements_page(void *p)
 		}
 	}
 	cerr << endl;
-	index_page(of, p);
-	*/
-	json::value test = json::value(utility::string_t("xreplacements_page"));
-	return test;
+	to_return["ok"]=json::value::string("done");
+	return to_return;
 
 }
 
@@ -3558,7 +3573,7 @@ main(int argc, char *argv[])
 		server.addHandler("sproject.html",select_project_page, 0);
 		/*change these functions*/
 		server.addHandler("replacements.html", replacements_page, 0);
-		server.addHandler("xreplacements.html", xreplacements_page, NULL);
+		server.addPutHandler("xreplacements.html", xreplacements_page, NULL);
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
 		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
