@@ -36,6 +36,8 @@ public:
     void handle_put(http_request request);
     //adds a function to a map based on the path of the request
     void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
+    //adds a function to a map based on the path of the request for Http Put
+    void addPutHandler(utility::string_t value,function <json::value(void *)> handleFunction,void* attributes);
     //starts the server to listen on the url
     void serve();
     //get request parameter from uri as int
@@ -47,7 +49,7 @@ public:
     //get request paramete from uri as bool
     bool getBoolParam(string name);
     //log server to a file
-    void log(FILE * fid);
+    void log(string msg);
     // listener sturct 
     http_listener listener;
 

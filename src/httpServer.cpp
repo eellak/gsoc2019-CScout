@@ -1,6 +1,7 @@
 #include "headers.h"
 // URI Path to func dictionary 
 map<utility::string_t, Handler> handler_dictionary;
+map<utility::string_t, Handler> put_handler_dictionary;
 
 //Server constructor binds handlers to methods
 HttpServer::HttpServer(utility::string_t url, ofstream * log) : listener(url),log_file(log){
@@ -17,8 +18,16 @@ void HttpServer::addHandler(utility::string_t value,function <json::value(void *
     funcHandler.value = value;
     funcHandler.handleFunction = handleFunction;
     funcHandler.attributes = attributes;
-    handler_dictionary[value] = funcHandler;
-    //handler_dictionary.insert(pair<utility::string_t,Handler>(value,funcHandler));   
+    handler_dictionary[value] = funcHandler; 
+    cout << "HttpServer: addHandler " << value<< " called \n";
+}
+
+void HttpServer::addPutHandler(utility::string_t value,function <json::value(void *)> handleFunction,void* attributes){
+    Handler funcHandler;
+    funcHandler.value = value;
+    funcHandler.handleFunction = handleFunction;
+    funcHandler.attributes = attributes;
+    put_handler_dictionary[value] = funcHandler; 
     cout << "HttpServer: addHandler " << value<< " called \n";
 }
 
@@ -42,7 +51,7 @@ void HttpServer::serve(){
 
 // HTTP GET handler
 void HttpServer::handle_get(http_request request){
- 
+    
     cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
     utility::string_t path = request.relative_uri().path();
     cout << "HttpServer: Handle get of "<<path << endl;
@@ -54,7 +63,7 @@ void HttpServer::handle_get(http_request request){
     // match path with dictionary
     auto it = handler_dictionary.find(path.substr(1));
     if (it == handler_dictionary.end()){
-        //response = json::value(json::object["error"] = (U("Url Not found")));
+       
         response["error"] = json::value::string("Url Not Found");
         request.reply(status_codes::NotFound,response);
         if(this->log_file != NULL){
@@ -84,8 +93,40 @@ void HttpServer::handle_get(http_request request){
             *(this->log_file)<<response.serialize();
         }
     }
+   server.params=json::value(); 
 }
 
+
+void HttpServer::handle_put(http_request request){
+ /* to add handler */
+    utility::string_t path = request.relative_uri().path();
+    auto it = put_handler_dictionary.find(path.substr(1));
+    json::value response;
+    
+    if (it == put_handler_dictionary.end()){
+        response["error"] = json::value::string("Url Not Found");
+        request.reply(status_codes::NotFound,response);
+        if(this->log_file != NULL){
+            cout<<"write to log"<<endl;
+            *(this->log_file)<<response.serialize();
+        }
+    }
+    else{
+        cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
+        cout<<"URI:"<< request.request_uri().query()<<endl;
+        response = it->second.handleFunction(&(server.params));
+        request.reply(status_codes::OK, response);
+        cout << "Get Response:"<< response.serialize().c_str() << endl;
+        if(this->log_file != NULL){
+            cout<<"write to log"<<endl;
+            *(this->log_file)<<response.serialize();
+        }
+    }
+
+    server.params=json::value();
+}
+
+//Read Uri parameter as an address
 void * HttpServer::getAddrParam(string name){
      if(!(server.params.has_field(name))){
         cout<<"zero"<<endl;
@@ -117,9 +158,12 @@ int HttpServer::getIntParam(string name){
             return stoi(server.params[name].as_string());
         }
 }
+
+//Check if parameter exists in Uri
 bool HttpServer::getBoolParam(string name){
     return server.params.has_field(name);
 }
+
 //Read Uri Parameter as a string
 string  HttpServer::getStrParam(string name){
     cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
@@ -143,16 +187,15 @@ void HttpServer::handle_post(http_request request){
  /* to add handler */
 }
 
-
-void HttpServer::handle_put(http_request request){
- /* to add handler */
-}
-
-
 void HttpServer::handle_delete(http_request request){
  /* to add handler */
 }
-void HttpServer::log(FILE * fid){
-    cout<<"logging"<<endl;
-    //this->log_file = fid;
+
+void HttpServer::log(string msg){
+   cout<<"logging"<<endl;
+   if(this->log_file != NULL){
+        cout<<"write to log"<<endl;
+        *(this->log_file)<<msg<<endl;
+    } 
+
 }
