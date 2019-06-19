@@ -3066,42 +3066,51 @@ xreplacements_page(void *p)
 static json::value
 funargrefs_page( void *p)
 {
-	/* define JSON func
-	prohibit_remote_access(of);
-	html_head(of, "funargrefs", "Function Argument Refactorings");
-	fputs("<p><form action=\"xfunargrefs.html\" method=\"get\">\n"
-		"<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n"
-	, of);
+	json::value to_return;
+	ostringstream fs;
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
+	to_return["form"]=json::value::string("<form action=\"xfunargrefs.html\" method=\"get\">\n");
+	to_return["table"]["start"]= json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
+
+	int no =0;
 
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
-		fputs("<tr><td>", of);
-		html(of, *(i->second.get_function()));
-		fprintf(of,
-			"</td><td><input type=\"text\" name=\"r%p\" value=\"%s\" size=\"10\" maxlength=\"256\"></td>"
-			"<td><input type=\"checkbox\" name=\"a%p\" value=\"1\" %s></td></tr>\n",
-			i->first, i->second.get_replacement().c_str(),
-			i->first, i->second.is_active() ? "checked" : "");
+		fs.flush();
+		fs<<i->first;
+		to_return["table"]["contents"][no]=json::value::string("<tr><td>"+html(*(i->second.get_function()))
+		+"</td><td><input type=\"text\" name=\"r"+fs.str()+"\" value=\""+i->second.get_replacement()+
+		"\" size=\"10\" maxlength=\"256\"></td>""<td><input type=\"checkbox\" name=\"a"+fs.str()+
+		"\" value=\"1\" "+(i->second.is_active() ? "checked" : "")+"></td></tr>\n");
+		to_return["variables"][no]["address"]=json::value(fs.str());
+		to_return["variables"][no]["replacement"]=json::value(i->second.get_replacement());
+		to_return["variables"][no++]["active"]=json::value(i->second.is_active());
 	}
-	fputs("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n", of);
-	html_tail(of);
-	*/
-	json::value test = json::value(utility::string_t("funargrefs_page"));
-	return test;
+	to_return["table"]["end"]=json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
+	return to_return;
 }
 
 // Process a function argument refactorings form
 static json::value
 xfunargrefs_page(void *p)
 {
-	/* define JSON func
-	prohibit_browsers(of);
-	prohibit_remote_access(of);
+	json::value to_return;
+	ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		char varname[128];
 		snprintf(varname, sizeof(varname), "r%p", i->first);
-		char *subst;
-		if ((subst = server.getStrParam(varname))!= NULL) {
+		const char *subst;
+		if ((subst = server.getStrParam(varname).c_str())!= NULL) {
 			string ssubst(subst);
 			i->second.set_replacement(ssubst);
 		}
@@ -3109,10 +3118,9 @@ xfunargrefs_page(void *p)
 		snprintf(varname, sizeof(varname), "a%p", i->first);
 		i->second.set_active(!!server.getBoolParam(varname));
 	}
-	index_page(of, p);
-	*/
-	json::value test = json::value(utility::string_t("xfunargrefs_page"));
-	return test;
+	
+	to_return["ok"]=json::value::string("done");
+	return to_return;
 }
 
 
