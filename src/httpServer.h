@@ -4,6 +4,7 @@
 #include <cpprest/json.h>
 #include <string>
 #include <functional>
+#include <sys/wait.h>
 
 using namespace std;
 using namespace web;
@@ -24,6 +25,7 @@ class HttpServer{
 private : 
     json::value params;
     ofstream *log_file;
+    static bool must_exit;
 public:
     HttpServer(){}
     //Constructor for HttpServer on a url

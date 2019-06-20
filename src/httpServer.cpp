@@ -1,4 +1,7 @@
 #include "headers.h"
+
+bool HttpServer::must_exit = false;
+
 // URI Path to func dictionary 
 map<utility::string_t, Handler> handler_dictionary;
 map<utility::string_t, Handler> put_handler_dictionary;
@@ -40,8 +43,11 @@ void HttpServer::serve(){
         this->listener.open()
             .then([&list](){cout << "\n Http Rest Server starts listening \n";})
             .wait(); 
-        //while(!must_exit);
-        while(true);
+
+        while(!must_exit)
+            wait(NULL);
+        this->listener.close().wait();
+            
     }
     catch (exception const & e){
         cout << e.what() << endl;
@@ -97,7 +103,7 @@ void HttpServer::handle_get(http_request request){
 }
 
 
-void HttpServer::handle_put(http_request request){
+void HttpServer::handle_put(http_request request) {
  /* to add handler */
     utility::string_t path = request.relative_uri().path();
     auto it = put_handler_dictionary.find(path.substr(1));
@@ -124,13 +130,20 @@ void HttpServer::handle_put(http_request request){
             cout<<it->first << "-"<<it->second<<endl;
         }
         response = it->second.handleFunction(&(server.params));
-        request.reply(status_codes::OK, response);
+        bool exodus = response.has_field("exit");
+        request.reply(status_codes::OK, response).then([&exodus](){
+            if(exodus){
+                must_exit = true;
+                //throw exodus;
+            }
+        });
         cout << "Get Response:"<< response.serialize().c_str() << endl;
         cout<<(this->log_file == NULL);
         if(this->log_file != NULL){
             cout<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
         }
+               
     }
 
     server.params=json::value();

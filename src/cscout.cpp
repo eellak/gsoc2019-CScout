@@ -2607,14 +2607,14 @@ static void produce_call_graphs(const vector <string> &call_graphs)
 static void
 graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 {
-	/*swill_handle((name + ".html").c_str(), graph_html_page, graph_fun);
-	swill_handle((name + ".txt").c_str(), graph_txt_page, graph_fun);
-	swill_handle((name + "_dot.txt").c_str(), graph_dot_page, graph_fun);
-	swill_handle((name + ".svg").c_str(), graph_svg_page, graph_fun);
-	swill_handle((name + ".gif").c_str(), graph_gif_page, graph_fun);
-	swill_handle((name + ".png").c_str(), graph_png_page, graph_fun);
-	swill_handle((name + ".pdf").c_str(), graph_pdf_page, graph_fun);
-*/
+//	server.addHandler((name + ".html").c_str(), graph_html_page, graph_fun);
+// 	swill_handle((name + ".txt").c_str(), graph_txt_page, graph_fun);
+// 	swill_handle((name + "_dot.txt").c_str(), graph_dot_page, graph_fun);
+// 	swill_handle((name + ".svg").c_str(), graph_svg_page, graph_fun);
+// 	swill_handle((name + ".gif").c_str(), graph_gif_page, graph_fun);
+// 	swill_handle((name + ".png").c_str(), graph_png_page, graph_fun);
+// 	swill_handle((name + ".pdf").c_str(), graph_pdf_page, graph_fun);
+// 
 }
 
 // Display all projects, allowing user to select
@@ -3157,8 +3157,10 @@ write_quit_page(void *exit)
 		return to_return;
 	}
 
-	if (exit)
-		to_return["action"]=json::value::string("CScout exiting");
+	if (exit){
+		to_return["exit"]=json::value(true);
+		must_exit=true;
+	}
 	else {
 		if (Option::sfile_re_string->get().length() == 0) {
 			to_return["error"]=json::value::string("Not Allowed");
@@ -3224,7 +3226,7 @@ write_quit_page(void *exit)
 	to_return["statistics"]["no_fun_refactorings"] = json::value (num_fun_call_refactorings);
 	to_return["statistics"]["no_files"] = json::value( (unsigned)(process.size()) );
 	if (exit) {
-		to_return["action"]=json::value("exit");
+		to_return["exit"]=json::value(true);
 		must_exit = true;
 	} 
 
@@ -3234,17 +3236,18 @@ write_quit_page(void *exit)
 json::value
 quit_page(void *p)
 {
-	/* define JSON func
-	prohibit_browsers(of);
-	prohibit_remote_access(of);
+	json::value to_return;
+	ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 
-	html_head(of, "quit", "CScout exiting");
-	fprintf(of, "No changes were saved.");
-	fprintf(of, "<p>Bye...</body></html>");
+	to_return["exit"]=json::value(true);
 	must_exit = true;
-	*/
-	json::value test = json::value(utility::string_t("quit_page"));
-	return test;
+	return to_return;
 }
 
 // Parse the access control list acl.
@@ -3750,7 +3753,7 @@ main(int argc, char *argv[])
 	}
 	// if (browse_only)
 	// 	swill_setfork();
-	while (!must_exit){
+	if (!must_exit){
 		cout << "CScout to serve" << endl;
 		server.serve();	
 	}
