@@ -58,7 +58,7 @@ public:
 	// Set from a submitted page
 	virtual void set() = 0;
 	// Display on a web page
-	virtual void display(FILE *f) = 0;
+	virtual json::value display() = 0;
 	// Return true if the option can be saved
 	virtual bool is_saveable() { return true; }
 
@@ -71,7 +71,7 @@ public:
 	// Set from a submitted page
 	static void set_all();
 	// Display on a web page
-	static void display_all(FILE *f);
+	static json::value display_all();
 
 	// Global Web options
 	static BoolOption *fname_in_context;		// Remove common file prefix
@@ -120,16 +120,18 @@ public:
 	// Set from a submitted page
 	bool get() { return v; }
 	// Display on a web page
-	void display(FILE *f) {
-		fprintf(f,
+	json::value display() {
+		json::value to_return;
+		to_return["html"] = json::value::string(
 			"<tr>"
-			"<td>%s</td>\n"
-			"<td><input type=\"checkbox\" name=\"%s\" value=\"1\" %s></td>"
-			"</tr>\n",
-			user_name,
-			short_name,
-			v ? "checked" : ""
-		);
+			"<td>" + string(user_name) + "</td>\n"
+			"<td><input type=\"checkbox\" name=\""+short_name+
+			"\" value=\"1\" "+(v ? "checked" : "")+"></td>"
+			"</tr>\n");
+		to_return["short_name"]=json::value(short_name);
+		to_return["user_name"]=json::value(user_name);
+		to_return["value"] = json::value(v);
+		return to_return;
 	}
 };
 
@@ -163,7 +165,7 @@ public:
 	// Return the value
 	char get() { return v; }
 	// Display on a web page
-	void display(FILE *f);
+	json::value display();
 };
 
 // A textual value
@@ -185,7 +187,7 @@ public:
 	// Return the value
 	const string &get() { return v; }
 	// Display on a web page
-	void display(FILE *f);
+	json::value display();
 };
 
 // A (positive) integer value
@@ -209,16 +211,19 @@ public:
 	// Return the value
 	int get() { return v; }
 	// Display on a web page
-	void display(FILE *f) {
-		fprintf(f,
+	json::value display() {
+		json::value to_return;
+		to_return["html"]=json::value::string(
 			"<tr>"
-			"<td>%s</td>\n"
-			"<td><input type=\"text\" name=\"%s\" size=\"5\" maxlength=\"5\" value=\"%d\"></td>"
-			"</tr>\n",
-			user_name,
-			short_name,
-			v
-		);
+			"<td>"+string(user_name)+"</td>\n"
+			"<td><input type=\"text\" name=\""+short_name+"\" size=\"5\" maxlength=\"5\" value=\""
+			+to_string(v)+"\"></td>"
+			"</tr>\n");
+		to_return["short_name"]=json::value(short_name);
+		to_return["user_name"]=json::value(user_name);
+		to_return["value"]=	json::value(v);
+
+		return to_return;
 	}
 };
 
@@ -239,11 +244,12 @@ public:
 	// Return true if the option can be saved
 	virtual bool is_saveable() { return false; }
 	// Display on a web page
-	void display(FILE *f) {
-		fprintf(f,
-			"<tr><td class='opthead'>%s</td></tr>\n",
-			user_name
-		);
+	json::value display() {
+		json::value to_return;
+		to_return["html"]=json::value::string(
+			"<tr><td class='opthead'>"+string(user_name)+"</td></tr>\n");
+		to_return["user_name"]=json::value::string(user_name);
+		return to_return;
 	}
 };
 
