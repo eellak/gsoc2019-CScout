@@ -34,19 +34,19 @@ void HttpServer::addPutHandler(utility::string_t value,function <json::value(voi
 // Server start listening
 void HttpServer::serve(){
     http_listener * list = &(this->listener);
-    cout <<"HttpServer: serve begin. Mapped functions\n";
-    for(auto it = handler_dictionary.begin(); it != handler_dictionary.end(); it++){
-        cout << it->first <<" - " << it->second.value << endl;
-    }
+
+
     try{
         this->listener.open()
             .then([&list](){cout << "\n Http Rest Server starts listening \n";})
             .wait(); 
+        //while(!must_exit);
         while(true);
     }
     catch (exception const & e){
         cout << e.what() << endl;
     }
+    cout<< "out of serve"<<endl;
 }
 
 // HTTP GET handler
@@ -112,11 +112,21 @@ void HttpServer::handle_put(http_request request){
         }
     }
     else{
-        cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
+        cout<<"HttpServer:handle_put: handler:"<<it->first << endl;
         cout<<"URI:"<< request.request_uri().query()<<endl;
+        std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
+        
+        cout << "Attributes:" << endl;
+
+        for(std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++){
+            cout<<"start to go through:"<<server.params.serialize() << endl;
+            server.params[it->first] = json::value::string(it->second);
+            cout<<it->first << "-"<<it->second<<endl;
+        }
         response = it->second.handleFunction(&(server.params));
         request.reply(status_codes::OK, response);
         cout << "Get Response:"<< response.serialize().c_str() << endl;
+        cout<<(this->log_file == NULL);
         if(this->log_file != NULL){
             cout<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
