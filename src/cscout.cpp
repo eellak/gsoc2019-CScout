@@ -135,8 +135,7 @@ static Fileid input_file_id;
 
 // Set to true when the user has specified the application to exit
 static bool must_exit = false;
-
-
+ 
 // Set to true if we operate in browsing mode
 static bool browse_only = false;
 // Maximum number of nodes and edges allowed to browsing-only clients
@@ -867,27 +866,29 @@ get_refactored_part(fifstream &in, Fileid fid)
 }
 
 // Go through the file doing any refactorings needed
-static void
-file_refactor(FILE *of, Fileid fid)
+static json::value
+file_refactor(Fileid fid)
 {
 	string plain;
 	fifstream in;
 	ofstream out;
-
+	json::value to_return;
 	cerr << "Processing file " << fid.get_path() << endl;
 
 	if (RefFunCall::store.size())
 		establish_argument_boundaries(fid.get_path());
 	in.open(fid.get_path().c_str(), ios::binary);
 	if (in.fail()) {
-		html_perror(of, "Unable to open " + fid.get_path() + " for reading");
-		return;
+		to_return["error"]=json::value::string("Unable to open " 
+		+ fid.get_path() + " for reading");
+		return to_return;
 	}
 	string ofname(fid.get_path() + ".repl");
 	out.open(ofname.c_str(), ios::binary);
 	if (out.fail()) {
-		html_perror(of, "Unable to open " + ofname + " for writing");
-		return;
+		to_return["error"]=json::value::string( "Unable to open " 
+		+ ofname + " for writing");
+		return to_return;
 	}
 
 	while (!in.eof())
@@ -902,52 +903,52 @@ file_refactor(FILE *of, Fileid fid)
 		regmatch_t be;
 		if (sfile_re.exec(fid.get_path().c_str(), 1, &be, 0) == REG_NOMATCH ||
 		    be.rm_so == -1 || be.rm_eo == -1)
-			fprintf(of, "File %s does not match file replacement RE."
-				"Replacements will be saved in %s.repl.<br>\n",
-				ofname.c_str(), ofname.c_str());
+			 to_return["ok"]=json::value::string("File "+ofname+" does not match file replacement RE."
+				"Replacements will be saved in "+ofname+".repl.\n");
 		else {
 			string newname(fid.get_path().c_str());
 			newname.replace(be.rm_so, be.rm_eo - be.rm_so, Option::sfile_repl_string->get());
 			string cmd("cscout_checkout " + newname);
 			if (system(cmd.c_str()) != 0) {
-				html_error(of, "Changes are saved in " + ofname + ", because executing the checkout command cscout_checkout failed");
-				return;
+				to_return["error"]=json::value::string("Changes are saved in " 
+				+ ofname + ", because executing the checkout command cscout_checkout failed");
+				return to_return;
 			}
 			if (unlink(newname) < 0) {
-				html_perror(of, "Changes are saved in " + ofname + ", because deleting the target file " + newname + " failed");
-				return;
+				to_return["error"]=json::value::string("Changes are saved in " + ofname + ", because deleting the target file " + newname + " failed");
+				return to_return;
 			}
 			if (rename(ofname.c_str(), newname.c_str()) < 0) {
-				html_perror(of, "Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + newname + " failed");
-				return;
+				to_return["error"]=json::value::string("Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + newname + " failed");
+				return to_return;
 			}
 			string cmd2("cscout_checkin " + newname);
 			if (system(cmd2.c_str()) != 0) {
-				html_error(of, "Checking in the file " + newname + " failed");
-				return;
+				to_return["error"]=json::value::string( "Checking in the file " + newname + " failed");
+				return to_return;
 			}
 		}
 	} else {
 		string cmd("cscout_checkout " + fid.get_path());
 		if (system(cmd.c_str()) != 0) {
-			html_error(of, "Changes are saved in " + ofname + ", because checking out " + fid.get_path() + " failed");
-			return;
+			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because checking out " + fid.get_path() + " failed");
+			return to_return;
 		}
 		if (unlink(fid.get_path()) < 0) {
-			html_perror(of, "Changes are saved in " + ofname + ", because deleting the target file " + fid.get_path() + " failed");
-			return;
+			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because deleting the target file " + fid.get_path() + " failed");
+			return to_return;
 		}
 		if (rename(ofname.c_str(), fid.get_path().c_str()) < 0) {
-			html_perror(of, "Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + fid.get_path() + " failed");
-			return;
+			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + fid.get_path() + " failed");
+			return to_return;
 		}
 		string cmd2("cscout_checkin " + fid.get_path());
 		if (system(cmd2.c_str()) != 0) {
-			html_error(of, "Checking in the file " + fid.get_path() + " failed");
-			return;
+			to_return["error"]=json::value::string("Checking in the file " + fid.get_path() + " failed");
+			return to_return;
 		}
 	}
-	return;
+	return to_return;
 }
 
 static json::value
@@ -1336,7 +1337,11 @@ xiquery_page(void * p)
 	Timer timer;
 	json::value to_return;
 	std::ostringstream fs;
-	prohibit_remote_access(fs);
+	prohibit_remote_access(&fs);
+	if(!fs.str().empty()){
+		to_return["error"] =json::value::string(fs.str());
+		return to_return;
+	} 
 
 	Sids sorted_ids;
 	IFSet sorted_files;
@@ -1354,11 +1359,15 @@ xiquery_page(void * p)
 
 	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
 	cerr << "Evaluating identifier query" << endl;
+	if(ids.empty())
+		cout<<"true ids empty"<<endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
+	//	cout<<html(*i)<<"-"<<query.eval(*i)<<endl;
 		if (!query.eval(*i))
 			continue;
 		if (q_id){
+			cout<<"add to sorted"<<endl;
 			sorted_ids.insert(&*i);
 		}
 		else if (q_file) {
@@ -1369,10 +1378,15 @@ xiquery_page(void * p)
 			funs.insert(ecfuns.begin(), ecfuns.end());
 		}
 	}
-	cerr <<q_id<<endl;
+	cerr <<q_id<<" sorted_ids" <<endl;
+	// for(auto i = sorted_ids.begin(); i!= sorted_ids.end(); i++ )
+	// 	cout<<html(*i)	<<endl;
 	if (q_id) {
 	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
+		cout<<"identifers"<<endl;
 		to_return["ids"] = display_sorted(query, sorted_ids);
+		if(sorted_ids.empty())
+			cout<<"no identifers"<<endl;
 	}
 	cout <<"checkpoint1"<<endl;
 	if (q_file)
@@ -1398,8 +1412,10 @@ xfunquery_page(void *p)
 	cout<<"in xfunquer"<<endl;
 	json::value to_return;
 	prohibit_remote_access(&fs);
-	if(!fs.str().empty())
-		to_return["error"] =json::value::string(fs.str()); 
+	if(!fs.str().empty()){
+		to_return["error"] =json::value::string(fs.str());
+		return to_return;
+	} 
 	Timer timer;
 
 	Sfuns sorted_funs;
@@ -2010,73 +2026,74 @@ cpath_page(GraphDisplay *gd)
 json::value
 options_page(void *p)
 {
-	/* define JSON func
-	html_head(fo, "options", "Global Options");
-	fprintf(fo, "<FORM ACTION=\"soptions.html\" METHOD=\"GET\">\n");
-	Option::display_all(fo);
-	fprintf(fo, "<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n");
-	fprintf(fo, "<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Cancel\">\n");
-	fprintf(fo, "<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n");
-	fprintf(fo, "</FORM>\n");
-	html_tail(fo);
-	*/
-	json::value test = json::value(utility::string_t("options_page"));
-	return test;
+	json::value to_return;
+	to_return["form"] = json::value("<FORM ACTION=\"soptions.html\" METHOD=\"PUT\">\n");
+	to_return["main"]=Option::display_all();
+	to_return["end"]=json::value("<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n"
+		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Cancel\">\n"
+		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n"
+		"</FORM>\n");
+	return to_return;
 }
 
 // Front-end global options page
 json::value
 set_options_page(void *p)
 {
-	/* define JSON func
-	prohibit_remote_access(fo);
+	json::value to_return;
+	ostringstream fs;
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+			to_return["error"] = json::value::string(fs.str());
+			return to_return;
+		}
 
 	if (server.getStrParam("set") == "Cancel") {
-		index_page(fo, p);
-		return;
+		to_return["action"]=json::value("index");
+		return to_return;
 	}
 	Option::set_all();
 	if (Option::sfile_re_string->get().length()) {
 		sfile_re = CompiledRE(Option::sfile_re_string->get().c_str(), REG_EXTENDED);
 		if (!sfile_re.isCorrect()) {
-			html_head(fo, "regerror", "Regular Expression Error");
-			fprintf(fo, "<h2>Filename regular expression error</h2>%s", sfile_re.getError().c_str());
-			html_tail(fo);
-			return;
+			
+			to_return["error"]=json::value::string("Filename regular expression error"+sfile_re.getError());
+			return to_return;
 		}
 	}
 	if (server.getStrParam("set") == "Apply")
-		options_page(fo, p);
+		to_return = options_page(p);
 	else
-		index_page(fo, p);
-	*/
-	json::value test = json::value(utility::string_t("set_options_page"));
-	return test;
+		to_return["action"] = json::value("index");
+	
+	return to_return;;
 }
 
 // Save options in .cscout/options
 static json::value
 save_options_page(void *p)
 {
-	/* define JSON func
-	prohibit_browsers(fo);
-	prohibit_remote_access(fo);
+	// define JSON func
+	json::value to_return;
+	ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if(!fs.str().empty()){
+		to_return["error"] =json::value::string(fs.str());
+		return to_return;
+	} 
 
-	html_head(fo, "save_options", "Options Save");
 	ofstream out;
 	string fname;
 	if (!cscout_output_file("options", out, fname)) {
-		html_perror(fo, "Unable to open " + fname + " for writing");
-		return;
+		to_return["error"] = json::value::string("Unable to open " + fname + " for writing");
+		return to_return;
 	}
 	Option::save_all(out);
 	out.close();
-	fprintf(fo, "Options have been saved in the file \"%s\".\n", fname.c_str());
-	fprintf(fo, "They will be loaded when CScout is executed again.");
-	html_tail(fo);
-	*/
-	json::value test = json::value(utility::string_t("save_options_page"));
-	return test;
+ 	to_return["file_name"] =json::value::string(fname);
+	 
+	return to_return;
 }
 
 // Load the CScout options.
@@ -2892,6 +2909,7 @@ fedit_page(void *p)
 	}
 		
 	modification_state = ms_hand_edit;
+	to_return["ok"]=json::value("done");
 	return to_return;
 }
 
@@ -3047,9 +3065,11 @@ xreplacements_page(void *p)
 			char varname[128];
 			snprintf(varname, sizeof(varname), "r%p", &(i->second));
 			const char *subst;
+			cout<<"varname"<<varname<<endl;
 			if ((subst = server.getStrParam(varname).c_str())!= NULL) {
 				string ssubst(subst);
 				i->second.set_newid(ssubst);
+
 			}
 
 			snprintf(varname, sizeof(varname), "a%p", &(i->second));
@@ -3127,23 +3147,23 @@ xfunargrefs_page(void *p)
 json::value
 write_quit_page(void *exit)
 {
-	/* define JSON func
-	prohibit_browsers(of);
-	prohibit_remote_access(of);
+	// define JSON func
+	json::value to_return;
+	ostringstream fs;
+	prohibit_browsers(&fs);
+	prohibit_remote_access(&fs);
+	if (fs.str().length() > 0){
+		to_return["error"] = json::value::string(fs.str());
+		return to_return;
+	}
 
 	if (exit)
-		html_head(of, "quit", "CScout exiting");
+		to_return["action"]=json::value::string("CScout exiting");
 	else {
 		if (Option::sfile_re_string->get().length() == 0) {
-			html_head(of, "save", "Not Allowed");
-			fputs("This in-place save and continue operation is not allowed, "
-			"because it may corrupt CScout's idea of the source code.  "
-			"Either set the filename substitution rule option, "
-			"or select the save and exit operation.", of);
-			html_tail(of);
-			return;
+			to_return["error"]=json::value::string("Not Allowed");
+			return to_return;
 		}
-		html_head(of, "save", "Saving changes");
 	}
 
 	// Determine files we need to process
@@ -3175,9 +3195,9 @@ write_quit_page(void *exit)
 		Token::check_clashes = false;
 	}
 	if (Token::found_clashes) {
-		fprintf(of, "Renamed identifier clashes detected. Errors reported on console output. No files were saved.");
-		html_tail(of);
-		return;
+		to_return["error"]=json::value::string("Renamed identifier clashes detected."
+		" Errors reported on console output. No files were saved.");
+		return to_return;
 	}
 
 	cerr << "Examining function calls for refactoring" << endl;
@@ -3193,18 +3213,22 @@ write_quit_page(void *exit)
 
 	// Now do the replacements
 	cerr << "Processing files" << endl;
+	int no =0;
 	for (IFSet::const_iterator i = process.begin(); i != process.end(); i++)
-		file_refactor(of, *i);
-	fprintf(of, "A total of %d replacements and %d function call refactorings were made in %d files.",
-	    num_id_replacements, num_fun_call_refactorings, (unsigned)(process.size()));
+		to_return["refactors"][no++] = file_refactor(*i);
+	to_return["statistics"]["html"] = json::value::string("A total of "+
+		to_string(num_id_replacements)+" replacements and "+
+		to_string(num_fun_call_refactorings)+" function call refactorings were made in "+
+		to_string((unsigned)(process.size()))+" files.");
+	to_return["statistics"]["no_id_replacement"] = json::value (num_id_replacements); 
+	to_return["statistics"]["no_fun_refactorings"] = json::value (num_fun_call_refactorings);
+	to_return["statistics"]["no_files"] = json::value( (unsigned)(process.size()) );
 	if (exit) {
-		fprintf(of, "<p>Bye...</body></html>");
+		to_return["action"]=json::value("exit");
 		must_exit = true;
-	} else
-		html_tail(of);
-	*/
-	json::value test = json::value(utility::string_t("write_quit_page"));
-	return test;
+	} 
+
+	return to_return;
 }
 
 json::value
@@ -3585,10 +3609,10 @@ main(int argc, char *argv[])
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
 		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
-		server.addHandler("soptions.html", set_options_page, 0);
-		server.addHandler("save_options.html", save_options_page, 0);
+		server.addPutHandler("soptions.html", set_options_page, 0);
+		server.addPutHandler("save_options.html", save_options_page, 0);
 		json::value arg = json::value::string("exit");
-		server.addHandler("sexit.html", write_quit_page, &arg);
+		server.addPutHandler("sexit.html", write_quit_page, &arg);
 		server.addHandler("save.html", write_quit_page, 0);
 		server.addHandler("qexit.html", quit_page, 0);
 
@@ -3641,7 +3665,7 @@ main(int argc, char *argv[])
 	
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
-		server.addHandler("fedit.html", fedit_page, NULL);
+		server.addPutHandler("fedit.html", fedit_page, NULL);
 		server.addHandler("file.html", file_page, NULL);
 		server.addHandler("dir.html", dir_page, NULL);
 
@@ -3728,8 +3752,7 @@ main(int argc, char *argv[])
 	// 	swill_setfork();
 	while (!must_exit){
 		cout << "CScout to serve" << endl;
-		server.serve();
-
+		server.serve();	
 	}
 
 #ifdef NODE_USE_PROFILE
