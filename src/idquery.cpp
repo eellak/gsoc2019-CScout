@@ -90,7 +90,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	cout<<"qname here" << endl;
 	// Identifier EC match to change
 	void * t = server.getAddrParam("ec"); 
-	if (!t) {
+	if (t!=NULL) {
 		ec = (Eclass *)t;
 	} else {
 		ec = NULL;
@@ -103,6 +103,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 			lazy = true;
 			return;
 		}
+		cout<<"m:"<<m<<endl;;
 		match_type = *m;
 	}
 
@@ -250,6 +251,7 @@ IdQuery::eval(const IdPropElem &i)
 	if (match_ire && ire.exec(i.second.get_id()) == retval)
 		return false;
 	bool add = false;
+//	cerr<<"not vars problem xiquery-match:"<<match_type<<endl;
 	switch (match_type) {
 	case 'Y':	// anY match
 		add = false;
