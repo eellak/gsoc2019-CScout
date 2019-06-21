@@ -3554,7 +3554,7 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 
 	utility::string_t address = U("http://localhost:");
-	address.append(U(to_string(portno+1)));
+	address.append(U(to_string(portno)));
 	
 	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
@@ -3644,7 +3644,7 @@ main(int argc, char *argv[])
 		// Update metrics
 		id_msum.add_unique_id(e);
 	}
-	cerr << endl;
+	cerr <<"done processing identifiers" <<endl;
 
 	if (DP())
 		cout << "Size " << file_msum.get_total(Metrics::em_nchar) << endl;
@@ -3665,7 +3665,6 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
-	
 		server.addHandler("src.html", source_page, NULL);
 		server.addHandler("qsrc.html", query_source_page, NULL);
 		server.addPutHandler("fedit.html", fedit_page, NULL);
@@ -3701,7 +3700,6 @@ main(int argc, char *argv[])
 		// server.addHandler("logo.png", logo_page, NULL);
 		//server.addHandler("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
 	}
-
 
 	if (file_msum.get_writable(Metrics::em_nuline)) {
 		ostringstream msg;
@@ -3748,13 +3746,10 @@ main(int argc, char *argv[])
 	// Serve web pages
 	if (!must_exit){
 		cerr << "CScout is now ready to serve you at http://localhost:" << portno << endl;
-		//pid_t pid=fork();
-		//system("npm start");
+		
 	}
-	// if (browse_only)
-	// 	swill_setfork();
+
 	if (!must_exit){
-		cout << "CScout to serve" << endl;
 		server.serve();	
 	}
 

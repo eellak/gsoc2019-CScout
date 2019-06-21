@@ -45,7 +45,6 @@ Debug::db_read()
 	ifstream in;
 	string name;
 	int line;
-	cout<<"start debug";
 	in.open("dbpoints");
 	if (in.fail())
 		return;

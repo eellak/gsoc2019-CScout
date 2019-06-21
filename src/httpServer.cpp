@@ -12,7 +12,7 @@ HttpServer::HttpServer(utility::string_t url, ofstream * log) : listener(url),lo
     listener.support(methods::POST, std::bind(&HttpServer::handle_post,this, std::placeholders::_1));
     listener.support(methods::DEL, std::bind(&HttpServer::handle_delete,this, std::placeholders::_1));
     listener.support(methods::PUT, std::bind(&HttpServer::handle_put,this, std::placeholders::_1)); 
-    cout << "HttpServer: constructor called listen at "<< url << endl;
+    cerr << "HttpServer: constructor called listen at "<< url << endl;
 }
 
 //Adds functions to URI path Handlers
@@ -22,7 +22,7 @@ void HttpServer::addHandler(utility::string_t value,function <json::value(void *
     funcHandler.handleFunction = handleFunction;
     funcHandler.attributes = attributes;
     handler_dictionary[value] = funcHandler; 
-    cout << "HttpServer: addHandler " << value<< " called \n";
+    cerr << "HttpServer: addHandler " << value<< " called \n";
 }
 
 void HttpServer::addPutHandler(utility::string_t value,function <json::value(void *)> handleFunction,void* attributes){
@@ -31,7 +31,7 @@ void HttpServer::addPutHandler(utility::string_t value,function <json::value(voi
     funcHandler.handleFunction = handleFunction;
     funcHandler.attributes = attributes;
     put_handler_dictionary[value] = funcHandler; 
-    cout << "HttpServer: addHandler " << value<< " called \n";
+    cerr << "HttpServer: addHandler " << value<< " called \n";
 }
 
 // Server start listening
