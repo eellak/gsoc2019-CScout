@@ -1106,7 +1106,7 @@ xfilequery_page(void *p)
 	to_return["table"]["contents"] = json::value::string(fs.str(),true);
 	to_return["table"]["end"]=json::value::string(html_file_end(),true);
 
-	to_return["pager"]=pager.end();
+	// to_return["pager"]=pager.end();
 	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
 	return to_return;
 }
@@ -1142,7 +1142,7 @@ display_sorted(const Query &query, const container &sorted_ids)
 	else
 		to_return["end"] = json::value::string("</p>\n",true);
 
-	to_return["element_page"] = pager.end();
+	// to_return["element_page"] = pager.end();
 
 	return to_return;
 }
@@ -1174,7 +1174,7 @@ display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 		}
 	}
 	to_return["end"]=json::value::string("</table>\n",true);
-	to_return["pager"]= pager.end();
+	// to_return["pager"]= pager.end();
 	return to_return;
 }
 
@@ -1326,7 +1326,7 @@ display_files(const Query &query, const IFSet &sorted_files)
 	}
 	to_return["files"] = json::value::string(fs.str());
 	to_return["end"]=json::value::string(html_file_end());
-	to_return["pager"]=pager.end();
+	//to_return["pager"]=pager.end();
 	return to_return;
 }
 
