@@ -228,7 +228,7 @@ static string
 html(const IdPropElem &i)
 {
 	ostringstream to_ret;
-	cout<<"test in print"<<i.first;
+	// cout<<"test in print"<<i.first;
 	to_ret << "<a href=\"id.html?id="<<i.first<<"\">" <<
 		html_string((i.second).get_id())+"</a>";
 	return to_ret.str();
@@ -408,7 +408,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	bool at_bol = true;
 	int line_number = 1;
 	int mark_unprocessed = 52;
-	cout <<"file_hypertext" << endl;
+	// cout <<"file_hypertext" << endl;
 	mark_unprocessed = server.getIntParam("marku");
 	json::value to_return;
 
@@ -423,7 +423,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	FunQuery funq;
 	bool have_funq, have_idq;
 	const char *qtype = server.getStrParam("qt").c_str();
-	cout << "qtype: " << qtype << endl;
+	// cout << "qtype: " << qtype << endl;
 	have_funq = have_idq = false;
 	if (!qtype || strcmp(qtype, "id") == 0) {
 		idq = IdQuery(Option::file_icase->get(), current_project, eval_query);
@@ -434,13 +434,13 @@ file_hypertext( Fileid * fi,bool eval_query)
 		if(eval_query)
 			if(idq.getError()!=NULL){
 			to_return["IdMsg"]=json::value::string(idq.getError());
-			cout<<"idq Error:" << idq.getError() << endl;
+			// cout<<"idq Error:" << idq.getError() << endl;
 		}
-		cout << "idq" <<endl;
+		// cout << "idq" <<endl;
 	} else if (strcmp(qtype, "fun") == 0) {
 		funq = FunQuery(Option::file_icase->get(), current_project, eval_query);
 		have_funq = true;
-		cout  << "out of funquer"<<endl;
+		// cout  << "out of funquer"<<endl;
 	
 		if(funq.getError()!=NULL)
 			to_return["FunMsg"]=json::value::string(funq.getError());
@@ -448,20 +448,20 @@ file_hypertext( Fileid * fi,bool eval_query)
 		to_return["error"] = json::value::string("Unknown query type (try adding &qt=id to the URL).\n");
 		return to_return;
 	}
-	cout<<"out of Queries "<<endl;
+	// cout<<"out of Queries "<<endl;
 	if (DP())
 		cout << "Write to " << fname << endl;
 	if ((*fi).is_hand_edited()) {
-		cout << "Hand Edited" << endl;
+		// cout << "Hand Edited" << endl;
 		in = new istringstream((*fi).get_original_contents());
 		to_return["handEd"]=json::value(1);
 	} else {
-		cout << "Not Hand Edited" << endl;
+		// cout << "Not Hand Edited" << endl;
 		in = new ifstream(fname.c_str(), ios::binary);
 		if (in->fail()) {
 			string error_msg("Unable to open " + fname + " for reading" + ": " + string(strerror(errno)) + "\n");
 			fputs(error_msg.c_str(), stderr);
-			cout<<"error:" << error_msg << endl;
+			// cout<<"error:" << error_msg << endl;
 			to_return["error"] = json::value::string(error_msg);
 			return to_return;
 		}
@@ -469,7 +469,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	fputs("<hr><code>", stdout);
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
-	cout<<"file_hypertext before read file"<<endl;
+	// cout<<"file_hypertext before read file"<<endl;
 	string file;
 	for (;;) {
 		Tokid ti;
@@ -503,7 +503,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 			int len = ec->get_len();
 			for (int j = 1; j < len; j++)
 				s += (char)in->get();
-			cout<<"S:"<<s <<endl;
+			// cout<<"S:"<<s <<endl;
 			Identifier i(ec, s);
 			const IdPropElem ip(ec, i);
 			
@@ -542,7 +542,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 			line_number++;
 		}
 	}
-	cout<<"ending file_hypertext";
+	// cout<<"ending file_hypertext";
 	delete in;
 	to_return["file"] = json::value::string(file);
 	return to_return;
@@ -1081,7 +1081,7 @@ xfilequery_page(void *p)
 	to_return["table"]["h"]=json::value::string(html_file_begin());
 	if (modification_state != ms_subst && !browse_only){
 		to_return["table"]["h1"]=json::value::string("<th></th>");
-		cout<<to_return.serialize()<<endl;
+		// cout<<to_return.serialize()<<endl;
 	}
 	if (query.get_sort_order() != -1){
 		
@@ -1133,7 +1133,7 @@ display_sorted(const Query &query, const container &sorted_ids)
 
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			cout<<"pager.next"<<endl;
+			// cout<<"pager.next"<<endl;
 			to_return["ids"][no++] = json::value::string(html(**i),true);
 		}
 	}
@@ -1358,16 +1358,16 @@ xiquery_page(void * p)
 	}
 
 	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
-	cerr << "Evaluating identifier query" << endl;
+	// cerr << "Evaluating identifier query" << endl;
 	if(ids.empty())
-		cout<<"true ids empty"<<endl;
+		// cout<<"true ids empty"<<endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 	//	cout<<html(*i)<<"-"<<query.eval(*i)<<endl;
 		if (!query.eval(*i))
 			continue;
 		if (q_id){
-			cout<<"add to sorted"<<endl;
+			// cout<<"add to sorted"<<endl;
 			sorted_ids.insert(&*i);
 		}
 		else if (q_file) {
@@ -1378,20 +1378,20 @@ xiquery_page(void * p)
 			funs.insert(ecfuns.begin(), ecfuns.end());
 		}
 	}
-	cerr <<q_id<<" sorted_ids" <<endl;
+	// cerr <<q_id<<" sorted_ids" <<endl;
 	// for(auto i = sorted_ids.begin(); i!= sorted_ids.end(); i++ )
 	// 	cout<<html(*i)	<<endl;
 	if (q_id) {
 	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
-		cout<<"identifers"<<endl;
+		// cout<<"identifers"<<endl;
 		to_return["ids"] = display_sorted(query, sorted_ids);
-		if(sorted_ids.empty())
-			cout<<"no identifers"<<endl;
+		// if(sorted_ids.empty())
+			// cout<<"no identifers"<<endl;
 	}
-	cout <<"checkpoint1"<<endl;
+	// cout <<"checkpoint1"<<endl;
 	if (q_file)
 		to_return["files"]= display_files(query, sorted_files);
-	cout <<"checkpoint2"<<endl;
+	// cout <<"checkpoint2"<<endl;
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
@@ -1409,7 +1409,7 @@ static json::value
 xfunquery_page(void *p)
 {
 	ostringstream fs;
-	cout<<"in xfunquer"<<endl;
+	//cout<<"in xfunquer"<<endl;
 	json::value to_return;
 	prohibit_remote_access(&fs);
 	if(!fs.str().empty()){
@@ -1477,7 +1477,7 @@ identifier_page(void *p)
 	int no=0;
 	
 	e = (Eclass*)server.getAddrParam("id");
-	cout<<"E:"<<e<<endl;;
+	// cout<<"E:"<<e<<endl;;
 	if (!e) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
@@ -1592,7 +1592,7 @@ function_page(void *p)
 {
 	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
-	cout <<f;
+	// cout <<f;
 	if (f == NULL) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
@@ -1661,7 +1661,7 @@ function_page(void *p)
 	to_return["definition"]=json::value::string(fs.str());
 	fs.flush();
 	fs<<f;
-	cout<<fs.str()<<endl;
+	// cout<<fs.str()<<endl;
 	// Functions that are Down from us in the call graph
 	to_return["list"][0]=json::value::string("<li> Calls directly "+
 	to_string(f->get_num_call())+" functions" );
@@ -2857,13 +2857,13 @@ source_page(void *p)
 	
 	int id;
 	json::value to_return;
-	cout << "source page" << endl;
+	// cout << "source page" << endl;
 	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("No id found");
 		return to_return;
 	}
 	Fileid i(id);
-		cout<< id<<endl;
+		// cout<< id<<endl;
 	const string &pathname = i.get_path();
 	to_return["source"] = json::value::string(pathname);
 // 	modify file_hypertext
@@ -2921,7 +2921,7 @@ query_source_page(void *)
 	
 	if (!(id = server.getIntParam("id"))){
 			to_return["error"] = json::value::string("File not found");
-			cout << "query_source_page: file not found" << endl;
+			// cout << "query_source_page: file not found" << endl;
 		return to_return;
 	}
 
@@ -2936,7 +2936,7 @@ query_source_page(void *)
 		to_return["qname"] = json::value::string(qname);		
 
 	to_return["pathname"] = json::value::string(pathname);
-	cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
+	// cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
 	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
 	to_return["html"] = file_hypertext(&i, true);
 	return to_return;
@@ -3065,7 +3065,7 @@ xreplacements_page(void *p)
 			char varname[128];
 			snprintf(varname, sizeof(varname), "r%p", &(i->second));
 			const char *subst;
-			cout<<"varname"<<varname<<endl;
+			// cout<<"varname"<<varname<<endl;
 			if ((subst = server.getStrParam(varname).c_str())!= NULL) {
 				string ssubst(subst);
 				i->second.set_newid(ssubst);

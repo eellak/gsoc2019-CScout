@@ -28,14 +28,18 @@ const char * to_query(json::value jvalue){
     //cout<<fs.str()<<endl;
     return fs.str().c_str();
 }
+bool check_valid(json::value response, const char* path){
+
+}
 
  
-void make_request(
+bool make_request(
    http_client & client, 
    method mtd, const char* path,
    json::value const & jvalue)
 {
    uri_builder builder(path);
+   bool valid=false;
    if(!jvalue.as_object().empty()){
     builder.set_query(to_query(jvalue),true);
    }
@@ -49,13 +53,14 @@ void make_request(
          }
          return pplx::task_from_result(json::value());
       })
-      .then([&path](pplx::task<json::value> previousTask)
+      .then([&path,&valid](pplx::task<json::value> previousTask)
       {
          try
          {
             std::fstream fs;
             fs.open ("./test/responses/"+string(path)+".json", std::fstream::out);
             fs << previousTask.get().serialize();
+            valid=check_valid(previousTask.get(),path);
             fs.close();
          }
          catch (http_exception const & e)
@@ -69,19 +74,22 @@ void make_request(
 int main()
 {
     http_client client(U("http://localhost:8081"));
-   // make_request(client,methods::GET,utility::string_t("/sproject.html").c_str(),json::value() );
     
     std::fstream fs;
     fs.open ("./test/requests.json", std::fstream::in);
     json::array req= json::value::parse(fs).as_array();
     fs.close();
     for(int i = 0; i<req.size();i++){
-        cout<<"path:"<<req[i]["path"].as_string()<<endl;
-        cout<<"query"<<req[i]["query"].serialize()<<endl;
+        // cout<<"path:"<<req[i]["path"].as_string()<<endl;
+        // cout<<"query"<<req[i]["query"].serialize()<<endl;
       //  <<(req[i]["query"].is_null()?"empty":req[i]["query"].as_string())<<endl;
+       cerr<<"Request to "<<req[i]["path"].as_string()
+        <<((
         make_request(client,methods::GET,
             req[i]["path"].as_string().c_str(),
-            req[i]["query"]);
+            req[i]["query"])
+        )?" ok":" not ok")
+         <<endl;
     }
     
 }

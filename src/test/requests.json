@@ -62,7 +62,10 @@
             "qi":"x",
             "n":"All+Functions"
         }
-    }
+    } ,{
+        "path":"qexit.html",
+        "query":{}
+    } 
 
 ]
     

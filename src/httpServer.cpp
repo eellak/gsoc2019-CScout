@@ -41,7 +41,7 @@ void HttpServer::serve(){
 
     try{
         this->listener.open()
-            .then([&list](){cout << "\n Http Rest Server starts listening \n";})
+            .then([&list](){cerr << "\n Http Rest Server starts listening \n";})
             .wait(); 
 
         while(!must_exit)
@@ -50,21 +50,20 @@ void HttpServer::serve(){
             
     }
     catch (exception const & e){
-        cout << e.what() << endl;
+        cerr << e.what() << endl;
     }
-    cout<< "out of serve"<<endl;
 }
 
 // HTTP GET handler
 void HttpServer::handle_get(http_request request){
     
-    cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
+    // cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
     utility::string_t path = request.relative_uri().path();
-    cout << "HttpServer: Handle get of "<<path << endl;
+    // cout << "HttpServer: Handle get of "<<path << endl;
     json::value response;
 
-    cout << "HttpServer: Handle get of "<<path << endl;
-    cout <<"HttpServer: Get begin. Mapped functions\n";
+    cerr << "HttpServer: Handle get of "<<path << endl;
+    // cout <<"HttpServer: Get begin. Mapped functions\n";
   
     // match path with dictionary
     auto it = handler_dictionary.find(path.substr(1));
@@ -73,29 +72,29 @@ void HttpServer::handle_get(http_request request){
         response["error"] = json::value::string("Url Not Found");
         request.reply(status_codes::NotFound,response);
         if(this->log_file != NULL){
-            cout<<"write to log"<<endl;
+            cerr<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
         }
     }
     else{
-        cout<<"HttpServer:handle_get: handler:"<<it->first << endl;
-        cout<<"URI:"<< request.request_uri().query()<<endl;
+        cerr<<"HttpServer:handle_get: handler:"<<it->first << endl;
+        cerr<<"URI:"<< request.request_uri().query()<<endl;
         //Uri params to json value
         std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
         
-        cout << "Attributes:" << endl;
+        // cout << "Attributes:" << endl;
 
         for(std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++){
-            cout<<"start to go through:"<<server.params.serialize() << endl;
+            // cout<<"start to go through:"<<server.params.serialize() << endl;
             server.params[it->first] = json::value::string(it->second);
-            cout<<it->first << "-"<<it->second<<endl;
+            // cout<<it->first << "-"<<it->second<<endl;
         }
-        cout << "JSON:"<< server.params.serialize().c_str() << endl;
+        // cout << "JSON:"<< server.params.serialize().c_str() << endl;
         response = it->second.handleFunction(&(server.params));
         request.reply(status_codes::OK, response);
-        cout << "Get Response:"<< response.serialize().c_str() << endl;
+        // cout << "Get Response:"<< response.serialize().c_str() << endl;
         if(this->log_file != NULL){
-            cout<<"write to log"<<endl;
+            cerr<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
         }
     }
@@ -113,21 +112,21 @@ void HttpServer::handle_put(http_request request) {
         response["error"] = json::value::string("Url Not Found");
         request.reply(status_codes::NotFound,response);
         if(this->log_file != NULL){
-            cout<<"write to log"<<endl;
+            cerr<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
         }
     }
     else{
-        cout<<"HttpServer:handle_put: handler:"<<it->first << endl;
-        cout<<"URI:"<< request.request_uri().query()<<endl;
+        cerr<<"HttpServer:handle_put: handler:"<<it->first << endl;
+        cerr<<"URI:"<< request.request_uri().query()<<endl;
         std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
         
-        cout << "Attributes:" << endl;
+        // cout << "Attributes:" << endl;
 
         for(std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++){
-            cout<<"start to go through:"<<server.params.serialize() << endl;
+            // cout<<"start to go through:"<<server.params.serialize() << endl;
             server.params[it->first] = json::value::string(it->second);
-            cout<<it->first << "-"<<it->second<<endl;
+            // cout<<it->first << "-"<<it->second<<endl;
         }
         response = it->second.handleFunction(&(server.params));
         bool exodus = response.has_field("exit");
@@ -137,10 +136,10 @@ void HttpServer::handle_put(http_request request) {
                 //throw exodus;
             }
         });
-        cout << "Get Response:"<< response.serialize().c_str() << endl;
-        cout<<(this->log_file == NULL);
+        // cout << "Get Response:"<< response.serialize().c_str() << endl;
+        // cout<<(this->log_file == NULL);
         if(this->log_file != NULL){
-            cout<<"write to log"<<endl;
+            cerr<<"write to log"<<endl;
             *(this->log_file)<<response.serialize();
         }
                
@@ -152,7 +151,7 @@ void HttpServer::handle_put(http_request request) {
 //Read Uri parameter as an address
 void * HttpServer::getAddrParam(string name){
      if(!(server.params.has_field(name))){
-        cout<<"zero"<<endl;
+        // cout<<"zero"<<endl;
         return NULL;
     }
     else
@@ -168,16 +167,16 @@ void * HttpServer::getAddrParam(string name){
 
 //Read Uri parameter as an integer
 int HttpServer::getIntParam(string name){
-    cout<<"Get int "<<name<<"-"<< server.params.has_field(name)<<endl;
+    // cout<<"Get int "<<name<<"-"<< server.params.has_field(name)<<endl;
     if(!(server.params.has_field(name))){
-        cout<<"zero"<<endl;
+        // cout<<"zero"<<endl;
         return -1;
     }
     else
         if(server.params[name].is_null())
             return -1;
         else{
-            cout<<server.params[name].as_string()<<endl;
+            // cout<<server.params[name].as_string()<<endl;
             return stoi(server.params[name].as_string());
         }
 }
@@ -189,18 +188,18 @@ bool HttpServer::getBoolParam(string name){
 
 //Read Uri Parameter as a string
 string  HttpServer::getStrParam(string name){
-    cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
+    // cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
     if(!(server.params.has_field(name))){
-        cout<<"zero"<<endl;
+        // cout<<"zero"<<endl;
         return {};
     }
     else{
-        cout << "params[name]:"<< server.params[name].serialize() << endl;
+        // cout << "params[name]:"<< server.params[name].serialize() << endl;
     }
         if(server.params[name].is_null())
             return {};
         else{
-            cout <<"name:"<< server.params[name].as_string()<<endl;
+            // cout <<"name:"<< server.params[name].as_string()<<endl;
             return server.params[name].as_string(); 
         }
 }
@@ -215,9 +214,9 @@ void HttpServer::handle_delete(http_request request){
 }
 
 void HttpServer::log(string msg){
-   cout<<"logging"<<endl;
+//    cout<<"logging"<<endl;
    if(this->log_file != NULL){
-        cout<<"write to log"<<endl;
+        cerr<<"write to log"<<endl;
         *(this->log_file)<<msg<<endl;
     } 
 
