@@ -40,10 +40,50 @@ bool check_valid(json::value response, const char* path){
 bool make_request(
    http_client & client, 
    method mtd, const char* path,
-   json::value const & jvalue)
+   json::value & jvalue, json::value req)
 {
-   uri_builder builder(path);
+   
    bool valid=false;
+   string *s;
+   //check if query needs info from another one
+   if(req.has_field("dependant")){
+      make_task_request(client, methods::GET, req["dependant"].as_string().c_str() )
+      .then([](http_response response)
+      { if (response.status_code() == status_codes::OK)
+         {
+            return response.extract_json();
+         }
+         return pplx::task_from_result(json::value());
+      })
+      .then([&jvalue,&req,&path,&s](pplx::task<json::value> previousTask)
+      {
+         try
+         {
+            json::value returned = previousTask.get();
+            cout<<"change path"<<returned.serialize()<<endl;
+           // string *s;
+
+            if(returned.has_string_field("addr")){
+               cout << "here"<<endl;
+               s = new string(returned["addr"].as_string());
+               cout << *s<<endl;
+               path = s->c_str();
+               cout<<"path:"<<path<<endl;
+            }
+            cout<<"path:"<<path<<endl;
+            for(auto i = req["dependantQuery"].as_array().cbegin();
+               i!=req["dependantQuery"].as_array().cend(); i++){
+               jvalue[i->as_string()] = previousTask.get()[i->as_string()];
+            }        
+         }
+         catch (http_exception const & e)
+         {
+            wcout << e.what() << endl;
+         }
+      })
+      .wait();
+   }
+   uri_builder builder(path);
 
    if(!jvalue.as_object().empty()){
     to_query(jvalue, &builder);
@@ -76,9 +116,30 @@ bool make_request(
          }
       })
       .wait();
+      //delete(path);
+      if(s!=NULL)
+         delete(s);
       return valid;
 }
  
+/*
+save requests in ./test/requests.json in format
+
+{
+   "path" : "",                        //name of server's path 
+   "query": {                          // query options for HTTP method
+      "query name1": "query value1",   //e.g "n":"All+Files"
+      "query name2": "query value2" 
+      } 
+   ("put": true ,),                    // exists if testing put method
+   "dependant" : "browseTop.html",     // declare dependancy from another request
+   "dependantQuery":{                  // define which responses will be used as query from dependant
+
+   }
+}
+
+ */
+
 int main()
 {
     http_client client(U("http://localhost:8081"));
@@ -98,7 +159,7 @@ int main()
         <<((
         make_request(client, t,
             req[i]["path"].as_string().c_str(),
-            req[i]["query"])
+            req[i]["query"],req[i])
         )?" ok":" not ok")
          <<endl;
     }

@@ -62,9 +62,22 @@
             "qi":"x",
             "n":"All+Functions"
         }
-    } ,{
-        "path":"qexit.html",
+    } ,
+    {
+        "path":"browseTop.html",
         "query":{}
+ 
+    },
+    {
+        "path":"dir.html",
+        "query":{},
+        "dependant":"browseTop.html",
+        "dependantQuery":[]
+    }
+    ,{
+        "path":"qexit.html",
+        "query":{},
+        "put":true
     } 
 
 ]
