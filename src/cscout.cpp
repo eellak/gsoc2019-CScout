@@ -3617,7 +3617,7 @@ main(int argc, char *argv[])
 		json::value arg = json::value::string("exit");
 		server.addPutHandler("sexit.html", write_quit_page, &arg);
 		server.addHandler("save.html", write_quit_page, 0);
-		server.addHandler("qexit.html", quit_page, 0);
+		server.addPutHandler("qexit.html", quit_page, 0);
 
 	}
 
