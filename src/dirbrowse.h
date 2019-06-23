@@ -36,6 +36,6 @@ void *dir_add_file(Fileid f);
 // Display a directory's contents
 web::json::value dir_page(void *p);
 // Display on of a URL for browsing the project's top dir
-void dir_top(FILE *of, const char *name);
+json::value dir_top(const char *name);
 
 #endif /* DIRBROWSE_ */

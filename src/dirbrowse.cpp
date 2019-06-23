@@ -129,7 +129,9 @@ public:
 
 	// Display a link to the directory's contents as HTML on of with the specified name
 	string html(const char *n) const {
-		return "<a href=\"dir.html?dir="+to_string((long)this)+"\">"+n+"</a><br />";
+		char * s = new char[20];
+		sprintf(s,"%p",this);
+		return "<a href=\"dir.html?dir="+string(s)+"\">"+n+"</a><br />";
 	}
 
 	// Display a link to the directory's contents as HTML on of
@@ -196,7 +198,7 @@ dir_page(void *p)
 	json::value to_return;
 	string to_ret;
 	d = (DirDir *)server.getAddrParam("dir");
-	if (d) {
+	if (d==NULL) {
 		to_return["error"]= json::value("Missing value");
 		return to_return;
 	}
@@ -207,8 +209,13 @@ dir_page(void *p)
 }
 
 // Display on of a URL for browsing the project's top dir
-string
+json::value
 dir_top( const char *name)
 {
-	return DirDir::top()->html(name);
+	json::value to_return;
+	to_return["html"]=json::value::string(DirDir::top()->html(name));
+	char * s = new char[20];
+	sprintf(s,"%p",DirDir::top());
+	to_return["addr"]=json::value::string("dir.html?dir="+string(s));
+	return to_return;
 }

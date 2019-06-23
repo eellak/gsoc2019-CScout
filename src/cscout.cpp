@@ -189,7 +189,7 @@ static int num_id_replacements = 0;
 static int num_fun_call_refactorings = 0;
 
 
-void index_page(FILE *of, void *data);
+// void index_page(FILE *of, void *data);
 
 // Return the page suffix for the select call graph type
 static string
@@ -2451,79 +2451,79 @@ end:
 }
 
 // Graph: text
-static void
-graph_txt_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	// Add output and outfile argument to enable output to outfile
-	int output = server.getIntParam("output");
-	const char *outfile = server.getStrParam("outfile").c_str();
-	if (!output && (outfile != NULL) && output && strlen(outfile)) {
-		FILE *ofile = fopen(outfile, "w+");
-		GDTxt gdout(ofile);
-		graph_fun(&gdout);
-		fclose(ofile);
-	}
+// static void
+// graph_txt_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	// Add output and outfile argument to enable output to outfile
+// 	int output = server.getIntParam("output");
+// 	const char *outfile = server.getStrParam("outfile").c_str();
+// 	if (!output && (outfile != NULL) && output && strlen(outfile)) {
+// 		FILE *ofile = fopen(outfile, "w+");
+// 		GDTxt gdout(ofile);
+// 		graph_fun(&gdout);
+// 		fclose(ofile);
+// 	}
 
-	if (process_mode != pm_r_option) {
-		GDTxt gd(fo);
-		graph_fun(&gd);
-	}
+// 	if (process_mode != pm_r_option) {
+// 		GDTxt gd(fo);
+// 		graph_fun(&gd);
+// 	}
 
-}
+// }
 
-// Graph: HTML
-static void
-graph_html_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	GDHtml gd(fo);
-	graph_fun(&gd);
-}
+// // Graph: HTML
+// static void
+// graph_html_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	GDHtml gd(fo);
+// 	graph_fun(&gd);
+// }
 
-// Graph: dot
-static void
-graph_dot_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	GDDot gd(fo);
-	graph_fun(&gd);
-}
+// // Graph: dot
+// static void
+// graph_dot_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	GDDot gd(fo);
+// 	graph_fun(&gd);
+// }
 
-// Graph: SVG via dot
-static void
-graph_svg_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	prohibit_remote_access();
-	GDSvg gd(fo);
-	graph_fun(&gd);
-}
+// // Graph: SVG via dot
+// static void
+// graph_svg_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	prohibit_remote_access();
+// 	GDSvg gd(fo);
+// 	graph_fun(&gd);
+// }
 
-// Graph: GIF via dot
-static void
-graph_gif_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	prohibit_remote_access();
-	GDGif gd(fo);
-	graph_fun(&gd);
-}
-
-
-// Graph: PNG via dot
-static void
-graph_png_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	prohibit_remote_access();
-	GDPng gd(fo);
-	graph_fun(&gd);
-}
+// // Graph: GIF via dot
+// static void
+// graph_gif_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	prohibit_remote_access();
+// 	GDGif gd(fo);
+// 	graph_fun(&gd);
+// }
 
 
-// Graph: PDF via dot
-static void
-graph_pdf_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-{
-	prohibit_remote_access();
-	GDPdf gd(fo);
-	graph_fun(&gd);
-}
+// // Graph: PNG via dot
+// static void
+// graph_png_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	prohibit_remote_access();
+// 	GDPng gd(fo);
+// 	graph_fun(&gd);
+// }
+
+
+// // Graph: PDF via dot
+// static void
+// graph_pdf_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
+// {
+// 	prohibit_remote_access();
+// 	GDPdf gd(fo);
+// 	graph_fun(&gd);
+// }
 
 
 // Split a string by delimiter
@@ -2540,67 +2540,67 @@ vector<string> split_by_delimiter(string &s, char delim) {
 }
 
 
-// Produce call graphs with -R option
-static void produce_call_graphs(const vector <string> &call_graphs)
-{
-	char base_splitter = '?';
-	char opts_splitter = '&';
-	char opt_spltter = '=';
-	GDArgsKeys gdargskeys;
+// // Produce call graphs with -R option
+// static void produce_call_graphs(const vector <string> &call_graphs)
+// {
+// 	char base_splitter = '?';
+// 	char opts_splitter = '&';
+// 	char opt_spltter = '=';
+// 	GDArgsKeys gdargskeys;
 
-	for (string url: call_graphs) {
-		vector<string> split_base_and_opts = split_by_delimiter(url, base_splitter);
-		if (split_base_and_opts.size() == 0) {
-			cerr << url << "is not a valid url" << endl;
-			continue;
-		}
-		FILE *target = fopen(split_base_and_opts[0].c_str() , "w+");
-		string base = split_base_and_opts[0];
-		GDTxt gd(target);
-		// Disable swill
-		gd.uses_swill = false;
-		vector<string> opts;
+// 	for (string url: call_graphs) {
+// 		vector<string> split_base_and_opts = split_by_delimiter(url, base_splitter);
+// 		if (split_base_and_opts.size() == 0) {
+// 			cerr << url << "is not a valid url" << endl;
+// 			continue;
+// 		}
+// 		FILE *target = fopen(split_base_and_opts[0].c_str() , "w+");
+// 		string base = split_base_and_opts[0];
+// 		GDTxt gd(target);
+// 		// Disable swill
+// 		gd.uses_swill = false;
+// 		vector<string> opts;
 
-		if (split_base_and_opts.size() != 1) {
+// 		if (split_base_and_opts.size() != 1) {
 
-			opts = split_by_delimiter(split_base_and_opts[1], opts_splitter);
+// 			opts = split_by_delimiter(split_base_and_opts[1], opts_splitter);
 
-			// Parse opts
-			for (string opt: opts) {
-				vector<string> opt_tmp = split_by_delimiter(opt, opt_spltter);
-				if (opt_tmp.size() < 2) continue;
+// 			// Parse opts
+// 			for (string opt: opts) {
+// 				vector<string> opt_tmp = split_by_delimiter(opt, opt_spltter);
+// 				if (opt_tmp.size() < 2) continue;
 
-				// Key-value pairs
-				string key = opt_tmp[0];
-				string val = opt_tmp[1];
+// 				// Key-value pairs
+// 				string key = opt_tmp[0];
+// 				string val = opt_tmp[1];
 
-				if (!key.compare(gdargskeys.ALL)) {
-					gd.all = (bool) atoi(val.c_str());
-				} else if (!key.compare(gdargskeys.ONLY_VISITED)) {
-					gd.only_visited = (bool) atoi(val.c_str());
-				} else if (!key.compare(gdargskeys.GTYPE)) {
-					gd.gtype = strdup(val.c_str());
-				} else if (!key.compare(gdargskeys.LTYPE)) {
-					gd.ltype = strdup(val.c_str());
-				}
+// 				if (!key.compare(gdargskeys.ALL)) {
+// 					gd.all = (bool) atoi(val.c_str());
+// 				} else if (!key.compare(gdargskeys.ONLY_VISITED)) {
+// 					gd.only_visited = (bool) atoi(val.c_str());
+// 				} else if (!key.compare(gdargskeys.GTYPE)) {
+// 					gd.gtype = strdup(val.c_str());
+// 				} else if (!key.compare(gdargskeys.LTYPE)) {
+// 					gd.ltype = strdup(val.c_str());
+// 				}
 
-			}
+// 			}
 
-		}
+// 		}
 
-		if (!base.compare(gdargskeys.CGRAPH)) {
-			cgraph_page(&gd);
-		}
-		else if (!base.compare(gdargskeys.FGRAPH)) {
-			fgraph_page(&gd);
-		}
+// 		if (!base.compare(gdargskeys.CGRAPH)) {
+// 			cgraph_page(&gd);
+// 		}
+// 		else if (!base.compare(gdargskeys.FGRAPH)) {
+// 			fgraph_page(&gd);
+// 		}
 
-		fclose(target);
-	}
+// 		fclose(target);
+// 	}
 
 
 
-}
+// }
 
 
 // Setup graph handling for all supported graph output types
@@ -2690,114 +2690,116 @@ version_info(bool html)
 }
 
 // Display information about CScout
-void
-about_page(FILE *fo, void *p)
-{
-	html_head(fo, "about", "About CScout");
-	fputs(version_info(true).c_str(), fo);
-	html_tail(fo);
+// void
+// about_page(FILE *fo, void *p)
+// {
+// 	html_head(fo, "about", "About CScout");
+// 	fputs(version_info(true).c_str(), fo);
+// 	html_tail(fo);
+// }
+
+json::value top_file(void *p){
+	return dir_top("Browse file tree");
 }
-
-
 // Index
-void
-index_page(FILE *of, void *data)
-{
+// void
+// index_page(FILE *of, void *data)
+// {
 	
-	html_head(of, "index", "CScout Main Page", "<img src=\"logo.png\">Scout Main Page");
-	fputs(
-		"<table><tr><td valign=\"top\">\n"
-		"<div class=\"mainblock\">\n"
-		"<h2>Files</h2>\n"
-		"<ul>\n"
-		"<li> <a href=\"filemetrics.html\">File metrics</a>\n"
-		"<li>\n", of);
-// to change 	dir_top(of,"Browse file tree");
-	fprintf(of,
-		"<li> <a href=\"xfilequery.html?ro=1&writable=1&match=Y&n=All+Files\">All files</a>\n"
-		"<li> <a href=\"xfilequery.html?ro=1&match=Y&n=Read-only+Files\">Read-only files</a>\n"
-		"<li> <a href=\"xfilequery.html?writable=1&match=Y&n=Writable+Files\">Writable files</a>\n");
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers\">Files containing unused project-scoped writable identifiers</a>\n", is_lscope);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers\">Files containing unused file-scoped writable identifiers</a>\n", is_cscope);
-	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BcC%%5D%%24&n=Writable+.c+Files+Without+Any+Statements\">Writable .c files without any statements</a>\n", FileMetrics::em_nstatement, Query::ec_eq, FileMetrics::em_nstatement);
-	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&order=%d&c%d=%d&n%d=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines\">Writable files containing unprocessed lines</a>\n", Metrics::em_nuline, Metrics::em_nuline, Query::ec_gt, Metrics::em_nuline);
-	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&n=Writable+Files+Containing+Strings\">Writable files containing strings</a>\n", Metrics::em_nstring, Query::ec_gt, Metrics::em_nstring);
-	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BhH%%5D%%24&n=Writable+.h+Files+With+%%23include+directives\">Writable .h files with #include directives</a>\n", FileMetrics::em_nincfile, Query::ec_gt, FileMetrics::em_nincfile);
-	fprintf(of, "<li> <a href=\"filequery.html\">Specify new file query</a>\n"
-		"</ul></div>\n");
+// 	html_head(of, "index", "CScout Main Page", "<img src=\"logo.png\">Scout Main Page");
+// 	fputs(
+// 		"<table><tr><td valign=\"top\">\n"
+// 		"<div class=\"mainblock\">\n"
+// 		"<h2>Files</h2>\n"
+// 		"<ul>\n"
+// 		"<li> <a href=\"filemetrics.html\">File metrics</a>\n"
+// 		"<li>\n", of);
+// 	dir_top("Browse file tree");
+// 	fprintf(of,
+// 		"<li> <a href=\"xfilequery.html?ro=1&writable=1&match=Y&n=All+Files\">All files</a>\n"
+// 		"<li> <a href=\"xfilequery.html?ro=1&match=Y&n=Read-only+Files\">Read-only files</a>\n"
+// 		"<li> <a href=\"xfilequery.html?writable=1&match=Y&n=Writable+Files\">Writable files</a>\n");
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers\">Files containing unused project-scoped writable identifiers</a>\n", is_lscope);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers\">Files containing unused file-scoped writable identifiers</a>\n", is_cscope);
+// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BcC%%5D%%24&n=Writable+.c+Files+Without+Any+Statements\">Writable .c files without any statements</a>\n", FileMetrics::em_nstatement, Query::ec_eq, FileMetrics::em_nstatement);
+// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&order=%d&c%d=%d&n%d=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines\">Writable files containing unprocessed lines</a>\n", Metrics::em_nuline, Metrics::em_nuline, Query::ec_gt, Metrics::em_nuline);
+// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&n=Writable+Files+Containing+Strings\">Writable files containing strings</a>\n", Metrics::em_nstring, Query::ec_gt, Metrics::em_nstring);
+// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BhH%%5D%%24&n=Writable+.h+Files+With+%%23include+directives\">Writable .h files with #include directives</a>\n", FileMetrics::em_nincfile, Query::ec_gt, FileMetrics::em_nincfile);
+// 	fprintf(of, "<li> <a href=\"filequery.html\">Specify new file query</a>\n"
+// 		"</ul></div>\n");
 
-	fputs(
-		"<div class=\"mainblock\">\n"
-		"<h2>File Dependencies</h2>"
-		"<ul>\n", of);
-	fprintf(of, "<li> File include graph: <a href=\"fgraph%s?gtype=I\">writable files</a>, ", graph_suffix().c_str());
-	fprintf(of, "<a href=\"fgraph%s?gtype=I&all=1\">all files</a>", graph_suffix().c_str());
-	fprintf(of, "<li> Compile-time dependency graph: <a href=\"fgraph%s?gtype=C\">writable files</a>, ", graph_suffix().c_str());
-	fprintf(of, "<a href=\"fgraph%s?gtype=C&all=1\">all files</a>", graph_suffix().c_str());
-	fprintf(of, "<li> Control dependency graph (through function calls): <a href=\"fgraph%s?gtype=F&n=D\">writable files</a>, ", graph_suffix().c_str());
-	fprintf(of, "<a href=\"fgraph%s?gtype=F&n=D&all=1\">all files</a>", graph_suffix().c_str());
-	fprintf(of, "<li> Data dependency graph (through global variables): <a href=\"fgraph%s?gtype=G\">writable files</a>, ", graph_suffix().c_str());
-	fprintf(of, "<a href=\"fgraph%s?gtype=G&all=1\">all files</a>", graph_suffix().c_str());
-	fputs("</ul></div>", of);
+// 	fputs(
+// 		"<div class=\"mainblock\">\n"
+// 		"<h2>File Dependencies</h2>"
+// 		"<ul>\n", of);
+// 	fprintf(of, "<li> File include graph: <a href=\"fgraph%s?gtype=I\">writable files</a>, ", graph_suffix().c_str());
+// 	fprintf(of, "<a href=\"fgraph%s?gtype=I&all=1\">all files</a>", graph_suffix().c_str());
+// 	fprintf(of, "<li> Compile-time dependency graph: <a href=\"fgraph%s?gtype=C\">writable files</a>, ", graph_suffix().c_str());
+// 	fprintf(of, "<a href=\"fgraph%s?gtype=C&all=1\">all files</a>", graph_suffix().c_str());
+// 	fprintf(of, "<li> Control dependency graph (through function calls): <a href=\"fgraph%s?gtype=F&n=D\">writable files</a>, ", graph_suffix().c_str());
+// 	fprintf(of, "<a href=\"fgraph%s?gtype=F&n=D&all=1\">all files</a>", graph_suffix().c_str());
+// 	fprintf(of, "<li> Data dependency graph (through global variables): <a href=\"fgraph%s?gtype=G\">writable files</a>, ", graph_suffix().c_str());
+// 	fprintf(of, "<a href=\"fgraph%s?gtype=G&all=1\">all files</a>", graph_suffix().c_str());
+// 	fputs("</ul></div>", of);
 
-	fputs(
-		"<div class=\"mainblock\">\n"
-		"<h2>Functions and Macros</h2>\n"
-		"<ul>\n"
-		"<li> <a href=\"funmetrics.html\">Function metrics</a>\n"
-		"<li> <a href=\"xfunquery.html?writable=1&ro=1&match=Y&ncallerop=0&ncallers=&n=All+Functions&qi=x\">All functions</a>\n"
-		"<li> <a href=\"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x\">Project-scoped writable functions</a>\n"
-		"<li> <a href=\"xfunquery.html?writable=1&fscope=1&match=L&ncallerop=0&ncallers=&n=File-scoped+Writable+Functions&qi=x\">File-scoped writable functions</a>\n"
-		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=0&n=Writable+Functions+that+Are+Not+Directly+Called&qi=x\">Writable functions that are not directly called</a>\n"
-		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=1&n=Writable+Functions+that+Are++Called+Exactly+Once&qi=x\">Writable functions that are called exactly once</a>\n", of);
-	fprintf(of, "<li> <a href=\"cgraph%s\">Non-static function call graph</a>", graph_suffix().c_str());
-	fprintf(of, "<li> <a href=\"cgraph%s?all=1\">Function and macro call graph</a>", graph_suffix().c_str());
-	fputs("<li> <a href=\"funquery.html\">Specify new function query</a>\n"
-		"</ul></div>\n", of);
+// 	fputs(
+// 		"<div class=\"mainblock\">\n"
+// 		"<h2>Functions and Macros</h2>\n"
+// 		"<ul>\n"
+// 		"<li> <a href=\"funmetrics.html\">Function metrics</a>\n"
+// 		"<li> <a href=\"xfunquery.html?writable=1&ro=1&match=Y&ncallerop=0&ncallers=&n=All+Functions&qi=x\">All functions</a>\n"
+// 		"<li> <a href=\"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x\">Project-scoped writable functions</a>\n"
+// 		"<li> <a href=\"xfunquery.html?writable=1&fscope=1&match=L&ncallerop=0&ncallers=&n=File-scoped+Writable+Functions&qi=x\">File-scoped writable functions</a>\n"
+// 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=0&n=Writable+Functions+that+Are+Not+Directly+Called&qi=x\">Writable functions that are not directly called</a>\n"
+// 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=1&n=Writable+Functions+that+Are++Called+Exactly+Once&qi=x\">Writable functions that are called exactly once</a>\n", of);
+// 	fprintf(of, "<li> <a href=\"cgraph%s\">Non-static function call graph</a>", graph_suffix().c_str());
+// 	fprintf(of, "<li> <a href=\"cgraph%s?all=1\">Function and macro call graph</a>", graph_suffix().c_str());
+// 	fputs("<li> <a href=\"funquery.html\">Specify new function query</a>\n"
+// 		"</ul></div>\n", of);
 
-	fprintf(of, "</td><td valign=\"top\">\n");
+// 	fprintf(of, "</td><td valign=\"top\">\n");
 
-	fputs(
-		"<div class=\"mainblock\">\n"
-		"<h2>Identifiers</h2>\n"
-		"<ul>\n"
-		"<li> <a href=\"idmetrics.html\">Identifier metrics</a>\n",
-		of);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&match=Y&qi=1&n=All+Identifiers\">All identifiers</a>\n", is_readonly);
-	fprintf(of, "<li> <a href=\"xiquery.html?a%d=1&match=Y&qi=1&n=Read-only+Identifiers\">Read-only identifiers</a>\n", is_readonly);
-	fputs("<li> <a href=\"xiquery.html?writable=1&match=Y&qi=1&n=Writable+Identifiers\">Writable identifiers</a>\n"
-		"<li> <a href=\"xiquery.html?writable=1&xfile=1&match=L&qi=1&n=File-spanning+Writable+Identifiers\">File-spanning writable identifiers</a>\n", of);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Project-scoped+Writable+Identifiers\">Unused project-scoped writable identifiers</a>\n", is_lscope);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+File-scoped+Writable+Identifiers\">Unused file-scoped writable identifiers</a>\n", is_cscope);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Writable+Macros\">Unused writable macros</a>\n", is_macro);
-	// xfile is implicitly 0
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable variable identifiers that should be made static</a>\n", is_ordinary, is_lscope);
-	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable function identifiers that should be made static</a>\n", is_ordinary, is_lscope, is_cfunction);
-	fprintf(of,
-		"<li> <a href=\"iquery.html\">Specify new identifier query</a>\n"
-		"</ul></div>"
-	);
+// 	fputs(
+// 		"<div class=\"mainblock\">\n"
+// 		"<h2>Identifiers</h2>\n"
+// 		"<ul>\n"
+// 		"<li> <a href=\"idmetrics.html\">Identifier metrics</a>\n",
+// 		of);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&match=Y&qi=1&n=All+Identifiers\">All identifiers</a>\n", is_readonly);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?a%d=1&match=Y&qi=1&n=Read-only+Identifiers\">Read-only identifiers</a>\n", is_readonly);
+// 	fputs("<li> <a href=\"xiquery.html?writable=1&match=Y&qi=1&n=Writable+Identifiers\">Writable identifiers</a>\n"
+// 		"<li> <a href=\"xiquery.html?writable=1&xfile=1&match=L&qi=1&n=File-spanning+Writable+Identifiers\">File-spanning writable identifiers</a>\n", of);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Project-scoped+Writable+Identifiers\">Unused project-scoped writable identifiers</a>\n", is_lscope);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+File-scoped+Writable+Identifiers\">Unused file-scoped writable identifiers</a>\n", is_cscope);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Writable+Macros\">Unused writable macros</a>\n", is_macro);
+// 	// xfile is implicitly 0
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable variable identifiers that should be made static</a>\n", is_ordinary, is_lscope);
+// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable function identifiers that should be made static</a>\n", is_ordinary, is_lscope, is_cfunction);
+// 	fprintf(of,
+// 		"<li> <a href=\"iquery.html\">Specify new identifier query</a>\n"
+// 		"</ul></div>"
+// 	);
 
 
-	if (!browse_only)
-		fputs(
-			"<div class=\"mainblock\">\n"
-			"<h2>Operations</h2>"
-			"<ul>\n"
-			"<li> <a href=\"options.html\">Global options</a>\n"
-			" &mdash; <a href=\"save_options.html\">save global options</a>\n"
-			"<li> <a href=\"replacements.html\">Identifier replacements</a>\n"
-			"<li> <a href=\"funargrefs.html\">Function argument refactorings</a>\n"
-			"<li> <a href=\"sproject.html\">Select active project</a>\n"
-			"<li> <a href=\"about.html\">About CScout</a>\n"
-			"<li> <a href=\"save.html\">Save changes and continue</a>\n"
-			"<li> <a href=\"sexit.html\">Exit &mdash; saving changes</a>\n"
-			"<li> <a href=\"qexit.html\">Exit &mdash; ignore changes</a>\n"
-			"</ul></div>", of);
-	fputs("</td></tr></table>\n", of);
-	html_tail(of);
+// 	if (!browse_only)
+// 		fputs(
+// 			"<div class=\"mainblock\">\n"
+// 			"<h2>Operations</h2>"
+// 			"<ul>\n"
+// 			"<li> <a href=\"options.html\">Global options</a>\n"
+// 			" &mdash; <a href=\"save_options.html\">save global options</a>\n"
+// 			"<li> <a href=\"replacements.html\">Identifier replacements</a>\n"
+// 			"<li> <a href=\"funargrefs.html\">Function argument refactorings</a>\n"
+// 			"<li> <a href=\"sproject.html\">Select active project</a>\n"
+// 			"<li> <a href=\"about.html\">About CScout</a>\n"
+// 			"<li> <a href=\"save.html\">Save changes and continue</a>\n"
+// 			"<li> <a href=\"sexit.html\">Exit &mdash; saving changes</a>\n"
+// 			"<li> <a href=\"qexit.html\">Exit &mdash; ignore changes</a>\n"
+// 			"</ul></div>", of);
+// 	fputs("</td></tr></table>\n", of);
+// 	html_tail(of);
 
-}
+// }
 
 json::value
 file_page(void *p)
@@ -2994,11 +2996,11 @@ query_include_page(void *p)
 	return to_return;
 }
 
-static void
-logo_page(FILE *fo, void *p)
-{
-	Logo::logo(fo);
-}
+// static void
+// logo_page(FILE *fo, void *p)
+// {
+// 	Logo::logo(fo);
+// }
 
 static json::value
 replacements_page(void *p)
@@ -3694,7 +3696,7 @@ main(int argc, char *argv[])
 		graph_handle("cgraph", cgraph_page);
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
-
+		server.addHandler("browseTop.html",top_file, NULL);
 	//	server.addHandler("about.html", about_page, NULL);
 		server.addHandler("setproj.html", set_project_page, NULL);
 		// server.addHandler("logo.png", logo_page, NULL);
@@ -3734,7 +3736,7 @@ main(int argc, char *argv[])
 		cerr << "Producing call graphs for: ";
 		for (string d : call_graphs) cerr << d << " ";
 		cerr << endl;
-		produce_call_graphs(call_graphs);
+		// produce_call_graphs(call_graphs);
 
 		return (0);
 	}
