@@ -16,20 +16,24 @@ pplx::task<http_response> make_task_request(http_client & client, method mtd, co
     
 }
 
-const char * to_query(json::value jvalue){
-    ostringstream fs;
-    fs<<"?";
+void to_query(json::value jvalue,uri_builder *builder){
+   
     json::object query = jvalue.as_object();
     for (auto i = query.cbegin(); i != query.cend(); i++ ){
-        fs<<i->first<<"="<<i->second.as_string();
-        if((i+1)!=query.cend())
-            fs<<"&";
-    }
-    //cout<<fs.str()<<endl;
-    return fs.str().c_str();
+       builder->append_query(i->first,i->second.as_string());
+    }  
 }
 bool check_valid(json::value response, const char* path){
-
+   if (response.as_object().empty()){
+      return false;
+   }
+   if(response.has_field("error")){
+      return false;
+   }
+   std::fstream fs;
+   // fs.open (strcat("./test/preOut/",path), std::fstream::in);
+   // fs.close();
+   return true;
 }
 
  
@@ -40,13 +44,16 @@ bool make_request(
 {
    uri_builder builder(path);
    bool valid=false;
+
    if(!jvalue.as_object().empty()){
-    builder.set_query(to_query(jvalue),true);
+    to_query(jvalue, &builder);
    }
- 
+   cout<<jvalue.serialize()<<"-WHAT-"<<builder.to_string()<<endl;
+  // cout<<"REQUEST:" <<builder.to_string();
    make_task_request(client, mtd, builder.to_string().c_str())
       .then([](http_response response)
       {
+        cout<<"RESPONSe:"<<response.to_string()<<endl;
          if (response.status_code() == status_codes::OK)
          {
             return response.extract_json();
@@ -69,6 +76,7 @@ bool make_request(
          }
       })
       .wait();
+      return valid;
 }
  
 int main()
@@ -79,13 +87,16 @@ int main()
     fs.open ("./test/requests.json", std::fstream::in);
     json::array req= json::value::parse(fs).as_array();
     fs.close();
+    method t; 
     for(int i = 0; i<req.size();i++){
         // cout<<"path:"<<req[i]["path"].as_string()<<endl;
         // cout<<"query"<<req[i]["query"].serialize()<<endl;
-      //  <<(req[i]["query"].is_null()?"empty":req[i]["query"].as_string())<<endl;
+      // cout <<(req[i]["query"].is_null()?"empty":req[i]["query"].serialize())<<endl;
+       t = req[i].has_field("put")? methods::PUT : methods::GET;
+       cerr<<t<<endl;
        cerr<<"Request to "<<req[i]["path"].as_string()
         <<((
-        make_request(client,methods::GET,
+        make_request(client, t,
             req[i]["path"].as_string().c_str(),
             req[i]["query"])
         )?" ok":" not ok")
