@@ -17,33 +17,6 @@
         }
     },
     {
-        "path":"xfilequery.html",
-        "query":{
-            "ro":"1",
-            "match":"Y",
-            "n":"Read-only+Files"
-        }
-    },
-    {
-        "path":"xfilequery.html",
-        "query":{
-            "writable":"1",
-            "match":"Y",
-            "n":"Writable+Files"
-        }
-    },
-    {
-        "path":"xfilequery.html",
-        "query":{
-            "c25":"4",
-            "n25":"0",
-            "writable":"1",
-            "match":"L",
-            "fre":"%C.%BhH%D%24",
-            "n":"Writable+.h+Files+With+%23include+directives"
-        }
-    },
-    {
         "path":"idmetrics.html",
         "query":{}
     },
@@ -73,6 +46,12 @@
         "query":{},
         "dependant":"browseTop.html",
         "dependantQuery":[]
+    },
+    {
+        "path":"file.html",
+        "query":{},
+        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependantQuery":["id"]
     }
     ,{
         "path":"qexit.html",

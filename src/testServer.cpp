@@ -45,6 +45,7 @@ bool make_request(
    
    bool valid=false;
    string *s;
+   cout<<"make_request: "<<path<<"-"<<jvalue.serialize()<<endl;
    //check if query needs info from another one
    if(req.has_field("dependant")){
       make_task_request(client, methods::GET, req["dependant"].as_string().c_str() )
@@ -55,7 +56,7 @@ bool make_request(
          }
          return pplx::task_from_result(json::value());
       })
-      .then([&jvalue,&req,&path,&s](pplx::task<json::value> previousTask)
+      .then([&jvalue,&req,&path,&s,&client,&mtd](pplx::task<json::value> previousTask)
       {
          try
          {
@@ -70,10 +71,21 @@ bool make_request(
                path = s->c_str();
                cout<<"path:"<<path<<endl;
             }
+            cout<<"RECURSE"<<endl;
             cout<<"path:"<<path<<endl;
             for(auto i = req["dependantQuery"].as_array().cbegin();
                i!=req["dependantQuery"].as_array().cend(); i++){
-               jvalue[i->as_string()] = previousTask.get()[i->as_string()];
+               cout<<i->serialize()<<endl;
+               if(returned.has_array_field(i->as_string()))
+                  for (int j = 0; j < returned[i->as_string()].size();j++){
+                     cout<<"ALL:"<<returned[i->as_string()]<<endl;
+                     cout<<returned[i->as_string()][j]<<endl;
+                     jvalue[i->as_string()]= json::value::string(returned[i->as_string()][j].serialize());
+                     if(!make_request(client,mtd,path,jvalue,json::value()))
+                        return false;
+                     }
+               else
+                  jvalue[i->as_string()] = previousTask.get()[i->as_string()];
             }        
          }
          catch (http_exception const & e)
@@ -105,7 +117,7 @@ bool make_request(
          try
          {
             std::fstream fs;
-            fs.open ("./test/responses/"+string(path)+".json", std::fstream::out);
+            fs.open ("./test/responses/"+string(path)+".json", std::fstream::out | std::fstream::app);
             fs << previousTask.get().serialize();
             valid=check_valid(previousTask.get(),path);
             fs.close();
@@ -118,7 +130,7 @@ bool make_request(
       .wait();
       //delete(path);
       if(s!=NULL)
-         delete(s);
+         delete s;
       return valid;
 }
  
