@@ -463,6 +463,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 			fputs(error_msg.c_str(), stderr);
 			// cout<<"error:" << error_msg << endl;
 			to_return["error"] = json::value::string(error_msg);
+			delete in;
 			return to_return;
 		}
 	}
@@ -1087,27 +1088,38 @@ xfilequery_page(void *p)
 		
 		to_return["table"]["h2"]=json::value::string("<th>"+Metrics::get_name<FileMetrics>(query.get_sort_order())+"</th>\n",true);
 	}
+
 	Pager pager(Option::entries_per_page->get(), query.base_url(), query.bookmarkable());	
+		
+
 	to_return["table"]["hend"]=json::value::string(html_file_set_begin(),true);
 	fs.flush();
+	int no = 0;
+	
 	for (multiset <Fileid, FileQuery::specified_order>::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
 			fs<<html_file(*i);
+			to_return["id"][no] = json::value(i->get_id());
+			to_return["name"][no++] = json::value::string(i->get_path());
 			if (modification_state != ms_subst && !browse_only)
 				fs<<"<td><a href=\"fedit.html?id="+to_string(i->get_id())+"\">edit</a></td>";
 			if (query.get_sort_order() != -1)
 				fs<< "<td align=\"right\">"<<to_string(i->const_metrics().get_metric(query.get_sort_order()))<<"</td>";
 			fs<<html_file_record_end();
+			to_return["table"]["contents"][no-1]= json::value::string(fs.str());
+			fs.flush();
 		}
 	}
-	to_return["table"]["contents"] = json::value::string(fs.str(),true);
+	
+//	to_return["table"]["contents"] = json::value::string(fs.str(),true);
 	to_return["table"]["end"]=json::value::string(html_file_end(),true);
-
+	
 	// to_return["pager"]=pager.end();
 	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
+	cout<<"out of xfilequery"<<endl;
 	return to_return;
 }
 
@@ -1360,7 +1372,7 @@ xiquery_page(void * p)
 	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
 	// cerr << "Evaluating identifier query" << endl;
 	if(ids.empty())
-		// cout<<"true ids empty"<<endl;
+		cerr<<"true ids empty"<<endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 	//	cout<<html(*i)<<"-"<<query.eval(*i)<<endl;
@@ -1400,7 +1412,7 @@ xiquery_page(void * p)
 	}
 
 	to_return["timer"] = json::value::string(timer.print_elapsed());
-
+	cout<<to_return.serialize()<<endl;
 	return to_return;
 }
 
@@ -1782,6 +1794,7 @@ visit_functions(const char *call_path, Call *f,
 				to_return[no++]["call"] = visit_functions(call_path, *i, fbegin, fend, recurse, show, level - 1, visit_id);
 		}
 	}
+	delete s;
 	return to_return;
 }
 
