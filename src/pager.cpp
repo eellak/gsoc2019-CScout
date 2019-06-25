@@ -37,7 +37,9 @@
 Pager::Pager(int ps, const string &qurl, bool bmk) : pagesize(ps), current(0), url(qurl), bookmarkable(bmk)
 {
 	skip = (unsigned int)server.getIntParam("skip");
-
+	if(skip == -1){
+		skip = 0;
+	}
 }
 
 bool
