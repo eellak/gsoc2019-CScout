@@ -223,15 +223,27 @@ progress(typename container::const_iterator i, const container &c)
 	}
 }
 
-// Display an identifier hyperlink
 static string
 html(const IdPropElem &i)
 {
 	ostringstream to_ret;
-	// cout<<"test in print"<<i.first;
-	to_ret << "<a href=\"id.html?id="<<i.first<<"\">" <<
+	to_ret<<"<a href=\"id.html?id="<<i.first<<"\">" <<
 		html_string((i.second).get_id())+"</a>";
 	return to_ret.str();
+}
+
+
+
+// Display an identifier hyperlink
+static json::value
+html_address(const IdPropElem &i)
+{
+	json::value to_return;
+	char* s = new char[20];
+	sprintf(s,"%p",i.first);
+	to_return=json::value(s); 
+	delete s;
+	return to_return;
 }
 
 static string
@@ -241,6 +253,18 @@ html(const Call &c)
 	to_ret << "<a href=\"fun.html?f="<< &c<<"\">"
 	<<html_string(c.get_name())<< "</a>";
 	return to_ret.str();
+}
+
+static json::value
+html_address(const Call &c)
+{
+	
+	json::value to_return;
+	char* s = new char[20];
+	sprintf(s,"%p",&c);
+	to_return = json::value(s);
+	delete s;
+	return to_return;
 }
 
 // Display a hyperlink based on a string and its starting tokid
@@ -422,10 +446,10 @@ file_hypertext( Fileid * fi,bool eval_query)
 	IdQuery idq;
 	FunQuery funq;
 	bool have_funq, have_idq;
-	const char *qtype = server.getStrParam("qt").c_str();
+	const char *qtype = server.getCharPParam("qt");
 	// cout << "qtype: " << qtype << endl;
 	have_funq = have_idq = false;
-	if (!qtype || strcmp(qtype, "id") == 0) {
+	if (qtype==NULL || strcmp(qtype, "id") == 0) {
 		idq = IdQuery(Option::file_icase->get(), current_project, eval_query);
 		have_idq = true;
 		
@@ -446,6 +470,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 			to_return["FunMsg"]=json::value::string(funq.getError());
 	} else {
 		to_return["error"] = json::value::string("Unknown query type (try adding &qt=id to the URL).\n");
+		delete qtype;
 		return to_return;
 	}
 	// cout<<"out of Queries "<<endl;
@@ -464,6 +489,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 			// cout<<"error:" << error_msg << endl;
 			to_return["error"] = json::value::string(error_msg);
 			delete in;
+			if(qtype!=NULL) delete qtype;
 			return to_return;
 		}
 	}
@@ -545,6 +571,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	}
 	// cout<<"ending file_hypertext";
 	delete in;
+	if(qtype!=NULL) delete qtype;
 	to_return["file"] = json::value::string(file);
 	return to_return;
 }
@@ -1062,7 +1089,7 @@ xfilequery_page(void *p)
 {
 	Timer timer;
 	json::value to_return;
-	const char *qname = server.getStrParam("n").c_str();
+	const char *qname = server.getCharPParam("n");
 	std::ostringstream fs;
 	FileQuery query(&fs, Option::file_icase->get(), current_project);
 
@@ -1070,6 +1097,7 @@ xfilequery_page(void *p)
 		to_return["Xerror"]= json::value::string(fs.str());
 	if (!query.is_valid()){
 		to_return["error"]=json::value::string("Non valid query");
+		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 	multiset <Fileid, FileQuery::specified_order> sorted_files;
@@ -1120,6 +1148,7 @@ xfilequery_page(void *p)
 	// to_return["pager"]=pager.end();
 	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
 	cout<<"out of xfilequery"<<endl;
+	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
@@ -1142,11 +1171,12 @@ display_sorted(const Query &query, const container &sorted_ids)
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
 	int no=0;
-
+	char * s = new char[20];
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
 			// cout<<"pager.next"<<endl;
-			to_return["ids"][no++] = json::value::string(html(**i),true);
+			to_return["f"][no]=html_address(**i);			
+			to_return["ids"][no++] = json::value::string(html(**i));
 		}
 	}
 	if (Option::sort_rev->get())
@@ -1176,8 +1206,12 @@ display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 
 	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	int no = 0;
+	char * s = new char[20];
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
+			sprintf(s,"%p",&(**i));
+			to_return["f"][no]=json::value(s);
+			s[0]=0;
 			to_return["funs"][no++]=json::value::string("<tr><td witdh='50%'>"+
 			html(**i)+
 			"</td><td witdh='50%%' align='right'>"+
@@ -1361,11 +1395,12 @@ xiquery_page(void * p)
 	bool q_id = !!server.getBoolParam("qi");	// Show matching identifiers
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	bool q_fun = !!server.getBoolParam("qfun");	// Show matching functions
-	const char *qname = server.getStrParam("n").c_str();
+	const char *qname = server.getCharPParam("n");
 	IdQuery query(Option::file_icase->get(), current_project);
 
 	if (!query.is_valid()) {
 		to_return["error"]=json::value::string("Invalid query");
+		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 
@@ -1397,6 +1432,8 @@ xiquery_page(void * p)
 	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
 		// cout<<"identifers"<<endl;
 		to_return["ids"] = display_sorted(query, sorted_ids);
+		to_return["id"] = to_return["ids"]["f"];
+		to_return["ids"].erase("f");
 		// if(sorted_ids.empty())
 			// cout<<"no identifers"<<endl;
 	}
@@ -1409,10 +1446,13 @@ xiquery_page(void * p)
 		Sfuns sorted_funs;
 		sorted_funs.insert(funs.begin(), funs.end());
 		to_return["funs"]=display_sorted(query, sorted_funs);
+		to_return["f"] = to_return["funs"]["f"];
+		to_return["funs"].erase("f");
 	}
 
 	to_return["timer"] = json::value::string(timer.print_elapsed());
 	cout<<to_return.serialize()<<endl;
+	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
@@ -1435,11 +1475,12 @@ xfunquery_page(void *p)
 
 	bool q_id =!!server.getBoolParam("qi");
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
-	const char *qname = server.getStrParam("n").c_str();
+	const char *qname = server.getCharPParam("n");
 	FunQuery query(NULL, Option::file_icase->get(), current_project);
 	cout<<"hello"<<endl;
 	if (!query.is_valid()){
 		to_return["error"]=json::value::string("Invalid Query");
+		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 		
@@ -1465,7 +1506,10 @@ xfunquery_page(void *p)
 	}
 	if (q_file)
 		to_return["files"]=display_files(query, sorted_files);
+	to_return["f"]=to_return["funs"]["f"];
+	to_return["funs"].erase("f");
 	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
+	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
@@ -1489,7 +1533,7 @@ identifier_page(void *p)
 	int no=0;
 	
 	e = (Eclass*)server.getAddrParam("id");
-	// cout<<"E:"<<e<<endl;;
+	cout<<"E:"<<e<<endl;;
 	if (!e) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
@@ -1497,11 +1541,11 @@ identifier_page(void *p)
 
 	const char *subst;
 	Identifier &id = ids[e];
-	
-	if ((subst = server.getStrParam("sname").c_str())) {
+	if ((subst = server.getCharPParam("sname"))!=NULL) {
 
 		if (modification_state == ms_hand_edit) {
 			to_return["error"]=change_prohibited();
+			delete subst;
 			return to_return;
 		}
 		ostringstream fs;
@@ -1509,32 +1553,44 @@ identifier_page(void *p)
 		prohibit_remote_access(&fs);
 		if (fs.str().length() > 0){
 			to_return["error"] = json::value::string(fs.str());
+			delete subst;
 			return to_return;
 		}
 
 		// Passing subst directly core-dumps under
 		// gcc version 2.95.4 20020320 [FreeBSD 4.7]
 		string ssubst(subst);
+		cout<<"subst:"<<ssubst<<endl;
 		id.set_newid(ssubst);
 		modification_state = ms_subst;
+		delete subst;
 	}
-
+	cout<<"HERE3"<<endl;
 	to_return["id"]= json::value(id.get_id());
+	cout<<"IDPROB"<<endl;
 	to_return["form"] =json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
+	cout<<to_return.serialize();
 	string s;
 	for (int i = attr_begin; i < attr_end; i++){		
+		cout<<"HERE"<<i<<endl;
 		s = show_id_prop(Attributes::name(i), e->get_attribute(i));		
+		
 		if(!s.empty())
 			to_return["attribute"][no++] = json::value::string(s);
 	}
+	cout<<"HERE0"<<endl;
+
 	s = show_id_prop("Crosses file boundary", id.get_xfile());
 	if(!s.empty())
 			to_return["attribute"][no++] = json::value::string(s);
 	s = show_id_prop("Unused", e->is_unused());
+	cout<<"HERE4"<<endl;
+
 	if(!s.empty())
 			to_return["attribute"][no++] = json::value::string(s);
 	to_return["match"]["tite"]=json::value::string("<li> Matches "+to_string(e->get_size()) +" occurence(s)\n");
-	
+	cout<<"HERE1"<<endl;
+
 	no = 0;
 	if (Option::show_projects->get()) {
 		to_return["projects"]["start"] = json::value::string("Appears in project(s): \n");
@@ -1556,7 +1612,7 @@ identifier_page(void *p)
 	fs.str()+"&qi=1&n=Functions+Containing+Identifier+"
 	+id.get_id()+"\">Associated functions</a>");
 	no = 0;
-	
+	cout<<"HERE2:"<<to_return.serialize()<<endl;
 	if (e->get_attribute(is_cfunction) || e->get_attribute(is_macro)) {
 		bool found = false;
 		// Loop through all declared functions
@@ -1577,7 +1633,7 @@ identifier_page(void *p)
 			to_return["functions"]["end"]=json::value::string("</ol><br />\n");
 	}
 	to_return["contains"]=json::value::string(fs.str());
-	
+	cout<<"HERE"<<endl;
 	fs.flush();
 	if ((!e->get_attribute(is_readonly) || Option::rename_override_ro->get()) &&
 	    modification_state != ms_hand_edit &&
@@ -1610,8 +1666,11 @@ function_page(void *p)
 		return to_return;
 	}
 	const char *subst;
+	string sust;
 	if (!server.getStrParam("ncall").empty()) {
-		subst = subst = server.getStrParam("ncall").c_str();
+		
+		sust = server.getStrParam("ncall");
+		subst = sust.c_str();
 		string ssubst(subst);
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
@@ -1913,16 +1972,17 @@ funlist_page(void *p)
 	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
 	char buff[256];
-
-	const char *ltype = server.getStrParam("n").c_str();
+	string s = server.getStrParam("n");
+	const char *ltype = s.c_str();
 	
+	cout<<"n:"<<ltype<<endl;
 	if (f == NULL || !ltype) {
 		to_return["error"]=json::value::string("Missing value");
 		return to_return;
 	}
 	
 	to_return["start"]=json::value::string("<h2>Function "+html(*f)+"</h2>");
-
+	printf("nn:%c\n",ltype[1]);
 	const char *calltype;
 	bool recurse;
 	switch (*ltype) {
@@ -2158,7 +2218,8 @@ static bool
 single_function_graph()
 {
 	Call *f = (Call *)server.getAddrParam("f");
-	const char *ltype = server.getStrParam("n").c_str();
+	string s = server.getStrParam("n");
+	const char *ltype = s.c_str();
 	if ((f == NULL) || !ltype)
 		return false;
 	Call::clear_visit_flags();
@@ -2190,7 +2251,8 @@ static bool
 single_file_graph(char gtype, EdgeMatrix &edges)
 {
 	int id;
-	const char *ltype = server.getStrParam("n").c_str();
+	string s = server.getStrParam("n");
+	const char *ltype = s.c_str();
 	if (!(id = server.getIntParam("f")) || !ltype)
 		return false;
 	Fileid fileid(id);
@@ -2320,8 +2382,8 @@ fgraph_page(GraphDisplay *gd)
 	const char *gtype = NULL;
 	const char *ltype = NULL;
 	if (gd->uses_swill) {
-		gtype = server.getStrParam("gtype").c_str();		// Graph type
-		ltype = server.getStrParam("n").c_str();
+		gtype = server.getCharPParam("gtype");		// Graph type
+		ltype = server.getCharPParam("n");
 	}
 	else {
 		gtype = gd->gtype;
@@ -2461,6 +2523,10 @@ fgraph_page(GraphDisplay *gd)
 	}
 end:
 	gd->tail();
+		if (gd->uses_swill) {
+		if(gtype!=NULL) delete gtype;		// Graph type
+		if(ltype!=NULL) delete ltype;
+	}
 }
 
 // Graph: text
@@ -2910,7 +2976,7 @@ fedit_page(void *p)
 	}
 	Fileid i(id);
 	i.hand_edit();
-	const char *re = server.getStrParam("re").c_str();
+	const char *re = server.getCharPParam("re");
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
 
@@ -2920,11 +2986,13 @@ fedit_page(void *p)
 	
 	if (system(buff) != 0) {
 		to_return["error"] = json::value::string(string("Launching") +s + "failed");
+		if(re!=NULL) delete re;
 		return to_return;
 	}
 		
 	modification_state = ms_hand_edit;
 	to_return["ok"]=json::value("done");
+	if(re!=NULL) delete re;
 	return to_return;
 }
 
@@ -2945,7 +3013,7 @@ query_source_page(void *)
 	Fileid i(id);
 	const string &pathname = i.get_path();
 	const char *qname;
-	qname = server.getStrParam("n").c_str();
+	qname = server.getCharPParam("n");
 
 	if (qname && *qname)
 		to_return["qname"] = json::value::string(qname);		
@@ -2954,6 +3022,7 @@ query_source_page(void *)
 	// cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
 	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
 	to_return["html"] = file_hypertext(&i, true);
+	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
@@ -2968,7 +3037,7 @@ query_include_page(void *p)
 	}
 	Fileid f(id);
 	const string &pathname = f.get_path();
-	const char *qname = server.getStrParam("n").c_str();
+	const char *qname = server.getCharPParam("n");
 	if (qname && *qname)
 		to_return["qname"]=json::value(qname);
 	
@@ -3006,6 +3075,7 @@ query_include_page(void *p)
 	to_return["table"]["content"] = json::value::string(fs.str());
 	to_return["table"]["end"] = json::value::string(html_file_end());
 	to_return["end"]=json::value::string("</ul>\n");
+	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
@@ -3081,10 +3151,10 @@ xreplacements_page(void *p)
 			snprintf(varname, sizeof(varname), "r%p", &(i->second));
 			const char *subst;
 			// cout<<"varname"<<varname<<endl;
-			if ((subst = server.getStrParam(varname).c_str())!= NULL) {
+			if ((subst = server.getCharPParam(varname))!= NULL) {
 				string ssubst(subst);
 				i->second.set_newid(ssubst);
-
+				delete subst;
 			}
 
 			snprintf(varname, sizeof(varname), "a%p", &(i->second));
