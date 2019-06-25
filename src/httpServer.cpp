@@ -204,6 +204,26 @@ string  HttpServer::getStrParam(string name){
         }
 }
 
+//Read Uri Parameter as a string
+const char * HttpServer::getCharPParam(string name){
+    // cout<<"Get str "<<name<<"-"<< server.params.has_field(name)<<endl;
+    if(!(server.params.has_field(name))){
+        // cout<<"zero"<<endl;
+        return NULL;
+    }
+    else{
+        // cout << "params[name]:"<< server.params[name].serialize() << endl;
+    }
+        if(server.params[name].is_null())
+            return NULL;
+        else{
+            char *c = new char[server.params[name].as_string().length()+1];
+            strcpy(c,server.params[name].as_string().c_str());
+            // cout <<"name:"<< server.params[name].as_string()<<endl;
+            return c; 
+        }
+}
+
 
 void HttpServer::handle_post(http_request request){
  /* to add handler */

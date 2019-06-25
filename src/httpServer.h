@@ -46,6 +46,8 @@ public:
     int getIntParam(string name);
     //get request parameter from uri as string
     string getStrParam(string name);
+    //get request parameter from uri as char *
+    const char * getCharPParam(string name);
     //get request parameter from uri as a pointer
     void * getAddrParam(string name);
     //get request paramete from uri as bool

@@ -90,10 +90,10 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	valid = true;
 
 	// Query name
-	const char *qname = server.getStrParam("n").c_str();
-	if (qname && *qname)
+	const char *qname = server.getCharPParam("n");
+	if (qname!=NULL && *qname)
 		name = qname;
-
+	if(qname!=NULL) delete qname;
 	// Match specific file
 	int flid = server.getIntParam("fid");
 	if (!flid) {
@@ -109,8 +109,8 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 
 	// Type of boolean match
 	const char *m;
-	m = server.getStrParam("match").c_str();
-	if (!m) {
+	m = server.getCharPParam("match");
+	if (m==NULL) {
 		sprintf(error, "Missing value: match");
 		valid = return_val = false;
 		lazy = true;
@@ -140,7 +140,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	exclude_fure = !!server.getIntParam("xfure");
 	exclude_fdre = !!server.getIntParam("xfdre");
 	exclude_fre = !!server.getIntParam("xfre");
-
+	delete m;
 	// Compile regular expression specs
 	if((error =compile_re("Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
 		return;

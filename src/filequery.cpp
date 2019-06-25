@@ -69,13 +69,14 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 	valid = true;
 
 	// Query name
-	const char *qname = server.getStrParam("n").c_str();
-	if (qname && *qname)
-		name = qname;
-
+	const char *qname = server.getCharPParam("n");
+	if (qname!=NULL && *qname){
+		name = string(qname);
+	}
+	if(qname!=NULL) delete qname;
 	// Type of boolean match
-	const char *m = server.getStrParam("match").c_str();
-	if (!m ) {
+	const char *m = server.getCharPParam("match");
+	if (m==NULL ) {
 		(*of) << "Missing value: match";
 		valid = return_val = false;
 		lazy = true;
@@ -89,6 +90,7 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 	exclude_fre = !!server.getIntParam("xfre");
 	// Compile regular expression specs
 	(*of) << compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
+	delete m;
 	if (!(of->str().empty()))
 	    	return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());

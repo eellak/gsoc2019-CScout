@@ -84,10 +84,11 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		return;
 		}
 	// Query name
-	const char *qname = server.getStrParam("n").c_str();
-	if (qname && *qname)
+	const char *qname = server.getCharPParam("n");
+	if (qname !=NULL && *qname)
 		name = qname;
-	cout<<"qname here" << endl;
+	if(qname!=NULL) delete qname;
+	
 	// Identifier EC match to change
 	void * t = server.getAddrParam("ec"); 
 	if (t!=NULL) {
@@ -96,15 +97,16 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		ec = NULL;
 
 		// Type of boolean match
-		const char *m= server.getStrParam("match").c_str();
-		if (!m ) {
+		const char *m= server.getCharPParam("match");
+		if (m==NULL ) {
 			error = "Missing value: match";
 			valid = return_val = false;
 			lazy = true;
 			return;
 		}
-		cout<<"m:"<<m<<endl;;
+		// cout<<"m:"<<m<<endl;;
 		match_type = *m;
+		delete m;
 	}
 
 	xfile = !!server.getIntParam("xfile");
