@@ -1,0 +1,81 @@
+.toolbar {
+    position: static;
+    top: 0;
+    left: 0;
+    width:  100%;
+    background: #0066cc; 
+    height: 56px;
+    z-index: 25px;
+    scroll-snap-destination: 0px 0px;
+    overflow: hidden;
+}
+
+.toolbar_navigation{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    padding: 0lrem;
+    z-index: 25;
+}
+
+.toolbar_logo {
+    margin-left: 1rem;
+}
+
+.toolbar_logo a{
+    color: white;
+    text-decoration: none;
+    height:100%;
+
+
+}
+
+.toolbar_logo a img:hover{
+    border-radius: 24px;
+    background-color: #4faff8;
+    color: rgb(211, 212, 218);
+}
+.toolbar_logo a img{
+    width: 3rem;
+    height: 48px;
+    top:4px;
+    bottom:4px;
+    cursor:pointer;
+}
+.spacer{
+    flex: 1;
+}
+.toolbar_navigation-items{
+    height:100%
+}
+.toolbar_navigation-items ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height:100%
+}
+
+.toolbar_navigation-items li {
+    padding: 0 0.5rem;
+    height: 100%
+}
+.toolbar_navigation-items li:hover {
+    padding: 0 0.5rem;
+    background-color: #4faff8;
+}
+
+.toolbar_navigation-items a{
+    color: white;
+    text-decoration: none;
+    top:28%;
+    position: relative;
+}
+
+.toolbar_navigation-items a:hover,
+.toolbar_navigation-items a:active{
+    color:rgb(211, 212, 218);
+    text-decoration: none;
+    cursor:'pointer';
+    
+}
