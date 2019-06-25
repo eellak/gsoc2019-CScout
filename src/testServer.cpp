@@ -24,7 +24,7 @@ void to_query(json::value jvalue,uri_builder *builder){
     }  
 }
 bool check_valid(json::value response, const char* path){
-   if (response.as_object().empty()){
+   if (response.size()==0 || response.as_object().empty()){
       return false;
    }
    if(response.has_field("error")){
@@ -40,12 +40,12 @@ bool check_valid(json::value response, const char* path){
 bool make_request(
    http_client & client, 
    method mtd, const char* path,
-   json::value & jvalue, json::value req)
+   json::value & jvalue, json::value req,int no)
 {
    
    bool valid=false;
    string *s;
-   cout<<"make_request: "<<path<<"-"<<jvalue.serialize()<<endl;
+  
    //check if query needs info from another one
    if(req.has_field("dependant")){
       make_task_request(client, methods::GET, req["dependant"].as_string().c_str() )
@@ -56,32 +56,28 @@ bool make_request(
          }
          return pplx::task_from_result(json::value());
       })
-      .then([&jvalue,&req,&path,&s,&client,&mtd](pplx::task<json::value> previousTask)
+      .then([&jvalue,&req,&path,&s,&client,&mtd,&no](pplx::task<json::value> previousTask)
       {
          try
          {
             json::value returned = previousTask.get();
-            cout<<"change path"<<returned.serialize()<<endl;
+         
            // string *s;
 
             if(returned.has_string_field("addr")){
-               cout << "here"<<endl;
                s = new string(returned["addr"].as_string());
-               cout << *s<<endl;
-               path = s->c_str();
-               cout<<"path:"<<path<<endl;
             }
-            cout<<"RECURSE"<<endl;
-            cout<<"path:"<<path<<endl;
             for(auto i = req["dependantQuery"].as_array().cbegin();
-               i!=req["dependantQuery"].as_array().cend(); i++){
-               cout<<i->serialize()<<endl;
+                  i!=req["dependantQuery"].as_array().cend(); i++)
+            {
                if(returned.has_array_field(i->as_string()))
                   for (int j = 0; j < returned[i->as_string()].size();j++){
-                     cout<<"ALL:"<<returned[i->as_string()]<<endl;
-                     cout<<returned[i->as_string()][j]<<endl;
-                     jvalue[i->as_string()]= json::value::string(returned[i->as_string()][j].serialize());
-                     if(!make_request(client,mtd,path,jvalue,json::value()))
+                   
+                      if(returned[i->as_string()][j].is_string())
+                        jvalue[i->as_string()]=returned[i->as_string()][j];
+                     else
+                        jvalue[i->as_string()]= json::value::string(returned[i->as_string()][j].serialize());
+                     if(!make_request(client,mtd,path,jvalue,json::value(),no++))
                         return false;
                      }
                else
@@ -100,25 +96,28 @@ bool make_request(
    if(!jvalue.as_object().empty()){
     to_query(jvalue, &builder);
    }
-   cout<<jvalue.serialize()<<"-WHAT-"<<builder.to_string()<<endl;
-  // cout<<"REQUEST:" <<builder.to_string();
-   make_task_request(client, mtd, builder.to_string().c_str())
+    cout<<"Request to "<<builder.to_string()<<endl;
+  make_task_request(client, mtd, builder.to_string().c_str())
       .then([](http_response response)
       {
-        cout<<"RESPONSe:"<<response.to_string()<<endl;
+       // cout<<"RESPONSe:"<<response.to_string()<<endl;
+         cout<<"response:"<<response.status_code();
          if (response.status_code() == status_codes::OK)
          {
+            cout<<" OK"<<endl;
             return response.extract_json();
          }
+         cout<<"Not OK"<<endl;
          return pplx::task_from_result(json::value());
       })
-      .then([&path,&valid](pplx::task<json::value> previousTask)
+      .then([&path,&valid,&no](pplx::task<json::value> previousTask)
       {
          try
          {
             std::fstream fs;
-            fs.open ("./test/responses/"+string(path)+".json", std::fstream::out | std::fstream::app);
-            fs << previousTask.get().serialize();
+            fs.open ("./test/responses/"+string(path)+"-"+to_string(no)+".json", std::fstream::out);
+            fs<<endl;
+            fs << previousTask.get().serialize()<<endl;
             valid=check_valid(previousTask.get(),path);
             fs.close();
          }
@@ -128,10 +127,7 @@ bool make_request(
          }
       })
       .wait();
-      //delete(path);
-      if(s!=NULL)
-         delete s;
-      return valid;
+       return valid;
 }
  
 /*
@@ -140,14 +136,16 @@ save requests in ./test/requests.json in format
 {
    "path" : "",                        //name of server's path 
    "query": {                          // query options for HTTP method
-      "query name1": "query value1",   //e.g "n":"All+Files"
-      "query name2": "query value2" 
+      "query name 1": "query value 1", //e.g "n":"All+Files"
+      "query name 2": "query value 2" 
       } 
    ("put": true ,),                    // exists if testing put method
    "dependant" : "browseTop.html",     // declare dependancy from another request
-   "dependantQuery":{                  // define which responses will be used as query from dependant
-
-   }
+   "dependantQuery":[                  // define which responses will be used as query from dependant
+      "query name 1",
+      "query name 2"                   // e.g "id","f"
+   ]                  
+   
 }
 
  */
@@ -167,11 +165,11 @@ int main()
       // cout <<(req[i]["query"].is_null()?"empty":req[i]["query"].serialize())<<endl;
        t = req[i].has_field("put")? methods::PUT : methods::GET;
        cerr<<t<<endl;
-       cerr<<"Request to "<<req[i]["path"].as_string()
+       cerr<<"Request to "<<req[i]["path"].as_string()<<endl
         <<((
         make_request(client, t,
             req[i]["path"].as_string().c_str(),
-            req[i]["query"],req[i])
+            req[i]["query"],req[i],0)
         )?" ok":" not ok")
          <<endl;
     }

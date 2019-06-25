@@ -52,8 +52,73 @@
         "query":{},
         "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
         "dependantQuery":["id"]
-    }
-    ,{
+    },
+    {
+        "path":"fedit.html",
+        "query":{},
+        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependantQuery":["id"]
+    },
+    {
+        "path":"src.html",
+        "query":{
+            "qt":"id"
+        },
+        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependantQuery":["id"]
+    },
+    {
+        "path":"qsrc.html",
+        "query":{
+            "qt":"id",
+            "match":"Y",
+            "writable":"1",
+            "a2":"1",
+            "n":"Source+Code+With+Identifier+Hyperlinks"
+        },
+        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependantQuery":["id"]
+    },
+    {
+        "path":"qinc.html",
+        "query":{
+            "direct":"&",
+            "writable":"1",
+            "includes":"1",
+            "n":"Directly+Included+Writable+Files"
+        },
+        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependantQuery":["id"]
+    },
+    {
+        "path":"fun.html",
+        "query":{},
+        "dependant":"xfunquery.html?match=Y&writable=1&ro=1&ncallerop=0&ncallers=&n=All+Functions&qi=x",
+        "dependantQuery":["f"]
+    },
+    {
+        "path":"funlist.html",
+        "query":{
+            "n":"D"
+        },
+        "dependant":"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
+        "dependantQuery":["f"]
+    },
+    {
+        "path":"funlist.html",
+        "query":{
+            "n":"U"
+        },
+        "dependant":"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
+        "dependantQuery":["f"]
+    },
+    {
+        "path":"id.html",
+        "query":{},
+        "dependant":"xiquery.html?writable=1&a2=1&match=Y&qi=1&n=All+Identifiers",
+        "dependantQuery":["id"]
+    },
+      {
         "path":"qexit.html",
         "query":{},
         "put":true
