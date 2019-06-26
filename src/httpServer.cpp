@@ -60,7 +60,8 @@ void HttpServer::handle_get(http_request request){
     // cout<<"URI:"<<request.absolute_uri().to_string()<<endl;;
     utility::string_t path = request.relative_uri().path();
     // cout << "HttpServer: Handle get of "<<path << endl;
-    json::value response;
+    http_response response;
+    json::value body;
 
     cerr << "HttpServer: Handle get of "<<path << endl;
     // cout <<"HttpServer: Get begin. Mapped functions\n";
@@ -68,12 +69,13 @@ void HttpServer::handle_get(http_request request){
     // match path with dictionary
     auto it = handler_dictionary.find(path.substr(1));
     if (it == handler_dictionary.end()){
-       
-        response["error"] = json::value::string("Url Not Found");
-        request.reply(status_codes::NotFound,response);
+        response = http_response(status_codes::NotFound);
+        body["error"] = json::value::string("Url Not Found");
+        response.set_body(body);
+        request.reply(response);
         if(this->log_file != NULL){
             cerr<<"write to log"<<endl;
-            *(this->log_file)<<response.serialize();
+            *(this->log_file)<<body.serialize();
         }
     }
     else{
@@ -90,12 +92,16 @@ void HttpServer::handle_get(http_request request){
             // cout<<it->first << "-"<<it->second<<endl;
         }
         // cout << "JSON:"<< server.params.serialize().c_str() << endl;
-        response = it->second.handleFunction(&(server.params));
-        request.reply(status_codes::OK, response);
+        response = http_response(status_codes::OK);
+        body = it->second.handleFunction(&(server.params));
+        response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+        response.set_body(body);
+        cout<<"response:"<<response.to_string()<<endl;
+        request.reply(response);
         // cout << "Get Response:"<< response.serialize().c_str() << endl;
         if(this->log_file != NULL){
             cerr<<"write to log"<<endl;
-            *(this->log_file)<<response.serialize();
+            *(this->log_file)<<body.serialize();
         }
     }
    server.params=json::value(); 
@@ -106,14 +112,17 @@ void HttpServer::handle_put(http_request request) {
  /* to add handler */
     utility::string_t path = request.relative_uri().path();
     auto it = put_handler_dictionary.find(path.substr(1));
-    json::value response;
+    json::value body;
+    http_response response;
     
     if (it == put_handler_dictionary.end()){
-        response["error"] = json::value::string("Url Not Found");
-        request.reply(status_codes::NotFound,response);
+        body["error"] = json::value::string("Url Not Found");
+        response=http_response(status_codes::NotFound);
+        response.set_body(body);
+        request.reply(response);
         if(this->log_file != NULL){
             cerr<<"write to log"<<endl;
-            *(this->log_file)<<response.serialize();
+            *(this->log_file)<<body.serialize();
         }
     }
     else{
@@ -128,9 +137,15 @@ void HttpServer::handle_put(http_request request) {
             server.params[it->first] = json::value::string(it->second);
             // cout<<it->first << "-"<<it->second<<endl;
         }
-        response = it->second.handleFunction(&(server.params));
-        bool exodus = response.has_field("exit");
-        request.reply(status_codes::OK, response).then([&exodus](){
+
+        response = http_response(status_codes::OK);
+        body = it->second.handleFunction(&(server.params));
+        response.headers().add(U("Access-Control-Allow-Origin"), U("http://localhost:3000"));
+        response.set_body(body);
+        request.reply(response);
+        
+        bool exodus = body.has_field("exit");
+        request.reply(response).then([&exodus](){
             if(exodus){
                 must_exit = true;
                 //throw exodus;
@@ -140,7 +155,7 @@ void HttpServer::handle_put(http_request request) {
         // cout<<(this->log_file == NULL);
         if(this->log_file != NULL){
             cerr<<"write to log"<<endl;
-            *(this->log_file)<<response.serialize();
+            *(this->log_file)<<body.serialize();
         }
                
     }
