@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
-import Toolbar from './Components/Toolbar'
+import Toolbar from './Components/Toolbar/Toolbar'
 
 class App extends Component {
   constructor(){
