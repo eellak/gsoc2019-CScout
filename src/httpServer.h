@@ -28,34 +28,31 @@ private :
     static bool must_exit;
 public:
     HttpServer(){}
-    //Constructor for HttpServer on a url
+    // Constructor for HttpServer on a url
     HttpServer(utility::string_t url, ofstream * log);
-    //HTTP GET handler
+    // HTTP GET handler
     void handle_get(http_request request);
-    //HTTP POST handler
-    void handle_post(http_request request);
-    void handle_delete(http_request request);
+    // HTTP Put handler
     void handle_put(http_request request);
-    //adds a function to a map based on the path of the request
+    // adds a function to a map based on the path of the request
     void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
-    //adds a function to a map based on the path of the request for Http Put
+    // adds a function to a map based on the path of the request for Http Put
     void addPutHandler(utility::string_t value,function <json::value(void *)> handleFunction,void* attributes);
-    //starts the server to listen on the url
+    // starts the server to listen on the url
     void serve();
-    //get request parameter from uri as int
+    // Returns integer request parameter from uri
     int getIntParam(string name);
-    //get request parameter from uri as string
+    // Returns string parameter from uri 
     string getStrParam(string name);
-    //get request parameter from uri as char *
+    // Returns const char * parameter from uri
     const char * getCharPParam(string name);
-    //get request parameter from uri as a pointer
+    // Returns address parameter from uri
     void * getAddrParam(string name);
-    //get request paramete from uri as bool
+    // Returns true if parameter exists in uri
     bool getBoolParam(string name);
-    //log server to a file
+    // log server to a file
     void log(string msg);
     // listener sturct 
     http_listener listener;
-
 };
 #endif
