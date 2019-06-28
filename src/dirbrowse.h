@@ -33,9 +33,18 @@ class Fileid;
 
 // Add a file to the directory tree for later browsing
 void *dir_add_file(Fileid f);
-// Display a directory's contents
+// Return a directory's contents
+// 	Response JSON object in form
+// 	{
+// 		dir: "html code here",
+// 	}
 web::json::value dir_page(void *p);
-// Display on of a URL for browsing the project's top dir
+// 	Return a URL and HTML for browsing the project's top dir
+// 	Response JSON object in form
+// 	{
+// 		html: "html code here",
+// 		addr: "dir.html?dir=Memory address" //resource link for the top directory
+// 	}
 json::value dir_top(const char *name);
 
 #endif /* DIRBROWSE_ */

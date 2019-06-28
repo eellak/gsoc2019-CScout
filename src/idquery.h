@@ -35,20 +35,22 @@ using namespace std;
 
 class Identifier;
 
-typedef map <Eclass *, Identifier> IdProp;
+typedef map<Eclass *, Identifier> IdProp;
 
 // Our identifiers to store as a map
-class Identifier {
-	string id;		// Identifier name
-	string newid;		// New identifier name
-	bool xfile;		// True if it crosses files
-	bool replaced;		// True if newid has been set
-	bool active;		// True if the replacement is active
+class Identifier
+{
+	string id;	 // Identifier name
+	string newid;  // New identifier name
+	bool xfile;	// True if it crosses files
+	bool replaced; // True if newid has been set
+	bool active;   // True if the replacement is active
 public:
 	// Additional identifier properties required for refactoring
 	static IdProp ids;
 
-	Identifier(Eclass *e, const string &s) : id(s), replaced(false), active(true) {
+	Identifier(Eclass *e, const string &s) : id(s), replaced(false), active(true)
+	{
 		/*
 		 * Normally, e crosses a file boundary if the EFn, the # of files it appears in > 1
 		 * If we take into account the possibility of identical files EFi we must also
@@ -60,7 +62,11 @@ public:
 	}
 	Identifier() : xfile(false), replaced(false), active(false) {}
 	string get_id() const { return id; }
-	void set_newid(const string &s) { newid = s; replaced = true; }
+	void set_newid(const string &s)
+	{
+		newid = s;
+		replaced = true;
+	}
 	string get_newid() const { return newid; }
 	bool get_xfile() const { return xfile; }
 	bool get_replaced() const { return replaced; }
@@ -68,36 +74,39 @@ public:
 	void set_xfile(bool v) { xfile = v; }
 	void set_active(bool v) { active = v; }
 	// To create nicely ordered sets
-	inline bool operator ==(const Identifier b) const {
+	inline bool operator==(const Identifier b) const
+	{
 		return (this->id == b.id);
 	}
-	inline bool operator <(const Identifier b) const {
+	inline bool operator<(const Identifier b) const
+	{
 		return this->id.compare(b.id);
 	}
 };
 
 typedef IdProp::value_type IdPropElem;
 
-class IdQuery : public Query {
+class IdQuery : public Query
+{
 private:
-	char match_type;	// Type of boolean match
+	char match_type; // Type of boolean match
 	// Regular expression match specs
-	string str_fre, str_ire;// Original REs
-	CompiledRE fre, ire;	// Compiled REs
+	string str_fre, str_ire; // Original REs
+	CompiledRE fre, ire;	 // Compiled REs
 	bool match_fre, match_ire;
-	bool exclude_ire;	// Exclude matched identifiers
-	bool exclude_fre;	// Exclude matched files
+	bool exclude_ire; // Exclude matched identifiers
+	bool exclude_fre; // Exclude matched files
 	// Attribute match specs
-	vector <bool> match;
+	vector<bool> match;
 	// Other query arguments
-	bool xfile;		// True if cross file
-	bool unused;		// True if unused id (EC size == 1 and not declared unused)
-	bool writable;		// True if writable
-	Eclass *ec;		// True if identifier EC matches
-				// No other evaluation takes place
-	string name;		// Query name
-	char* error;
-	Attributes::size_type current_project;	// Restrict evaluation to this project
+	bool xfile;	// True if cross file
+	bool unused;   // True if unused id (EC size == 1 and not declared unused)
+	bool writable; // True if writable
+	Eclass *ec;	// True if identifier EC matches
+				   // No other evaluation takes place
+	string name;   // Query name
+	char *error;
+	Attributes::size_type current_project; // Restrict evaluation to this project
 public:
 	// Construct object based on URL parameters
 	IdQuery(bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
@@ -105,8 +114,7 @@ public:
 	IdQuery(const string &s);
 	// Default
 	IdQuery() : Query(), match_fre(false), match_ire(false) {}
-	char* getError(){return error;};
-
+	char *getError() { return error; };
 
 	// Destructor
 	virtual ~IdQuery() {}
@@ -117,7 +125,7 @@ public:
 	string base_url() const;
 	// Return the query's parameters as a URL
 	string param_url() const;
-	static void usage();	// Report string constructor usage information
+	static void usage(); // Report string constructor usage information
 	// Return true if the query's URL can be bookmarked across CScout invocations
 	bool bookmarkable() const { return ec == NULL; }
 };
@@ -126,13 +134,14 @@ public:
  * Function object to compare IdProp identifier pointers
  * Will compare from end to start if sort_rev is set
  */
-struct idcmp : public binary_function <const IdProp::value_type *, const IdProp::value_type *, bool> {
+struct idcmp : public binary_function<const IdProp::value_type *, const IdProp::value_type *, bool>
+{
 	bool operator()(const IdProp::value_type *i1, const IdProp::value_type *i2) const
 	{
 		return Query::string_bi_compare(i1->second.get_id(), i2->second.get_id());
 	}
 };
 
-typedef multiset <const IdProp::value_type *, idcmp> Sids;
+typedef multiset<const IdProp::value_type *, idcmp> Sids;
 
 #endif // IDQUERY_

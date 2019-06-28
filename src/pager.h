@@ -39,6 +39,7 @@ private:
 public:
 	Pager(int ps, const string &qurl, bool bmk);
 	bool show_next();
+	// Return JSON pager info and links
 	json::value end();
 };
 

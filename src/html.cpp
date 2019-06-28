@@ -33,13 +33,12 @@
 #include <set>
 #include <utility>
 #include <functional>
-#include <algorithm>		// set_difference
+#include <algorithm> // set_difference
 #include <cctype>
-#include <sstream>		// ostringstream
-#include <cstdio>		// perror, rename
-#include <cstdlib>		// atoi
-#include <cerrno>		// errno
-
+#include <sstream> // ostringstream
+#include <cstdio>  // perror, rename
+#include <cstdlib> // atoi
+#include <cerrno>  // errno
 
 #include "getopt.h"
 
@@ -81,16 +80,29 @@ html(char c)
 	static vector<string> spaces(0);
 	int space_idx;
 
-	switch (c) {
-	case '&': column++; return "&amp;";
-	case '<': column++; return "&lt;";
-	case '>': column++; return "&gt;";
-	case '"': column++; return "&quot;";
-	case ' ': column++; return "&nbsp;";
+	switch (c)
+	{
+	case '&':
+		column++;
+		return "&amp;";
+	case '<':
+		column++;
+		return "&lt;";
+	case '>':
+		column++;
+		return "&gt;";
+	case '"':
+		column++;
+		return "&quot;";
+	case ' ':
+		column++;
+		return "&nbsp;";
 	case '\t':
-		if ((int)(spaces.size()) != Option::tab_width->get()) {
+		if ((int)(spaces.size()) != Option::tab_width->get())
+		{
 			spaces.resize(Option::tab_width->get());
-			for (int i = 0; i < Option::tab_width->get(); i++) {
+			for (int i = 0; i < Option::tab_width->get(); i++)
+			{
 				string t;
 				for (int j = 0; j < Option::tab_width->get() - i; j++)
 					t += "&nbsp;";
@@ -99,7 +111,8 @@ html(char c)
 		}
 		space_idx = column % Option::tab_width->get();
 		if (DP())
-			cout << "Tab; " << " column before:" << column << " space_idx: " << space_idx << endl;
+			cout << "Tab; "
+				 << " column before:" << column << " space_idx: " << space_idx << endl;
 		column += 8 - space_idx;
 		return spaces[space_idx].c_str();
 	case '\n':
@@ -129,79 +142,81 @@ html(const string &s)
 	return r;
 }
 
-// Output s as HTML in of
+// Return s as HTML string
 string
-html_string( string s)
+html_string(string s)
 {
 	string to_ret;
 
-	for (char & c : s){
+	for (char &c : s)
+	{
 		to_ret.append(html(c));
 	}
 	return to_ret;
 }
 
-
 // Create a new HTML file with a given filename and title
 // The heading, if not given, will be the same as the title
-void
-html_head(FILE *of, const string fname, const string title, const char *heading)
+void html_head(FILE *of, const string fname, const string title, const char *heading)
 {
 	//title.c_str();
 	if (DP())
 		cerr << "Write to " << fname << endl;
 	fprintf(of,
-		"<!doctype html public \"-//IETF//DTD HTML//EN\">\n"
-		"<html>\n"
-		"<head>\n"
-		"<meta name=\"GENERATOR\" content=\"CScout %s - %s\">\n",
-		Version::get_revision().c_str(),
-		Version::get_date().c_str());
+			"<!doctype html public \"-//IETF//DTD HTML//EN\">\n"
+			"<html>\n"
+			"<head>\n"
+			"<meta name=\"GENERATOR\" content=\"CScout %s - %s\">\n",
+			Version::get_revision().c_str(),
+			Version::get_date().c_str());
 	fputs(
 		"<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">"
 		"<style type=\"text/css\" >"
-		"<!--\n", of);
+		"<!--\n",
+		of);
 
 	ifstream in;
 	string css_fname;
-	if (cscout_input_file("style.css", in, css_fname)) {
+	if (cscout_input_file("style.css", in, css_fname))
+	{
 		int val;
 		while ((val = in.get()) != EOF)
 			putc(val, of);
-	} else
+	}
+	else
 		fputs(
-		#include "css.c"
-		, of);
+#include "css.c"
+			, of);
 	fputs(
 		"-->"
 		"</style>"
-		"</head>", of);
+		"</head>",
+		of);
 	fprintf(of,
-		"<title>%s</title>\n"
-		"</head>\n"
-		"<body>\n"
-		"<h1>%s</h1>\n",
-		title.c_str(),
-		heading ? heading : title.c_str());
+			"<title>%s</title>\n"
+			"</head>\n"
+			"<body>\n"
+			"<h1>%s</h1>\n",
+			title.c_str(),
+			heading ? heading : title.c_str());
 }
 
 // And an HTML file end
-void
-html_tail(FILE *of)
+void html_tail(FILE *of)
 {
 	extern Attributes::size_type current_project;
 
 	if (current_project)
 		fprintf(of, "<p> <b>Project %s is currently selected</b>\n", Project::get_projname(current_project).c_str());
 	fprintf(of,
-		"<p>"
-		"<a href=\"index.html\">Main page</a>\n"
-		" &mdash; Web: "
-		"<a href=\"http://www.spinellis.gr/cscout\">Home</a>\n"
-		"<a href=\"http://www.spinellis.gr/cscout/doc/index.html\">Manual</a>\n"
-		"<br><hr><div class=\"footer\">CScout %s &mdash; %s",
-		Version::get_revision().c_str(),
-		Version::get_date().c_str());
+			"<p>"
+			"<a href=\"index.html\">Main page</a>\n"
+			" &mdash; Web: "
+			"<a href=\"http://www.spinellis.gr/cscout\">Home</a>\n"
+			"<a href=\"http://www.spinellis.gr/cscout/doc/index.html\">Manual</a>\n"
+			"<br><hr><div class=\"footer\">CScout %s &mdash; %s",
+			Version::get_revision().c_str(),
+			Version::get_date().c_str());
 	fprintf(of, " &mdash; Licensed under the GNU General Public License.");
 	fprintf(of, "</div></body></html>\n");
 }
@@ -213,18 +228,20 @@ file_label(Fileid f, bool hyperlink)
 	string result;
 	char buff[256];
 
-	if (hyperlink) {
+	if (hyperlink)
+	{
 		snprintf(buff, sizeof(buff), "<a href=\"file.html?id=%d\">", f.get_id());
 		result = buff;
 	}
-	switch (Option::fgraph_show->get()) {
-	case 'p':			// Show complete paths
+	switch (Option::fgraph_show->get())
+	{
+	case 'p': // Show complete paths
 		result += f.get_path() + "/";
 		/* FALLTHROUGH */
-	case 'n':			// Show only file names
+	case 'n': // Show only file names
 		result += f.get_fname();
 		break;
-	case 'e':			// Show only edges
+	case 'e': // Show only edges
 		result += " ";
 		break;
 	}
@@ -240,15 +257,16 @@ function_label(Call *f, bool hyperlink)
 	string result;
 	char buff[256];
 
-	if (hyperlink) {
+	if (hyperlink)
+	{
 		snprintf(buff, sizeof(buff), "<a href=\"fun.html?f=%p\">", f);
 		result = buff;
 	}
-	if (Option::cgraph_show->get() == 'f')		// Show files
+	if (Option::cgraph_show->get() == 'f') // Show files
 		result += f->get_site().get_fileid().get_fname() + ":";
-	else if (Option::cgraph_show->get() == 'p')	// Show paths
+	else if (Option::cgraph_show->get() == 'p') // Show paths
 		result += f->get_site().get_fileid().get_path() + ":";
-	if (Option::cgraph_show->get() != 'e')		// Empty labels
+	if (Option::cgraph_show->get() != 'e') // Empty labels
 		result += f->get_name();
 	if (hyperlink)
 		result += "</a>";
@@ -256,31 +274,33 @@ function_label(Call *f, bool hyperlink)
 }
 
 // Display a system error on the HTML output.
-void
-html_perror(FILE *of, const string &user_msg, bool svg)
+void html_perror(FILE *of, const string &user_msg, bool svg)
 {
 	string error_msg(user_msg + ": " + string(strerror(errno)) + "\n");
 	fputs(error_msg.c_str(), stderr);
 	if (svg)
 		fprintf(of, "<?xml version=\"1.0\" ?>\n"
-			"<svg>\n"
-			"<text  x=\"20\" y=\"50\" >%s</text>\n"
-			"</svg>\n", error_msg.c_str());
-	else {
+					"<svg>\n"
+					"<text  x=\"20\" y=\"50\" >%s</text>\n"
+					"</svg>\n",
+				error_msg.c_str());
+	else
+	{
 		fputs(error_msg.c_str(), of);
 		fputs("</p><p>The operation you requested is incomplete.  "
-			"Please correct the underlying cause, and (if possible) return to the "
-			"CScout <a href=\"index.html\">main page</a> to retry the operation.</p>", of);
+			  "Please correct the underlying cause, and (if possible) return to the "
+			  "CScout <a href=\"index.html\">main page</a> to retry the operation.</p>",
+			  of);
 	}
 }
 
 // Display a non-system error on the HTML output.
-void
-html_error(FILE *of, const string &error_msg)
+void html_error(FILE *of, const string &error_msg)
 {
 	fputs(error_msg.c_str(), stderr);
 	fputs(error_msg.c_str(), of);
 	fputs("</p><p>The operation you requested is incomplete.  "
-		"Please correct the underlying cause, and (if possible) return to the "
-		"CScout <a href=\"index.html\">main page</a> to retry the operation.</p>", of);
+		  "Please correct the underlying cause, and (if possible) return to the "
+		  "CScout <a href=\"index.html\">main page</a> to retry the operation.</p>",
+		  of);
 }

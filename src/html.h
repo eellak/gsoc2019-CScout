@@ -33,7 +33,7 @@ using namespace std;
 
 class Call;
 
-const char * html(char c);
+const char *html(char c);
 string html(const string &s);
 string html_string(string s);
 void html_head(FILE *of, const string fname, const string title, const char *heading = NULL);

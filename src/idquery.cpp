@@ -129,9 +129,8 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 
 		varname << "a" << i;
 		match[i] = !!server.getIntParam(varname.str());
-		/*if (DP())
+		if (DP())
 			cout << "v=[" << varname.str() << "] m=" << match[i] << "\n";
-*/
 	}
 	
 }

@@ -107,11 +107,11 @@ Query::equality_selection()
 {
 	
 	return(
-		"<option value=\""+to_string(ec_ignore)+"\">ignore"
-		"<option value=\""+to_string(ec_eq)+"\">=="
-		"<option value=\""+to_string(ec_ne)+"\">!="
-		"<option value=\""+to_string(ec_lt)+"\">&lt;"
-		"<option value=\""+to_string(ec_gt)+"\">&gt;"
+		"<option value=\""+to_string(ec_ignore) + "\">ignore"
+		"<option value=\""+to_string(ec_eq) + "\">=="
+		"<option value=\""+to_string(ec_ne) + "\">!="
+		"<option value=\""+to_string(ec_lt) + "\">&lt;"
+		"<option value=\""+to_string(ec_gt) + "\">&gt;"
 		"</select>"
 		);
 }

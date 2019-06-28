@@ -176,6 +176,22 @@ IdMetricsSummary::add_unique_id(Eclass *ec)
 	rw[ec->get_attribute(is_readonly)].minlen.add(ec, set_min(ec->get_len()));
 }
 
+// Returns JSON of Id metrics in form
+// {
+// 	head: [
+// 		"field names",		// e.g Identifier class
+// 		...
+// 	],
+// 	content: [
+// 		[
+// 			values_for_all_identifers	
+// 		],
+// 		[
+// 			values of identifer
+// 		],
+// 		...
+// 	]
+// }
 web::json::value to_json(const IdMetricsSet &mi)
 {
 	web::json::value to_return;

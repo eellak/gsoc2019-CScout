@@ -337,6 +337,21 @@ public:
 	double get_total(int i) { return total.get_metric(i); }
 };
 
+	//	Returns a json object with metrics in form
+	// 	{
+	// 		no_elements: x, //where x is a number e.g 10
+	// 			head:[
+	// 				"fieldName1",
+	// 				...
+	// 			],
+	// 			metrics: [
+	// 				[
+	//					"values_of an Element"
+	//					...
+	//				], 		
+	//				...
+	//			]
+	//	}
 template <class M, class E>
 web::json::value to_json(const MetricsRange<M,E> &m){
 	web::json::value to_return;

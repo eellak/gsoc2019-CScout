@@ -34,29 +34,31 @@ using namespace std;
 #include "fileid.h"
 #include "headers.h"
 
-class FileQuery : public Query {
+class FileQuery : public Query
+{
 private:
 	// Regular expression match specs
-	string str_fre;		// Filename RE
+	string str_fre; // Filename RE
 	// Compiled REs
-	CompiledRE fre;		// Filename RE
+	CompiledRE fre; // Filename RE
 	// Match rules
-	bool match_fre;		// Filename RE
-	bool exclude_fre;	// Exclude filenames with matching RE
+	bool match_fre;   // Filename RE
+	bool exclude_fre; // Exclude filenames with matching RE
 	//
 	// Query arguments
-	char match_type;	// Type of boolean match
-	bool writable;		// True if writable
-	bool ro;		// True if read-only
+	char match_type; // Type of boolean match
+	bool writable;   // True if writable
+	bool ro;		 // True if read-only
 
-	string name;		// Query name
-	Attributes::size_type current_project;	// Restrict evaluation to this project
+	string name;						   // Query name
+	Attributes::size_type current_project; // Restrict evaluation to this project
 	// The query part for the metrics
 	MQuery<FileMetrics, Fileid &> mquery;
 
 public:
 	// Container comparison functor
-	class specified_order : public binary_function <const Fileid &, const Fileid &, bool> {
+	class specified_order : public binary_function<const Fileid &, const Fileid &, bool>
+	{
 	private:
 		/*
 		 * Can only be an instance variable (per C++ PL 17.1.4.5)
@@ -66,10 +68,16 @@ public:
 		 */
 		static int order;
 		static bool reverse;
+
 	public:
 		// Should be called exactly once before instantiating the set
-		static void set_order(int o, bool r) { order = o; reverse = r; }
-		bool operator()(const Fileid &a, const Fileid &b) const {
+		static void set_order(int o, bool r)
+		{
+			order = o;
+			reverse = r;
+		}
+		bool operator()(const Fileid &a, const Fileid &b) const
+		{
 			bool val;
 			if (order == -1)
 				// Order by name

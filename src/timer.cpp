@@ -33,7 +33,7 @@ Timer::print_elapsed()
 			(double)(end.ru_utime.tv_usec - begin.ru_utime.tv_usec) * 1.e-6 +
 			(double)(end.ru_stime.tv_sec - begin.ru_stime.tv_sec) +
 			(double)(end.ru_stime.tv_usec - begin.ru_stime.tv_usec) * 1.e-6
-		) * 1000)+"ms CPU time<br />";
+		) * 1000) + "ms CPU time<br />";
 }
 
 #else
@@ -84,7 +84,7 @@ Timer::print_elapsed(FILE *f) {
 	endKernel.LowPart = kernelTime.dwLowDateTime;
 	endKernel.HighPart = kernelTime.dwHighDateTime;
 	diff.QuadPart = endUser.QuadPart - beginUser.QuadPart + endKernel.QuadPart - beginKernel.QuadPart;
-	return to_string((double)diff.QuadPart / 10000)+"ms CPU time<br />";
+	return to_string((double)diff.QuadPart / 10000) + "ms CPU time<br />";
 }
 
 #endif // Unix / Windows

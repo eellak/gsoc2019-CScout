@@ -50,6 +50,19 @@ Pager::show_next()
 	return (ret);
 }
 
+// Return json from pages 
+// {
+// 		total: No of elements left,
+// 		start: No of 1st element to show,
+// 		end: No of last element to show,
+// 		prev: html link of previous page,
+// 		others:[
+// 			html links of all pages
+// 		],
+// 		next: html link of next page,
+// 		all: html link to show all elements
+// }
+
 json::value
 Pager::end()
 {
@@ -61,38 +74,38 @@ Pager::end()
 	json::value to_return;
 	switch (nelem) {
 	case 0:
-		to_return["total"]=json::value(0);
+		to_return["total"] = json::value(0);
 		break;
 	case 1:
-		to_return["total"]=json::value(1);
+		to_return["total"] = json::value(1);
 		break;
 	default:
 		if (skip == -1){
-			to_return["start"]=json::value(1);
-			to_return["end"]=json::value(nelem);
+			to_return["start"] = json::value(1);
+			to_return["end"] = json::value(nelem);
 		}	
 		else{
-			to_return["start"]=json::value(thispage * pagesize + 1);
-			to_return["end"]=json::value(min(thispage * pagesize + pagesize, nelem));			
+			to_return["start"] = json::value(thispage * pagesize + 1);
+			to_return["end"] = json::value(min(thispage * pagesize + pagesize, nelem));			
 		}
-		to_return["total"]=json::value(nelem);
+		to_return["total"] = json::value(nelem);
 		break;
 	}
 	
 	if (nelem > pagesize) {
 		if (skip > 0)
-			to_return["prev"] =json::value::string(url+"&skip=" +to_string(skip - pagesize),true);
+			to_return["prev"] = json::value::string(url + "&skip=" + to_string(skip - pagesize),true);
 		for (int i = 0; i < npages; i++){
 			
 			if (i == thispage && skip != -1)
 				to_return["others"][i] = json::value::string("this");
 			else
-				to_return["others"][i] = json::value::string(url+"skip="+to_string(i * pagesize),true);
+				to_return["others"][i] = json::value::string(url + "skip=" + to_string(i * pagesize),true);
 		}
 		if (skip != -1 && thispage + 1 < npages)
-			to_return["next"] =json::value::string(url+"&skip=" +to_string(skip + pagesize));
+			to_return["next"] = json::value::string(url + "&skip=" + to_string(skip + pagesize));
 		if (skip != -1)
-			to_return["all"] =json::value::string(url+"&skip=-1");
+			to_return["all"] = json::value::string(url + "&skip=-1");
 	}
 	if (bookmarkable)
 		to_return["url"] = json::value::string(url);

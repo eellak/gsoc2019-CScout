@@ -16,10 +16,10 @@
 #include <list>
 #include <set>
 #include <functional>
-#include <algorithm>		// set_difference
-#include <sstream>		// ostringstream
-#include <cstdio>		// perror, rename
-#include <cstdlib>		// atoi
+#include <algorithm> // set_difference
+#include <sstream>   // ostringstream
+#include <cstdio>	// perror, rename
+#include <cstdlib>   // atoi
 
 #include <regex.h>
 
@@ -54,14 +54,12 @@
 #include "mquery.h"
 #include "filequery.h"
 
-
 int FileQuery::specified_order::order;
 bool FileQuery::specified_order::reverse;
 
 // Construct an object based on URL parameters
-FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type cp, bool e, bool r) :
-	Query(!e, r, true),
-	current_project(cp)
+FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type cp, bool e, bool r) : Query(!e, r, true),
+																									 current_project(cp)
 {
 	if (lazy)
 		return;
@@ -70,13 +68,16 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 
 	// Query name
 	const char *qname = server.getCharPParam("n");
-	if (qname!=NULL && *qname){
+	if (qname != NULL && *qname)
+	{
 		name = string(qname);
 	}
-	if(qname!=NULL) delete qname;
+	if (qname != NULL)
+		delete qname;
 	// Type of boolean match
 	const char *m = server.getCharPParam("match");
-	if (m==NULL ) {
+	if (m == NULL)
+	{
 		(*of) << "Missing value: match";
 		valid = return_val = false;
 		lazy = true;
@@ -92,7 +93,7 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 	(*of) << compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
 	delete m;
 	if (!(of->str().empty()))
-	    	return;
+		return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
 
@@ -126,8 +127,7 @@ FileQuery::param_url() const
 
 // Evaluate the object's identifier query against i
 // return true if it matches
-bool
-FileQuery::eval(Fileid &f)
+bool FileQuery::eval(Fileid &f)
 {
 	if (lazy)
 		return return_val;
@@ -136,12 +136,13 @@ FileQuery::eval(Fileid &f)
 		return false;
 
 	bool add = mquery.eval(f);
-	switch (match_type) {
-	case 'Y':	// anY match
+	switch (match_type)
+	{
+	case 'Y': // anY match
 		add = (add || (ro && f.get_readonly()));
 		add = (add || (writable && !f.get_readonly()));
 		break;
-	case 'L':	// alL match
+	case 'L': // alL match
 		add = (add && (!ro || f.get_readonly()));
 		add = (add && (!writable || !f.get_readonly()));
 		break;
@@ -151,6 +152,6 @@ FileQuery::eval(Fileid &f)
 
 	int retval = exclude_fre ? 0 : REG_NOMATCH;
 	if (match_fre && fre.exec(f.get_path()) == retval)
-			return false;	// RE match failed spec
+		return false; // RE match failed spec
 	return true;
 }

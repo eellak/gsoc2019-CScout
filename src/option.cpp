@@ -89,19 +89,19 @@ json::value
 SelectionOption::display()
 {
 	json::value to_return;
-	to_return["start"]=json::value("<tr><td>"+string(user_name)+"</td><td>");
-	to_return["user_name"]=json::value(user_name);
+	to_return["start"] = json::value("<tr><td>"+string(user_name) + "</td><td>");
+	to_return["user_name"] = json::value(user_name);
 	int no=0;
 	for (vector <SelectionElement>::const_iterator i = options.begin(); i != options.end(); i++){
-		to_return["input"][no]["html"]=json::value::string("<input type=\"radio\" name=\""+
-		string(short_name)+"\" value=\""+i->c+"\" "+ (v == i->c ? "checked" : "")+">"+
+		to_return["input"][no]["html"] = json::value::string("<input type=\"radio\" name=\""+
+		string(short_name) + "\" value=\""+i->c+"\" "+ (v == i->c ? "checked" : "") + ">"+
 		i->name+"\n");
-		to_return["input"][no]["short_name"]=json::value(short_name);
-		to_return["input"][no]["c"]=json::value(i->c);
-		to_return["input"][no]["value"]=json::value(i->name);
-		to_return["input"][no]["name"]=json::value(i->name);
+		to_return["input"][no]["short_name"] = json::value(short_name);
+		to_return["input"][no]["c"] = json::value(i->c);
+		to_return["input"][no]["value"] = json::value(i->name);
+		to_return["input"][no]["name"] = json::value(i->name);
 	}
-	to_return["end"]=json::value("</td></tr>\n");
+	to_return["end"] = json::value("</td></tr>\n");
 	return to_return;
 }
 
@@ -171,11 +171,11 @@ json::value
 Option::display_all()
 {
 	json::value to_return;
-	to_return["start"]=json::value::string("<table>");
+	to_return["start"] = json::value::string("<table>");
 	int no = 0;
 	for (vector <Option *>::const_iterator i = options.begin(); i != options.end(); i++)
 		to_return["contents"][no++] = (*i)->display();
-	to_return["end"]=json::value("</table>");
+	to_return["end"] = json::value("</table>");
 	return to_return;
 }
 
@@ -204,16 +204,16 @@ json::value
 TextOption::display()
 {
 	json::value to_return;
-	to_return["html"]=json::value::string(
+	to_return["html"] = json::value::string(
 		"<tr>"
-		"<td>"+string(user_name)+"</td>\n"
+		"<td>"+string(user_name) + "</td>\n"
 		"<td><input type=\"text\" name=\""+short_name+"\" size=\""
-		+to_string(size)+"\" maxlength=\"200\" value=\""+quote_escape(v)+"\"></td>"
+		+to_string(size) + "\" maxlength=\"200\" value=\""+quote_escape(v) + "\"></td>"
 		"</tr>\n");
-	to_return["short_name"]=json::value(short_name);
-	to_return["user_name"]=json::value(user_name);	
-	to_return["size"]=json::value(size);
-	to_return["value"]=json::value(v);
+	to_return["short_name"] = json::value(short_name);
+	to_return["user_name"] = json::value(user_name);	
+	to_return["size"] = json::value(size);
+	to_return["value"] = json::value(v);
 	return to_return;
 }
 

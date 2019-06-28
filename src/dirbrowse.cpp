@@ -33,12 +33,12 @@
 #include <set>
 #include <utility>
 #include <functional>
-#include <algorithm>		// set_difference
+#include <algorithm> // set_difference
 #include <cctype>
-#include <sstream>		// ostringstream
-#include <cstdio>		// perror, rename
-#include <cstdlib>		// atoi
-#include <cerrno>		// errno
+#include <sstream> // ostringstream
+#include <cstdio>  // perror, rename
+#include <cstdlib> // atoi
+#include <cerrno>  // errno
 
 #include "getopt.h"
 #include "headers.h"
@@ -55,7 +55,8 @@ class DirDir;
 class DirFile;
 
 // An entry in a directory
-class DirEntry {
+class DirEntry
+{
 public:
 	// Display a link to the entry's contents as HTML on of
 	virtual string html() const = 0;
@@ -63,33 +64,37 @@ public:
 };
 
 // A file
-class DirFile : public DirEntry {
+class DirFile : public DirEntry
+{
 private:
-	Fileid id;			// File identifier
+	Fileid id; // File identifier
 public:
 	DirFile(Fileid i) : id(i) {}
 
 	// Display a link to the files's contents as HTML on of
-	virtual string html() const {
-		return "<a href=\"file.html?id="+to_string(id.get_id())+"\">"+
-			id.get_fname()+"</a><br />";
+	virtual string html() const
+	{
+		return "<a href=\"file.html?id=" + to_string(id.get_id()) + "\">" +
+			   id.get_fname() + "</a><br />";
 	}
 	virtual ~DirFile() {}
 };
 
-typedef map <string, DirEntry *> DirContents;
+typedef map<string, DirEntry *> DirContents;
 
 // A directory
-class DirDir : public DirEntry {
+class DirDir : public DirEntry
+{
 private:
-	string name;		// Directory name
-	DirDir *parent;		// Parent directory
-	DirContents dir;	// Directory contents
+	string name;	 // Directory name
+	DirDir *parent;  // Parent directory
+	DirContents dir; // Directory contents
 public:
 	static DirDir *root;
 
 	// Construct the root directory
-	DirDir() {
+	DirDir()
+	{
 		name = "/";
 		parent = this;
 	}
@@ -97,7 +102,8 @@ public:
 	DirDir(const string &n, DirDir *p) : name(n), parent(p) {}
 
 	// Add a file (if needed)
-	void add_file(Fileid id) {
+	void add_file(Fileid id)
+	{
 		const string &n = id.get_fname();
 		if (dir.find(n) == dir.end())
 			dir.insert(DirContents::value_type(n, new DirFile(id)));
@@ -108,19 +114,23 @@ public:
 	 * Return NULL if we are asked to descent an existing file
 	 * entry (i.e. not a directory).
 	 */
-	DirDir *add_dir(const string &n) {
+	DirDir *add_dir(const string &n)
+	{
 		DirDir *ret;
 		DirContents::const_iterator i = dir.find(n);
-		if (i == dir.end()) {
+		if (i == dir.end())
+		{
 			ret = new DirDir(n, this);
 			dir.insert(DirContents::value_type(n, ret));
-		} else
+		}
+		else
 			ret = dynamic_cast<DirDir *>(i->second);
 		return ret;
 	}
 
 	// Return the directory's full path
-	const string get_path() const {
+	const string get_path() const
+	{
 		if (parent == this)
 			return "";
 		else
@@ -128,29 +138,37 @@ public:
 	}
 
 	// Display a link to the directory's contents as HTML on of with the specified name
-	string html(const char *n) const {
-		char * s = new char[20];
-		sprintf(s,"%p",this);
-		return "<a href=\"dir.html?dir="+string(s)+"\">"+n+"</a><br />";
+	string html(const char *n) const
+	{
+		char *s = new char[20];
+		sprintf(s, "%p", this);
+		return "<a href=\"dir.html?dir=" + string(s) + "\">" + n + "</a><br />";
 	}
 
 	// Display a link to the directory's contents as HTML on of
-	virtual string html() const {
+	virtual string html() const
+	{
 		return html(name.c_str());
 	}
 
-	// Display the directory's contents as HTML on of
-	string dirlist() const {
+	// Return the directory's contents as HTML on of
+	string dirlist() const
+	{
 		string to_ret;
-		if (parent != this)
-			to_ret = "<a href=\"dir.html?dir="+to_string((long)parent)+"\">..</a><br />" ;
+		char* s= new char[20];
+		
+		if (parent != this){
+			sprintf(s,"%p",parent);
+			to_ret = "<a href=\"dir.html?dir=" + string(s) + "\">..</a><br />";
+		}
 		for (DirContents::const_iterator i = dir.begin(); i != dir.end(); i++)
 			to_ret.append(i->second->html());
 		return to_ret;
 	}
 	virtual ~DirDir() {}
 	// Return a pointer for browsing the project's top directory
-	static DirDir *top() {
+	static DirDir *top()
+	{
 		// Descent into directories having exactly one directory node
 		DirDir *p, *p2;
 		for (p = root; p->dir.size() == 1 && (p2 = dynamic_cast<DirDir *>(p->dir.begin()->second)) != NULL; p = p2)
@@ -171,16 +189,21 @@ dir_add_file(Fileid f)
 	string::size_type start = 0;
 	DirDir *cd = DirDir::root;
 
-	for (;;) {
+	for (;;)
+	{
 		string::size_type slash = path.find_first_of("/\\", start);
-		if (slash == string::npos) {
+		if (slash == string::npos)
+		{
 			cd->add_file(f);
 			return cd;
-		} else {
+		}
+		else
+		{
 			cd = cd->add_dir(string(path, start, slash - start));
 			if (DP())
 				cout << "Add element " << string(path, start, slash - start) << endl;
-			if (cd == NULL) {
+			if (cd == NULL)
+			{
 				cerr << "Path " << path << " has a combined file/directory entry" << endl;
 				return cd;
 			}
@@ -189,8 +212,11 @@ dir_add_file(Fileid f)
 	}
 }
 
-
-// Display a directory's contents
+// Return a directory's contents
+// 	Response JSON object in form
+// 	{
+// 		dir: "html code here",
+// 	}
 web::json::value
 dir_page(void *p)
 {
@@ -198,8 +224,9 @@ dir_page(void *p)
 	json::value to_return;
 	string to_ret;
 	d = (DirDir *)server.getAddrParam("dir");
-	if (d==NULL) {
-		to_return["error"]= json::value("Missing value");
+	if (d == NULL)
+	{
+		to_return["error"] = json::value("Missing value");
 		return to_return;
 	}
 	to_ret = "Directory: " + html(d->get_path());
@@ -208,14 +235,19 @@ dir_page(void *p)
 	return to_return;
 }
 
-// Display on of a URL for browsing the project's top dir
+// 	Return a URL and HTML for browsing the project's top dir
+// 	Response JSON object in form
+// 	{
+// 		html: "html code here",
+// 		addr: "dir.html?dir=Memory address" //resource link for the top directory
+// 	}
 json::value
-dir_top( const char *name)
+dir_top(const char *name)
 {
 	json::value to_return;
-	to_return["html"]=json::value::string(DirDir::top()->html(name));
-	char * s = new char[20];
-	sprintf(s,"%p",DirDir::top());
-	to_return["addr"]=json::value::string("dir.html?dir="+string(s));
+	to_return["html"] = json::value::string(DirDir::top()->html(name));
+	char *s = new char[20];
+	sprintf(s, "%p", DirDir::top());
+	to_return["addr"] = json::value::string("dir.html?dir=" + string(s));
 	return to_return;
 }
