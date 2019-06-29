@@ -112,22 +112,26 @@ public:
 	// 		table: [
 	// 			"html of table row "
 	// 		],
-	// 		end: "html table end"
+	// 		end: "html table end",
+	//		metrics: [
+	//			"metrics names"	
+	//		]
 	// }
 	static json::value metrics_query_form() {
 		json::value to_return;
 	
 		to_return["header"] = json::value::string("<table>"
-		"<tr><th>Sort-by</th><th>Metric</th><th>Compare</th><th>Value</th></tr>\n");
+			"<tr><th>Sort-by</th><th>Metric</th><th>Compare</th><th>Value</th></tr>\n");
 		for (int i = 0; i < M::metric_max; i++) {
 			cout<<i<<endl;
 			if (Metrics::is_internal<M>(i))
 				continue;
+			to_return["metrics"][i] = json::value(Metrics::get_name<M>(i));
 			to_return["table"][i] = json::value::string("<tr><td><input type=\"radio\" name=\"order\" value=\""
-			+to_string(i) + "\"> </td>\n"
-			"<td>"+Metrics::get_name<M>(i) + "</td><td><select name=\"c"+
-			to_string(i) + "\" value=\"1\">\n"+
-			Query::equality_selection()+
+			+ to_string(i) + "\"> </td>\n"
+			"<td>" + Metrics::get_name<M>(i) + "</td><td><select name=\"c" +
+			to_string(i) + "\" value=\"1\">\n" +
+			Query::equality_selection() +
 			"</td><td><INPUT TYPE=\"text\" NAME=\"n"+to_string(i) + "\" SIZE=5 MAXLENGTH=10></td></tr>\n");
 		}
 		
