@@ -149,6 +149,7 @@ static IdQuery monitor;
 static vector <Fileid> files;
 
 Attributes::size_type current_project;
+
 HttpServer server;
 /*
  * A map from an equivallence class to the string
@@ -223,38 +224,41 @@ progress(typename container::const_iterator i, const container &c)
 	}
 }
 
+// Return html link to identifer page
 static string
 html(const IdPropElem &i)
 {
 	ostringstream to_ret;
-	to_ret<<"<a href=\"id.html?id="<<i.first<<"\">" <<
-		html_string((i.second).get_id())+"</a>";
+	to_ret << "<a href=\"id.html?id=" << i.first << "\">" 
+		<< html_string((i.second).get_id()) + "</a>";
 	return to_ret.str();
 }
 
 
 
-// Display an identifier hyperlink
+// Return json value of identifer's address 
 static json::value
 html_address(const IdPropElem &i)
 {
 	json::value to_return;
 	char* s = new char[20];
 	sprintf(s,"%p",i.first);
-	to_return=json::value(s); 
+	to_return = json::value(s); 
 	delete s;
 	return to_return;
 }
 
+// Return html link to function page
 static string
 html(const Call &c)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"fun.html?f="<< &c<<"\">"
-	<<html_string(c.get_name())<< "</a>";
+	to_ret << "<a href=\"fun.html?f=" << &c <<"\">"
+	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
 }
 
+// Return json value of function's address
 static json::value
 html_address(const Call &c)
 {
@@ -267,7 +271,7 @@ html_address(const Call &c)
 	return to_return;
 }
 
-// Display a hyperlink based on a string and its starting tokid
+// Return a hyperlink based on a string and its starting tokid
 static string
 html_string(const string &s, Tokid t)
 {
@@ -286,7 +290,7 @@ html_string(const string &s, Tokid t)
 	return to_ret;
 }
 
-// Display hyperlinks to a function's identifiers
+// Return html hyperlinks to a function's identifiers
 static string
 html_string( const Call *f)
 {
@@ -423,7 +427,12 @@ file_analyze(Fileid fi)
 	return has_unused;
 }
 
-// Display the contents of a file in hypertext form
+// Return Json with the contents of a file in hypertext form
+// {
+//		(IdMsg or FunMsg: "Error Message"),
+//		handEd: 1, 							//(exists only if hand edited) 
+//		file: "html code of according file"
+//	}
 static json::value
 file_hypertext( Fileid * fi,bool eval_query)
 {
@@ -432,7 +441,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	bool at_bol = true;
 	int line_number = 1;
 	int mark_unprocessed = 52;
-	// cout <<"file_hypertext" << endl;
+
 	mark_unprocessed = server.getIntParam("marku");
 	json::value to_return;
 
@@ -447,66 +456,73 @@ file_hypertext( Fileid * fi,bool eval_query)
 	FunQuery funq;
 	bool have_funq, have_idq;
 	const char *qtype = server.getCharPParam("qt");
-	// cout << "qtype: " << qtype << endl;
+	if(DP())
+	 	cout << "File Hypertext: qtype: " << qtype << endl;
 	have_funq = have_idq = false;
-	if (qtype==NULL || strcmp(qtype, "id") == 0) {
+	if (qtype == NULL || strcmp(qtype, "id") == 0) 
+	{
 		idq = IdQuery(Option::file_icase->get(), current_project, eval_query);
 		have_idq = true;
 		
-		//cout<<"out of idQuer -"<< to_return.as_string()<<endl;		
-	
 		if(eval_query)
-			if(idq.getError()!=NULL){
-			to_return["IdMsg"]=json::value::string(idq.getError());
-			// cout<<"idq Error:" << idq.getError() << endl;
-		}
-		// cout << "idq" <<endl;
-	} else if (strcmp(qtype, "fun") == 0) {
+			if(idq.getError() != NULL){
+				to_return["IdMsg"] = json::value::string(idq.getError());
+				if(DP())
+			 		cout << "idq Error:" << idq.getError() << endl;
+			}
+	} 
+	else if (strcmp(qtype, "fun") == 0) 
+	{
 		funq = FunQuery(Option::file_icase->get(), current_project, eval_query);
 		have_funq = true;
-		// cout  << "out of funquer"<<endl;
 	
-		if(funq.getError()!=NULL)
-			to_return["FunMsg"]=json::value::string(funq.getError());
-	} else {
+		if(funq.getError() != NULL)
+			to_return["FunMsg"] = json::value::string(funq.getError());
+	} 
+	else 
+	{
 		to_return["error"] = json::value::string("Unknown query type (try adding &qt=id to the URL).\n");
 		delete qtype;
 		return to_return;
 	}
-	// cout<<"out of Queries "<<endl;
+
 	if (DP())
 		cout << "Write to " << fname << endl;
-	if ((*fi).is_hand_edited()) {
-		// cout << "Hand Edited" << endl;
+	if ((*fi).is_hand_edited()) 
+	{
+		if(DP())
+			cout << "Hand Edited" << endl;
 		in = new istringstream((*fi).get_original_contents());
-		to_return["handEd"]=json::value(1);
-	} else {
-		// cout << "Not Hand Edited" << endl;
+		to_return["handEd"] = json::value(1);
+	} 
+	else {
+		if(DP())
+			cout << "Not Hand Edited" << endl;
 		in = new ifstream(fname.c_str(), ios::binary);
 		if (in->fail()) {
 			string error_msg("Unable to open " + fname + " for reading" + ": " + string(strerror(errno)) + "\n");
 			fputs(error_msg.c_str(), stderr);
-			// cout<<"error:" << error_msg << endl;
+			if(DP())
+				cout << "error:" << error_msg << endl;
 			to_return["error"] = json::value::string(error_msg);
 			delete in;
-			if(qtype!=NULL) delete qtype;
+			if(qtype != NULL) delete qtype;
 			return to_return;
 		}
 	}
 	fputs("<hr><code>", stdout);
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
-	// cout<<"file_hypertext before read file"<<endl;
+
 	string file;
 	for (;;) {
 		Tokid ti;
 		int val;
-		//cout<<"l_no:"<<line_number<<endl;
 		ti = Tokid(*fi, in->tellg());
 		if ((val = in->get()) == EOF)
 			break;
 		if (at_bol) {
-			file.append("<a name=\""+to_string(line_number)+"\"></a>\n");
+			file.append("<a name=\"" + to_string(line_number) + "\"></a>\n");
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
 				file.append("<span class=\"unused\">");
 			if (Option::show_line_number->get()) {
@@ -521,7 +537,6 @@ file_hypertext( Fileid * fi,bool eval_query)
 			}
 			at_bol = false;
 		}
-		//cout<<line_number<<":identifier we can mark" << endl;
 		// Identifier we can mark
 		Eclass *ec;
 		if (have_idq && (ec = ti.check_ec()) && ec->is_identifier() && idq.need_eval()) {
@@ -530,14 +545,13 @@ file_hypertext( Fileid * fi,bool eval_query)
 			int len = ec->get_len();
 			for (int j = 1; j < len; j++)
 				s += (char)in->get();
-			// cout<<"S:"<<s <<endl;
 			Identifier i(ec, s);
 			const IdPropElem ip(ec, i);
 			
 			if (idq.eval(ip))
 				file.append(html(ip));
 			else
-				file.append(html_string(s)+"\n");
+				file.append(html_string(s) + "\n");
 			continue;
 		}
 		
@@ -560,7 +574,6 @@ file_hypertext( Fileid * fi,bool eval_query)
 		}
 		
 		file.append(html((char)val));
-	//	cout << fname<<"line number:"<<line_number<<endl;
 		if ((char)val == '\n') {
 			at_bol = true;
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
@@ -569,9 +582,8 @@ file_hypertext( Fileid * fi,bool eval_query)
 			line_number++;
 		}
 	}
-	// cout<<"ending file_hypertext";
 	delete in;
-	if(qtype!=NULL) delete qtype;
+	if(qtype != NULL) delete qtype;
 	to_return["file"] = json::value::string(file);
 	return to_return;
 }
@@ -893,7 +905,10 @@ get_refactored_part(fifstream &in, Fileid fid)
 	return ret;
 }
 
-// Go through the file doing any refactorings needed
+// 	Go through the file doing any refactorings needed returns ok or error
+// 	{
+//		error: "Error message" or ok: "success message"
+//	}
 static json::value
 file_refactor(Fileid fid)
 {
@@ -907,14 +922,14 @@ file_refactor(Fileid fid)
 		establish_argument_boundaries(fid.get_path());
 	in.open(fid.get_path().c_str(), ios::binary);
 	if (in.fail()) {
-		to_return["error"]=json::value::string("Unable to open " 
+		to_return["error"] = json::value::string("Unable to open " 
 		+ fid.get_path() + " for reading");
 		return to_return;
 	}
 	string ofname(fid.get_path() + ".repl");
 	out.open(ofname.c_str(), ios::binary);
 	if (out.fail()) {
-		to_return["error"]=json::value::string( "Unable to open " 
+		to_return["error"] = json::value::string( "Unable to open " 
 		+ ofname + " for writing");
 		return to_return;
 	}
@@ -931,54 +946,55 @@ file_refactor(Fileid fid)
 		regmatch_t be;
 		if (sfile_re.exec(fid.get_path().c_str(), 1, &be, 0) == REG_NOMATCH ||
 		    be.rm_so == -1 || be.rm_eo == -1)
-			 to_return["ok"]=json::value::string("File "+ofname+" does not match file replacement RE."
-				"Replacements will be saved in "+ofname+".repl.\n");
+			 to_return["ok"] = json::value::string("File " + ofname + " does not match file replacement RE."
+				"Replacements will be saved in "+ ofname + ".repl.\n");
 		else {
 			string newname(fid.get_path().c_str());
 			newname.replace(be.rm_so, be.rm_eo - be.rm_so, Option::sfile_repl_string->get());
 			string cmd("cscout_checkout " + newname);
 			if (system(cmd.c_str()) != 0) {
-				to_return["error"]=json::value::string("Changes are saved in " 
+				to_return["error"] = json::value::string("Changes are saved in " 
 				+ ofname + ", because executing the checkout command cscout_checkout failed");
 				return to_return;
 			}
 			if (unlink(newname) < 0) {
-				to_return["error"]=json::value::string("Changes are saved in " + ofname + ", because deleting the target file " + newname + " failed");
+				to_return["error"] = json::value::string("Changes are saved in " + ofname + ", because deleting the target file " + newname + " failed");
 				return to_return;
 			}
 			if (rename(ofname.c_str(), newname.c_str()) < 0) {
-				to_return["error"]=json::value::string("Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + newname + " failed");
+				to_return["error"] = json::value::string("Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + newname + " failed");
 				return to_return;
 			}
 			string cmd2("cscout_checkin " + newname);
 			if (system(cmd2.c_str()) != 0) {
-				to_return["error"]=json::value::string( "Checking in the file " + newname + " failed");
+				to_return["error"] = json::value::string( "Checking in the file " + newname + " failed");
 				return to_return;
 			}
 		}
 	} else {
 		string cmd("cscout_checkout " + fid.get_path());
 		if (system(cmd.c_str()) != 0) {
-			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because checking out " + fid.get_path() + " failed");
+			to_return["error"] = json::value::string( "Changes are saved in " + ofname + ", because checking out " + fid.get_path() + " failed");
 			return to_return;
 		}
 		if (unlink(fid.get_path()) < 0) {
-			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because deleting the target file " + fid.get_path() + " failed");
+			to_return["error"] = json::value::string( "Changes are saved in " + ofname + ", because deleting the target file " + fid.get_path() + " failed");
 			return to_return;
 		}
 		if (rename(ofname.c_str(), fid.get_path().c_str()) < 0) {
-			to_return["error"]=json::value::string( "Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + fid.get_path() + " failed");
+			to_return["error"] = json::value::string( "Changes are saved in " + ofname + ", because renaming the file " + ofname + " to " + fid.get_path() + " failed");
 			return to_return;
 		}
 		string cmd2("cscout_checkin " + fid.get_path());
 		if (system(cmd2.c_str()) != 0) {
-			to_return["error"]=json::value::string("Checking in the file " + fid.get_path() + " failed");
+			to_return["error"] = json::value::string("Checking in the file " + fid.get_path() + " failed");
 			return to_return;
 		}
 	}
 	return to_return;
 }
 
+// Return message in json::value::string
 static json::value
 change_prohibited()
 {
@@ -989,6 +1005,7 @@ change_prohibited()
 	return json::value::string(to_ret);
 	
 }
+
 
 static void
 nonbrowse_operation_prohibited(std::ostringstream *fs)
@@ -1028,13 +1045,13 @@ html_file_end()
 	return "</table>\n";
 }
 
-// Display a filename of an html file
+// Return a filename of an html file as string
 static string
 html_file(Fileid fi)
 {
 	if (!Option::fname_in_context->get()) {
-		return("\n<tr><td></td><td><a href=\"file.html?id="+to_string(fi.get_id())+"\">"
-		+fi.get_path()+"</a></td>");
+		return("\n<tr><td></td><td><a href=\"file.html?id=" + to_string(fi.get_id()) + "\">"
+		+ fi.get_path() + "</a></td>");
 	}
 
 	// Split path into dir and fname
@@ -1047,21 +1064,27 @@ html_file(Fileid fi)
 	string dir(s, 0, k);
 	string fname(s, k);
 
-	return "<tr><td align=\"right\">"+dir+"\n</td>\n"
-		"<td><a href=\"file.html?id="+to_string(fi.get_id())+"\">"
-		+fname.c_str()+"</a></td>";
+	return "<tr><td align=\"right\">" + dir + "\n</td>\n"
+		"<td><a href=\"file.html?id=" + to_string(fi.get_id()) + "\">"
+		+ fname.c_str() + "</a></td>";
 }
 
 // File query page
+// return filequery html page split in a JSON
+// {
+//		FileQuery: "html of form action and start",
+//		mquery: "html of metrics query form",
+//		inputs: "html of inputs and end form "
+// }
 static json::value
 filequery_page(void *p)
 {
 	json::value to_return;
-	to_return["FileQuery"]=json::value::string("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
+	to_return["FileQuery"] = json::value::string("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
 	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n"
 	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n",true);
-	to_return["mquery"]=MQuery<FileMetrics, Fileid &>::metrics_query_form();
-	to_return["inputs"]=json::value::string("<p>"
+	to_return["mquery"] = MQuery<FileMetrics, Fileid &>::metrics_query_form();
+	to_return["inputs"] = json::value::string("<p>"
 	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any of the above\n"
 	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
 	"<input type=\"radio\" name=\"match\" value=\"L\">Match all of the above\n"
@@ -1073,7 +1096,7 @@ filequery_page(void *p)
 	"<hr>\n"
 	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
 	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
-	"</FORM>\n",true
+	"</FORM>\n", true
 	);
 	return to_return;
 }
@@ -1083,7 +1106,28 @@ struct ignore : public binary_function <int, int, bool> {
 };
 
 
-// Process a file query
+// Process a file query and return json
+// {
+//		xfilequery: "title",
+//		table: {
+//			h: "html table header start"
+//			h1: "html of next header",				// not always
+//			h2: "html of metrics header table" 		// not always
+//			hend: "html of table end",
+//			contents : [
+//				"html of table rows"
+//			]		
+//		},
+//		mname: "name of metric",
+//		file: [
+// 			{
+//				id: file id,
+//				name: file path,
+//				metric: file query metric	// not always
+//			},
+//		],
+//		timer: "time elapsed calculating the query"
+//	}
 static json::value
 xfilequery_page(void *p)
 {
@@ -1094,33 +1138,32 @@ xfilequery_page(void *p)
 	FileQuery query(&fs, Option::file_icase->get(), current_project);
 
 	if(!(fs.str().empty()))
-		to_return["Xerror"]= json::value::string(fs.str());
+		to_return["Xerror"] = json::value::string(fs.str());
 	if (!query.is_valid()){
-		to_return["error"]=json::value::string("Non valid query");
+		to_return["error"] = json::value::string("Non valid query");
 		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 	multiset <Fileid, FileQuery::specified_order> sorted_files;
-	to_return["xfilequery"]=json::value::string((qname && *qname) ? qname : "File Query Results");
+	to_return["xfilequery"] = json::value::string((qname && *qname) ? qname : "File Query Results");
 
 	for (vector <Fileid>::iterator i = files.begin(); i != files.end(); i++) {
 		if (query.eval(*i))
 			sorted_files.insert(*i);
 	}
-	to_return["table"]["h"]=json::value::string(html_file_begin());
+	to_return["table"]["h"] = json::value::string(html_file_begin());
 	if (modification_state != ms_subst && !browse_only){
-		to_return["table"]["h1"]=json::value::string("<th></th>");
-		// cout<<to_return.serialize()<<endl;
+		to_return["table"]["h1"] = json::value::string("<th></th>");
 	}
 	if (query.get_sort_order() != -1){
-		
-		to_return["table"]["h2"]=json::value::string("<th>"+Metrics::get_name<FileMetrics>(query.get_sort_order())+"</th>\n",true);
+		to_return["mname"] = json::value::string(Metrics::get_name<FileMetrics>(query.get_sort_order()));
+		to_return["table"]["h2"] = json::value::string("<th>" + Metrics::get_name<FileMetrics>(query.get_sort_order()) + "</th>\n",true);
 	}
 
 	Pager pager(Option::entries_per_page->get(), query.base_url(), query.bookmarkable());	
 		
 
-	to_return["table"]["hend"]=json::value::string(html_file_set_begin(),true);
+	to_return["table"]["hend"] = json::value::string(html_file_set_begin(),true);
 	fs.flush();
 	int no = 0;
 	
@@ -1129,34 +1172,45 @@ xfilequery_page(void *p)
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
-			fs<<html_file(*i);
-			to_return["id"][no] = json::value(i->get_id());
-			to_return["name"][no++] = json::value::string(i->get_path());
+			fs << html_file(*i);
+			to_return["file"][no]["id"] = json::value(i->get_id());
+			to_return["file"][no]["name"] = json::value::string(i->get_path());
 			if (modification_state != ms_subst && !browse_only)
-				fs<<"<td><a href=\"fedit.html?id="+to_string(i->get_id())+"\">edit</a></td>";
-			if (query.get_sort_order() != -1)
-				fs<< "<td align=\"right\">"<<to_string(i->const_metrics().get_metric(query.get_sort_order()))<<"</td>";
-			fs<<html_file_record_end();
-			to_return["table"]["contents"][no-1]= json::value::string(fs.str());
+				fs << "<td><a href=\"fedit.html?id=" << to_string(i->get_id()) << "\">edit</a></td>";
+			if (query.get_sort_order() != -1){
+				fs << "<td align=\"right\">" << to_string(i->const_metrics().get_metric(query.get_sort_order())) 
+					<< "</td>";
+				to_return["file"][no]["metric"] = json::value(i->const_metrics().get_metric(query.get_sort_order()));
+			}
+			fs << html_file_record_end();
+			to_return["table"]["contents"][no++] = json::value::string(fs.str());
 			fs.flush();
 		}
 	}
 	
-//	to_return["table"]["contents"] = json::value::string(fs.str(),true);
-	to_return["table"]["end"]=json::value::string(html_file_end(),true);
+	to_return["table"]["end"] = json::value::string(html_file_end(),true);
+	to_return["timer"] = json::value::string(timer.print_elapsed(),true);
 	
-	// to_return["pager"]=pager.end();
-	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
-	cout<<"out of xfilequery"<<endl;
 	if(qname!=NULL) delete qname;
 	return to_return;
 }
 
 
 /*
- * Display the sorted identifiers or functions, taking into account the reverse sort property
- * for properly aligning the output.
+ * Return the sorted identifiers or functions, taking into account the reverse sort property
+ * for properly aligning the output as json.
+ * {
+ * 		start: "start of html code",
+ * 		html: [
+ * 			"html code of buttons to sorted_ids elemets"
+ * 		],
+ * 		end: "end of html code",
+ * 		address: [
+ * 			"memory address of sorted ids elements"
+ * 		]
+ * }
  */
+
 template <typename container>
 static json::value
 display_sorted(const Query &query, const container &sorted_ids)
@@ -1170,213 +1224,291 @@ display_sorted(const Query &query, const container &sorted_ids)
 
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
-	int no=0;
+	int no = 0;
 	char * s = new char[20];
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			// cout<<"pager.next"<<endl;
-			to_return["f"][no]=html_address(**i);			
-			to_return["ids"][no++] = json::value::string(html(**i));
+			to_return["address"][no] = html_address(**i);			
+			to_return["html"][no++] = json::value::string(html(**i));
 		}
 	}
 	if (Option::sort_rev->get())
 		to_return["end"] = json::value::string("</td> <td width=\"50%\"> </td></tr></table>\n",true);
 	else
 		to_return["end"] = json::value::string("</p>\n",true);
-
-	// to_return["element_page"] = pager.end();
-
 	return to_return;
 }
 
 /*
- * Display the sorted functions with their metrics,
+ * Return the sorted functions with their metrics,
  * taking into account the reverse sort property
- * for properly aligning the output.
- *///change here
+ * for properly aligning the output as JSON.
+ * {
+ * 		start: "start of html code",
+ * 		html: [
+ * 			"html code of buttons to sorted_ids elements"
+ * 		],
+ * 		end: "end of html code",
+ * 		mname: "name of metric",
+ * 		address: [
+ * 			"memory address of sorted_ids elements"
+ * 		],
+ * 		metric: [
+ * 			"metrics"	
+ * 		]
+ * 	}
+ */
 static json::value
 display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 {
 	json::value to_return;
-	to_return["start"]=json::value::string("<table class=\"metrics\"><tr>"
+	to_return["start"] = json::value::string("<table class=\"metrics\"><tr>"
 	    "<th width='50%%' align='left'>Name</th>"
-	    "<th width='50%%' align='right'>"+
+	    "<th width='50%%' align='right'>" +
 		Metrics::get_name<FunMetrics>(query.get_sort_order())
-		+"</th>\n",true);
-
+		+ "</th>\n",true);
+	to_return["mname"] = json::value(Metrics::get_name<FunMetrics>(query.get_sort_order()));
 	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	int no = 0;
 	char * s = new char[20];
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			sprintf(s,"%p",&(**i));
-			to_return["f"][no]=json::value(s);
-			s[0]=0;
-			to_return["funs"][no++]=json::value::string("<tr><td witdh='50%'>"+
-			html(**i)+
-			"</td><td witdh='50%%' align='right'>"+
-			to_string((*i)->const_metrics().get_metric(query.get_sort_order()))
-			+"</td></tr>\n",true);
+			sprintf(s, "%p", &(**i));
+			to_return["address"][no] = json::value(s);
+			s[0] = 0;
+			to_return["metric"][no] = json::value((*i)->const_metrics().get_metric(query.get_sort_order()));
+			to_return["html"][no++] = json::value::string("<tr><td witdh='50%'>" +
+				html(**i) +
+				"</td><td witdh='50%%' align='right'>" +
+				to_string((*i)->const_metrics().get_metric(query.get_sort_order()))
+				+ "</td></tr>\n", true);
 		}
 	}
-	to_return["end"]=json::value::string("</table>\n",true);
-	// to_return["pager"]= pager.end();
+	to_return["end"] = json::value::string("</table>\n",true);
+	delete s;
 	return to_return;
 }
 
 
-// Identifier query page
+// Return Identifier query page split in JSON
+// {
+//		form: "html code of form start",
+//		input:[
+//			"html code of checkboxes"	
+//		],
+//		restIn: "html of other inputs",
+//		table: "html code of input table",
+// 		end: "html code of end",
+//		attributes:[
+//			"attribute names"	
+//		]
+// }
 static json::value
 iquery_page(void *p)
 {
 	json::value to_return;
-	to_return["iquery"]["form"] = json::value::string("<FORM ACTION=\"xiquery.html\""
-	" METHOD=\"GET\">\n"
-	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n",true);
+	to_return["form"] = json::value::string("<FORM ACTION=\"xiquery.html\""
+		" METHOD=\"GET\">\n"
+		"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n", true);
 	int i;
-	for (i = attr_begin; i < attr_end; i++)
-		to_return["iquery"]["input"][i] =json::value::string("<input type=\"checkbox\" name=\"a"
-		+ to_string(i)+"\" value=\"1\">"+Attributes::name(i)+"<br>\n",true );
-	to_return["iquery"]["restIn"]=json::value::string("<input type=\"checkbox\" name=\"xfile\" value=\"1\">Crosses file boundary<br>\n"
-	"<input type=\"checkbox\" name=\"unused\" value=\"1\">Unused<br>\n"
-	"<p>\n"
-	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
-	"<br><hr>\n",true);
-	to_return["iquery"]["table"]= json::value::string("<table>\n"
-	"<tr><td>\n"
-	"Identifier names should "
-	"(<input type=\"checkbox\" name=\"xire\" value=\"1\"> not) \n"
-	" match RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"ire\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
-	"<tr><td>\n"
-	"Select identifiers from filenames "
-	"(<input type=\"checkbox\" name=\"xfre\" value=\"1\"> not) \n"
-	" matching RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
-	"</table>\n",true);
-	to_return["iquery"]["Query Title"] = json::value::string(
-	"<INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
-	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show identifiers\">\n"
-	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
-	"<INPUT TYPE=\"submit\" NAME=\"qfun\" VALUE=\"Show functions\">\n"
-	"</FORM>",true);
+	for (i = attr_begin; i < attr_end; i++){
+		to_return["attributes"][i] = json::value(Attributes::name(i));
+		to_return["input"][i] = json::value::string("<input type=\"checkbox\" name=\"a"
+		+ to_string(i) + "\" value=\"1\">" + Attributes::name(i) + "<br>\n", true);
+	}
+	to_return["restIn"] = json::value::string("<input type=\"checkbox\" name=\"xfile\" value=\"1\">Crosses file boundary<br>\n"
+		"<input type=\"checkbox\" name=\"unused\" value=\"1\">Unused<br>\n"
+		"<p>\n"
+		"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
+		"<br><hr>\n", true);
+	to_return["table"] = json::value::string("<table>\n"
+		"<tr><td>\n"
+		"Identifier names should "
+		"(<input type=\"checkbox\" name=\"xire\" value=\"1\"> not) \n"
+		" match RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"ire\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
+		"<tr><td>\n"
+		"Select identifiers from filenames "
+		"(<input type=\"checkbox\" name=\"xfre\" value=\"1\"> not) \n"
+		" matching RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
+		"</table>\n", true);
+	to_return["end"] = json::value::string(
+		"<INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
+		"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show identifiers\">\n"
+		"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
+		"<INPUT TYPE=\"submit\" NAME=\"qfun\" VALUE=\"Show functions\">\n"
+		"</FORM>", true);
 	return to_return;
 }
 
-// Function query page
+// 	Function query page split in JSON
+//	{
+//		form: "html code of form start",
+//		input:[
+//			"html code of radio buttons"	
+//		],
+//		restIn: "html of other inputs",
+//		table: "html code of input table",
+// 		end: "html code of end",
+//		mquery: {
+//			metrics_query_form return object
+//		},			
+//		select: "query equality selection"
+// }
 static json::value
 funquery_page(void *p)
 {
 	json::value to_return;
-	to_return["form"]=json::value::string("<FORM ACTION=\"xfunquery.html\" METHOD=\"GET\">\n"
-	"<input type=\"checkbox\" name=\"cfun\" value=\"1\">C function<br>\n"
-	"<input type=\"checkbox\" name=\"macro\" value=\"1\">Function-like macro<br>\n"
-	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable declaration<br>\n"
-	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only declaration<br>\n"
-	"<input type=\"checkbox\" name=\"pscope\" value=\"1\">Project scope<br>\n"
-	"<input type=\"checkbox\" name=\"fscope\" value=\"1\">File scope<br>\n"
-	"<input type=\"checkbox\" name=\"defined\" value=\"1\">Defined<br>\n");
-	to_return["mquery"]=MQuery<FunMetrics, Call &>::metrics_query_form();
-	to_return["inputs"]=json::value::string(
-	"<p>"
-	"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
-	"&nbsp; &nbsp; &nbsp; &nbsp;\n"
-	"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
-	"<br><hr>\n");
-	to_return["table"]=json::value::string(
-	"<table>\n"
-	"<tr><td>\n"
-	"Number of direct callers\n"
-	"<select name=\"ncallerop\" value=\"1\">\n"
-	+Query::equality_selection()+
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"ncallers\" SIZE=5 MAXLENGTH=10>\n"
-	"</td><td>\n"
+	to_return["form"] = json::value::string("<FORM ACTION=\"xfunquery.html\" METHOD=\"GET\">\n"
+		"<input type=\"checkbox\" name=\"cfun\" value=\"1\">C function<br>\n"
+		"<input type=\"checkbox\" name=\"macro\" value=\"1\">Function-like macro<br>\n"
+		"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable declaration<br>\n"
+		"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only declaration<br>\n"
+		"<input type=\"checkbox\" name=\"pscope\" value=\"1\">Project scope<br>\n"
+		"<input type=\"checkbox\" name=\"fscope\" value=\"1\">File scope<br>\n"
+		"<input type=\"checkbox\" name=\"defined\" value=\"1\">Defined<br>\n");
+	to_return["mquery"] = MQuery<FunMetrics, Call &>::metrics_query_form();
+	to_return["select"] = json::value(Query::equality_selection());
+	to_return["input"] = json::value::string(
+		"<p>"
+		"<input type=\"radio\" name=\"match\" value=\"Y\" CHECKED>Match any marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"L\">Match all marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"E\">Exclude marked\n"
+		"&nbsp; &nbsp; &nbsp; &nbsp;\n"
+		"<input type=\"radio\" name=\"match\" value=\"T\" >Exact match\n"
+		"<br><hr>\n");
+	to_return["table"] = json::value::string(
+		"<table>\n"
+		"<tr><td>\n"
+		"Number of direct callers\n"
+		"<select name=\"ncallerop\" value=\"1\">\n"
+		+ Query::equality_selection() +
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"ncallers\" SIZE=5 MAXLENGTH=10>\n"
+		"</td><td>\n"
 
-	"<tr><td>\n"
-	"Function names should "
-	"(<input type=\"checkbox\" name=\"xfnre\" value=\"1\"> not) \n"
-	" match RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"fnre\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
+		"<tr><td>\n"
+		"Function names should "
+		"(<input type=\"checkbox\" name=\"xfnre\" value=\"1\"> not) \n"
+		" match RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"fnre\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
 
-	"<tr><td>\n"
-	"Names of calling functions should "
-	"(<input type=\"checkbox\" name=\"xfure\" value=\"1\"> not) \n"
-	" match RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"fure\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
+		"<tr><td>\n"
+		"Names of calling functions should "
+		"(<input type=\"checkbox\" name=\"xfure\" value=\"1\"> not) \n"
+		" match RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"fure\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
 
-	"<tr><td>\n"
-	"Names of called functions should "
-	"(<input type=\"checkbox\" name=\"xfdre\" value=\"1\"> not) \n"
-	" match RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"fdre\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
+		"<tr><td>\n"
+		"Names of called functions should "
+		"(<input type=\"checkbox\" name=\"xfdre\" value=\"1\"> not) \n"
+		" match RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"fdre\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
 
-	"<tr><td>\n"
-	"Select functions from filenames "
-	"(<input type=\"checkbox\" name=\"xfre\" value=\"1\"> not) \n"
-	" matching RE\n"
-	"</td><td>\n"
-	"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
-	"</td></tr>\n"
-	"</table>\n");
-	to_return["end"]=json::value::string("<hr>\n"
-	"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
-	"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show functions\">\n"
-	"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
-	"</FORM>\n"
+		"<tr><td>\n"
+		"Select functions from filenames "
+		"(<input type=\"checkbox\" name=\"xfre\" value=\"1\"> not) \n"
+		" matching RE\n"
+		"</td><td>\n"
+		"<INPUT TYPE=\"text\" NAME=\"fre\" SIZE=20 MAXLENGTH=256>\n"
+		"</td></tr>\n"
+		"</table>\n");
+	to_return["end"] = json::value::string("<hr>\n"
+		"<p>Query title <INPUT TYPE=\"text\" NAME=\"n\" SIZE=60 MAXLENGTH=256>\n"
+		"&nbsp;&nbsp;<INPUT TYPE=\"submit\" NAME=\"qi\" VALUE=\"Show functions\">\n"
+		"<INPUT TYPE=\"submit\" NAME=\"qf\" VALUE=\"Show files\">\n"
+		"</FORM>\n"
 	);
 	return to_return;
 }
 
+// Returns file information and links in JSON
+// {
+// 		start: "html code of start",
+//		html: "main html code with links and info",
+//		end: "html code of end",
+//		files: [
+//			{
+//				id: file_id(int),
+//				path: "file path"
+//			}
+//		]
+// }		
 json::value
 display_files(const Query &query, const IFSet &sorted_files)
 {
 	const string query_url(query.param_url());
 	json::value to_return;
 	
-	to_return["start"]= json::value::string(html_file_begin()+html_file_set_begin());
+	to_return["start"] = json::value::string(html_file_begin() + html_file_set_begin());
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qf=1", query.bookmarkable());
 	ostringstream fs;
+	int no = 0;
+	to_return["query"] = json::value(query_url);
 	for (IFSet::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		if (pager.show_next()) {
+			to_return["files"][no]["id"] = json::value(f.get_id());
+			to_return["files"][no]["path"] = json::value(f.get_path());		
 			fs << html_file(*i);
-			fs<<"<td><a href=\"qsrc.html?id="<<f.get_id()<<"&"
-			<<query_url<<"\">marked source</a></td>";
+			fs << "<td><a href=\"qsrc.html?id=" << f.get_id() << "&"
+			<< query_url << "\">marked source</a></td>";
 			if (modification_state != ms_subst && !browse_only)
-				fs<<"<td><a href=\"fedit.html?id="<<f.get_id()<<"\">edit</a></td>";
-			fs<<html_file_record_end();
+				fs << "<td><a href=\"fedit.html?id=" << f.get_id() << "\">edit</a></td>";
+			fs << html_file_record_end();
 		}
 	}
-	to_return["files"] = json::value::string(fs.str());
-	to_return["end"]=json::value::string(html_file_end());
-	//to_return["pager"]=pager.end();
+	to_return["html"] = json::value::string(fs.str());
+	to_return["end"] = json::value::string(html_file_end());
 	return to_return;
 }
 
-// Process an identifier query
+// Process an identifier query and return as JSON
+// {
+//		xiquery: "name of identifier query page",
+//		(
+//			ids: {
+//				display_sorted return object without addresses
+//			},
+//			id: [
+//				"addresses"
+//			]
+//		) or 
+//		(
+//			files: {
+//				display_files return JSON
+//			}
+//		) or
+//		(
+//			funs: {
+//				display_sorted return object without addresses
+//			},
+//			f: [
+//				"addresses"
+//			]
+//		)
+// }
 static json::value 
 xiquery_page(void * p)
 {
@@ -1385,7 +1517,7 @@ xiquery_page(void * p)
 	std::ostringstream fs;
 	prohibit_remote_access(&fs);
 	if(!fs.str().empty()){
-		to_return["error"] =json::value::string(fs.str());
+		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
 
@@ -1399,22 +1531,19 @@ xiquery_page(void * p)
 	IdQuery query(Option::file_icase->get(), current_project);
 
 	if (!query.is_valid()) {
-		to_return["error"]=json::value::string("Invalid query");
+		to_return["error"] = json::value::string("Invalid query");
 		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 
-	to_return["xiquery"] =json::value::string((qname && *qname) ? qname : "Identifier Query Results");
-	// cerr << "Evaluating identifier query" << endl;
-	if(ids.empty())
-		cerr<<"true ids empty"<<endl;
+	to_return["xiquery"] = json::value::string((qname && *qname) ? qname : "Identifier Query Results");
+	if(DP())
+		cout << "Evaluating identifier query" << endl;
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
-	//	cout<<html(*i)<<"-"<<query.eval(*i)<<endl;
 		if (!query.eval(*i))
 			continue;
 		if (q_id){
-			// cout<<"add to sorted"<<endl;
 			sorted_ids.insert(&*i);
 		}
 		else if (q_file) {
@@ -1425,34 +1554,28 @@ xiquery_page(void * p)
 			funs.insert(ecfuns.begin(), ecfuns.end());
 		}
 	}
-	// cerr <<q_id<<" sorted_ids" <<endl;
-	// for(auto i = sorted_ids.begin(); i!= sorted_ids.end(); i++ )
-	// 	cout<<html(*i)	<<endl;
+	
 	if (q_id) {
-	//	fputs("<h2>Matching Identifiers</h2>\n", stdout);
-		// cout<<"identifers"<<endl;
 		to_return["ids"] = display_sorted(query, sorted_ids);
-		to_return["id"] = to_return["ids"]["f"];
-		to_return["ids"].erase("f");
-		// if(sorted_ids.empty())
-			// cout<<"no identifers"<<endl;
-	}
-	// cout <<"checkpoint1"<<endl;
+		to_return["id"] = to_return["ids"]["address"];
+		to_return["ids"].erase("address");		
+	}	
 	if (q_file)
 		to_return["files"]= display_files(query, sorted_files);
-	// cout <<"checkpoint2"<<endl;
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
 		sorted_funs.insert(funs.begin(), funs.end());
-		to_return["funs"]=display_sorted(query, sorted_funs);
-		to_return["f"] = to_return["funs"]["f"];
-		to_return["funs"].erase("f");
+		to_return["funs"] = display_sorted(query, sorted_funs);
+		to_return["f"] = to_return["funs"]["address"];
+		to_return["funs"].erase("address");
 	}
 
 	to_return["timer"] = json::value::string(timer.print_elapsed());
-	cout<<to_return.serialize()<<endl;
-	if(qname!=NULL) delete qname;
+	if(DP())
+		cout << "xiquery:" << to_return.serialize() << endl;
+	if(qname!=NULL) 
+		delete qname;
 	return to_return;
 }
 
@@ -1465,7 +1588,7 @@ xfunquery_page(void *p)
 	json::value to_return;
 	prohibit_remote_access(&fs);
 	if(!fs.str().empty()){
-		to_return["error"] =json::value::string(fs.str());
+		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
 	Timer timer;
@@ -1479,14 +1602,14 @@ xfunquery_page(void *p)
 	FunQuery query(NULL, Option::file_icase->get(), current_project);
 	cout<<"hello"<<endl;
 	if (!query.is_valid()){
-		to_return["error"]=json::value::string("Invalid Query");
+		to_return["error"] = json::value::string("Invalid Query");
 		if(qname!=NULL) delete qname;
 		return to_return;
 	}
 		
 
 	if(qname && *qname)
-		to_return["qname"]=json::value::string(qname);
+		to_return["qname"] = json::value::string(qname);
 	cerr << "Evaluating function query" << endl;
 	for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 		progress(i, Call::functions());
@@ -1506,9 +1629,9 @@ xfunquery_page(void *p)
 	}
 	if (q_file)
 		to_return["files"]=display_files(query, sorted_files);
-	to_return["f"]=to_return["funs"]["f"];
-	to_return["funs"].erase("f");
-	to_return["timer"]=json::value::string(timer.print_elapsed(),true);
+	to_return["f"]=to_return["funs"]["address"];
+	to_return["funs"].erase("address");
+	to_return["timer"] = json::value::string(timer.print_elapsed(),true);
 	if(qname!=NULL) delete qname;
 	return to_return;
 }
@@ -1535,7 +1658,7 @@ identifier_page(void *p)
 	e = (Eclass*)server.getAddrParam("id");
 	cout<<"E:"<<e<<endl;;
 	if (!e) {
-		to_return["error"]=json::value::string("Missing value");
+		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
 
@@ -1566,9 +1689,9 @@ identifier_page(void *p)
 		delete subst;
 	}
 	cout<<"HERE3"<<endl;
-	to_return["id"]= json::value(id.get_id());
+	to_return["id"] = json::value(id.get_id());
 	cout<<"IDPROB"<<endl;
-	to_return["form"] =json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
+	to_return["form"] = json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
 	cout<<to_return.serialize();
 	string s;
 	for (int i = attr_begin; i < attr_end; i++){		
@@ -1588,7 +1711,7 @@ identifier_page(void *p)
 
 	if(!s.empty())
 			to_return["attribute"][no++] = json::value::string(s);
-	to_return["match"]["tite"]=json::value::string("<li> Matches "+to_string(e->get_size()) +" occurence(s)\n");
+	to_return["match"]["tite"] = json::value::string("<li> Matches "+to_string(e->get_size()) +" occurence(s)\n");
 	cout<<"HERE1"<<endl;
 
 	no = 0;
@@ -1605,12 +1728,12 @@ identifier_page(void *p)
 	}
 	ostringstream fs;
 	fs<<e;
-	to_return["endAttr"][0]=json::value::string("<li><a href=\"xiquery.html?ec="
-		+fs.str()+"&n=Dependent+Files+for+Identifier+"+
-		id.get_id()+"&qf=1\">Dependent files</a>");
-	to_return["endAttr"][1]=json::value::string("<li><a href=\"xfunquery.html?ec="+
-	fs.str()+"&qi=1&n=Functions+Containing+Identifier+"
-	+id.get_id()+"\">Associated functions</a>");
+	to_return["endAttr"][0] = json::value::string("<li><a href=\"xiquery.html?ec="
+		+fs.str() + "&n=Dependent+Files+for+Identifier+"+
+		id.get_id() + "&qf=1\">Dependent files</a>");
+	to_return["endAttr"][1] = json::value::string("<li><a href=\"xfunquery.html?ec="+
+	fs.str() + "&qi=1&n=Functions+Containing+Identifier+"
+	+id.get_id() + "\">Associated functions</a>");
 	no = 0;
 	cout<<"HERE2:"<<to_return.serialize()<<endl;
 	if (e->get_attribute(is_cfunction) || e->get_attribute(is_macro)) {
@@ -1621,35 +1744,35 @@ identifier_page(void *p)
 				fs.flush();
 				fs<<i->second;
 				if (!found) {
-					to_return["functions"]["start"]=json::value::string(
+					to_return["functions"]["start"] = json::value::string(
 						"<li> The identifier occurs (wholy or in part) in function name(s): \n<ol>\n");
 					found = true;
 				}
-				to_return["functions"]["content"][no++]=json::value::string("\n<li>"+ html_string(i->second)
-				+" &mdash; <a href=\"fun.html?f="+fs.str()+"\">function page</a>");
+				to_return["functions"]["content"][no++] = json::value::string("\n<li>"+ html_string(i->second)
+				+" &mdash; <a href=\"fun.html?f="+fs.str() + "\">function page</a>");
 			}
 		}
 		if (found)
-			to_return["functions"]["end"]=json::value::string("</ol><br />\n");
+			to_return["functions"]["end"] = json::value::string("</ol><br />\n");
 	}
-	to_return["contains"]=json::value::string(fs.str());
+	to_return["contains"] = json::value::string(fs.str());
 	cout<<"HERE"<<endl;
 	fs.flush();
 	if ((!e->get_attribute(is_readonly) || Option::rename_override_ro->get()) &&
 	    modification_state != ms_hand_edit &&
 	    !browse_only) {
-		to_return["substitute"]["start"]=json::value::string("<li> Substitute with: \n");
-		to_return["substitute"]["content"][0]=json::value::string("<INPUT TYPE=\"text\" NAME=\"sname\" VALUE=\""
-			+(id.get_replaced() ? id.get_newid() : id.get_id())+"\" SIZE=10 MAXLENGTH=256> ");
-		to_return["substitute"]["content"][1]=json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
+		to_return["substitute"]["start"] = json::value::string("<li> Substitute with: \n");
+		to_return["substitute"]["content"][0] = json::value::string("<INPUT TYPE=\"text\" NAME=\"sname\" VALUE=\""
+			+(id.get_replaced() ? id.get_newid() : id.get_id()) + "\" SIZE=10 MAXLENGTH=256> ");
+		to_return["substitute"]["content"][1] = json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
 		fs.flush();
 		fs<<e;
-		to_return["substitute"]["content"][2]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
-		+fs.str()+"\">\n");
+		to_return["substitute"]["content"][2] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
+		+fs.str() + "\">\n");
 		if (!id.get_active())
-			to_return["inactive"]=json::value::string("<a href='replacements.html'>replacements page</a> ");
+			to_return["inactive"] = json::value::string("<a href='replacements.html'>replacements page</a> ");
 	}
-	to_return["end"]=json::value::string("</ul>\n</FORM>\n");
+	to_return["end"] = json::value::string("</ul>\n</FORM>\n");
 	return to_return;
 
 }
@@ -1662,7 +1785,7 @@ function_page(void *p)
 	Call *f = (Call *)server.getAddrParam("f");
 	// cout <<f;
 	if (f == NULL) {
-		to_return["error"]=json::value::string("Missing value");
+		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
 	const char *subst;
@@ -1674,13 +1797,13 @@ function_page(void *p)
 		string ssubst(subst);
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
-			to_return["error"]=json::value(
+			to_return["error"] = json::value(
 				"Invalid function call refactoring template: "+ string(error));
 			return to_return;
 		}
 		Eclass *ec = (Eclass *)server.getAddrParam("id");
 		if (ec == NULL) {
-			to_return["error"]=json::value::string("Missing value");
+			to_return["error"] = json::value::string("Missing value");
 			return to_return;
 		}
 		if (modification_state == ms_hand_edit) {
@@ -1699,7 +1822,7 @@ function_page(void *p)
 	}
 	std::ostringstream fs;
 	to_return["fun_name"]= json::value::string(html(f->get_name()) + " (" + f->entity_type_name() + ')');
-	to_return["form"]=json::value::string("<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n"
+	to_return["form"] = json::value::string("<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n"
 	"<ul>\n <li> Associated identifier(s): "+ html_string(f));
 	Tokid t = f->get_tokid();
 	if (f->is_declared()) {
@@ -1715,7 +1838,7 @@ function_page(void *p)
 				fs<<" &mdash; <a href=\"fedit.html?id="<<t.get_fileid().get_id()<<
 				"&re="<<f->get_name()<<"\">edit</a>";
 	}
-	to_return["declared"]=json::value::string(fs.str());
+	to_return["declared"] = json::value::string(fs.str());
 	fs.flush();
 	if (f->is_defined()) {
 		t = f->get_definition();
@@ -1729,32 +1852,32 @@ function_page(void *p)
 			<<"&re="<<f->get_name()<<"\">edit</a>";
 	} else
 		fs<<"<li> No definition found\n";
-	to_return["definition"]=json::value::string(fs.str());
+	to_return["definition"] = json::value::string(fs.str());
 	fs.flush();
 	fs<<f;
 	// cout<<fs.str()<<endl;
 	// Functions that are Down from us in the call graph
-	to_return["list"][0]=json::value::string("<li> Calls directly "+
-	to_string(f->get_num_call())+" functions" );
-	to_return["list"][1]=json::value::string("<li> <a href=\"funlist.html?f="+fs.str()+"&n=d&e=1\">Explore directly called functions</a>\n");
-	to_return["list"][2]=json::value::string("<li> <a href=\"funlist.html?f="+
-	fs.str()+"&n=D\">List of all called functions</a>\n");
-	to_return["list"][3]=json::value::string("<li> <a href=\"cgraph"+
-	graph_suffix()+"?all=1&f="+fs.str()+"&n=D\">Call graph of all called functions</a>");
+	to_return["list"][0] = json::value::string("<li> Calls directly "+
+	to_string(f->get_num_call()) + " functions" );
+	to_return["list"][1] = json::value::string("<li> <a href=\"funlist.html?f="+fs.str() + "&n=d&e=1\">Explore directly called functions</a>\n");
+	to_return["list"][2] = json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str() + "&n=D\">List of all called functions</a>\n");
+	to_return["list"][3] = json::value::string("<li> <a href=\"cgraph"+
+	graph_suffix() + "?all=1&f="+fs.str() + "&n=D\">Call graph of all called functions</a>");
 	// Functions that are Up from us in the call graph
-	to_return["list"][4]=json::value::string("<li> Called directly by "+to_string(f->get_num_caller())+" functions");
-	to_return["list"][5]=json::value::string("<li> <a href=\"funlist.html?f="+
-	fs.str()+"&n=u&e=1\">Explore direct callers</a>\n");
-	to_return["list"][6]=json::value::string("<li> <a href=\"funlist.html?f="+
-	fs.str()+"&n=U\">List of all callers</a>\n");
-	to_return["list"][7]=json::value::string("<li> <a href=\"cgraph"
-	+graph_suffix()+"?all=1&f="+ fs.str()+"&n=U\">Call graph of all callers</a>");
-	to_return["list"][8]=json::value::string("<li> <a href=\"cgraph"
-	+graph_suffix()+"?all=1&f="+fs.str()+"&n=B\">Call graph of all calling and called functions</a> (function in context)");
-	to_return["f"]=json::value::string(fs.str());
-	to_return["graph_suffix"]=json::value::string(graph_suffix());
-	to_return["no_call"]=json::value(f->get_num_call());
-	to_return["no_called"]=json::value(f->get_num_caller());
+	to_return["list"][4] = json::value::string("<li> Called directly by "+to_string(f->get_num_caller()) + " functions");
+	to_return["list"][5] = json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str() + "&n=u&e=1\">Explore direct callers</a>\n");
+	to_return["list"][6] = json::value::string("<li> <a href=\"funlist.html?f="+
+	fs.str() + "&n=U\">List of all callers</a>\n");
+	to_return["list"][7] = json::value::string("<li> <a href=\"cgraph"
+	+graph_suffix() + "?all=1&f="+ fs.str() + "&n=U\">Call graph of all callers</a>");
+	to_return["list"][8] = json::value::string("<li> <a href=\"cgraph"
+	+graph_suffix() + "?all=1&f="+fs.str() + "&n=B\">Call graph of all calling and called functions</a> (function in context)");
+	to_return["f"] = json::value::string(fs.str());
+	to_return["graph_suffix"] = json::value::string(graph_suffix());
+	to_return["no_call"] = json::value(f->get_num_call());
+	to_return["no_called"] = json::value(f->get_num_caller());
 	// Allow function call refactoring only if there is a one to one relationship between the identifier and the function
 	Eclass *ec;
 	if (f->get_token().get_parts_size() == 1 &&
@@ -1779,35 +1902,35 @@ function_page(void *p)
 					if (i + 1 < f->metrics().get_metric(FunMetrics::em_nparam))
 						repl_temp << ", ";
 				}
-			to_return["refractor"]["start"]=json::value::string("<li> Refactor arguments into: \n");
-			to_return["refractor"]["content"][0]=json::value::string("<INPUT TYPE=\"text\" NAME=\"ncall\" VALUE=\""
+			to_return["refractor"]["start"] = json::value::string("<li> Refactor arguments into: \n");
+			to_return["refractor"]["content"][0] = json::value::string("<INPUT TYPE=\"text\" NAME=\"ncall\" VALUE=\""
 			+repl_temp.str()+ "\" SIZE=40 MAXLENGTH=256> ");
 			
-			to_return["refractor"]["content"][1]=json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
-			to_return["refractor"]["hidden"]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\""+fs.str()+"\">\n");
+			to_return["refractor"]["content"][1] = json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
+			to_return["refractor"]["hidden"] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\""+fs.str() + "\">\n");
 			fs.flush();
 			fs<<ec;
-			to_return["refractor"]["content"][2]=json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
-			+fs.str()+"\">\n");
-			to_return["ec"]=json::value::string(fs.str());
+			to_return["refractor"]["content"][2] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
+			+fs.str() + "\">\n");
+			to_return["ec"] = json::value::string(fs.str());
 			if (rfc != RefFunCall::store.end() && !rfc->second.is_active())
-				to_return["refractor"]["inactive"]=json::value::string("<br>(This refactoring is inactive."
+				to_return["refractor"]["inactive"] = json::value::string("<br>(This refactoring is inactive."
 				"  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)");
 		}
 	}
-	to_return["end_list"]=json::value::string("</ul>\n");
+	to_return["end_list"] = json::value::string("</ul>\n");
 	int no = 0;
 	if (f->is_defined()) {
-		to_return["metrics"]["start"]=json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
+		to_return["metrics"]["start"] = json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
 		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
 			if (!Metrics::is_internal<FunMetrics>(j))
-				to_return["metrics"]["content"][no++]=json::value::string("<tr><td>"+
-				Metrics::get_name<FunMetrics>(j)+"</td><td align='right'>"+
-				to_string(f->metrics().get_metric(j))+"</td></tr>");
-		to_return["metrics"]["end"]=json::value::string("</table>\n");
+				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>"+
+				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>"+
+				to_string(f->metrics().get_metric(j)) + "</td></tr>");
+		to_return["metrics"]["end"] = json::value::string("</table>\n");
 	}
-	to_return["end"]=json::value::string("</FORM>\n");
+	to_return["end"] = json::value::string("</FORM>\n");
 	return to_return;
 }
 
@@ -1844,7 +1967,7 @@ visit_functions(const char *call_path, Call *f,
 				sprintf(s, call_path, *i);
 				to_return[no]["cgraph"] = json::value(s);
 			}
-			to_return[no++]["fid"]=json::value::string(html(**i));			
+			to_return[no++]["fid"] = json::value::string(html(**i));			
 		}
 		if (recurse && !(*i)->is_visited(visit_id)){
 			if(show || *i == f)
@@ -1977,11 +2100,11 @@ funlist_page(void *p)
 	
 	cout<<"n:"<<ltype<<endl;
 	if (f == NULL || !ltype) {
-		to_return["error"]=json::value::string("Missing value");
+		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
 	
-	to_return["start"]=json::value::string("<h2>Function "+html(*f)+"</h2>");
+	to_return["start"] = json::value::string("<h2>Function "+html(*f) + "</h2>");
 	printf("nn:%c\n",ltype[1]);
 	const char *calltype;
 	bool recurse;
@@ -1995,7 +2118,7 @@ funlist_page(void *p)
 		recurse = true;
 		break;
 	default:
-		to_return["error"]=json::value::string("Illegal value");
+		to_return["error"] = json::value::string("Illegal value");
 		return to_return;
 	}
 	// Pointers to the ...begin and ...end methods
@@ -2007,14 +2130,14 @@ funlist_page(void *p)
 	case 'U':
 		fbegin = &Call::caller_begin;
 		fend = &Call::caller_end;
-		to_return["title"] = json::value::string("List of "+string(calltype)+" calling functions\n");
+		to_return["title"] = json::value::string("List of "+string(calltype) + " calling functions\n");
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%%p&to=%p\">call path from function</a>", graph_suffix().c_str(), f);
 		break;
 	case 'd':
 	case 'D':
 		fbegin = &Call::call_begin;
 		fend = &Call::call_end;
-		to_return["title"]=json::value::string("List of "+string(calltype)+" called functions\n");
+		to_return["title"] = json::value::string("List of "+string(calltype) + " called functions\n");
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix().c_str(), f);
 		break;
 	}
@@ -2102,7 +2225,7 @@ options_page(void *p)
 	json::value to_return;
 	to_return["form"] = json::value("<FORM ACTION=\"soptions.html\" METHOD=\"PUT\">\n");
 	to_return["main"]=Option::display_all();
-	to_return["end"]=json::value("<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n"
+	to_return["end"] = json::value("<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n"
 		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Cancel\">\n"
 		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n"
 		"</FORM>\n");
@@ -2122,7 +2245,7 @@ set_options_page(void *p)
 		}
 
 	if (server.getStrParam("set") == "Cancel") {
-		to_return["action"]=json::value("index");
+		to_return["action"] = json::value("index");
 		return to_return;
 	}
 	Option::set_all();
@@ -2130,7 +2253,7 @@ set_options_page(void *p)
 		sfile_re = CompiledRE(Option::sfile_re_string->get().c_str(), REG_EXTENDED);
 		if (!sfile_re.isCorrect()) {
 			
-			to_return["error"]=json::value::string("Filename regular expression error"+sfile_re.getError());
+			to_return["error"] = json::value::string("Filename regular expression error"+sfile_re.getError());
 			return to_return;
 		}
 	}
@@ -2152,7 +2275,7 @@ save_options_page(void *p)
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
 	if(!fs.str().empty()){
-		to_return["error"] =json::value::string(fs.str());
+		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
 
@@ -2164,7 +2287,7 @@ save_options_page(void *p)
 	}
 	Option::save_all(out);
 	out.close();
- 	to_return["file_name"] =json::value::string(fname);
+ 	to_return["file_name"] = json::value::string(fname);
 	 
 	return to_return;
 }
@@ -2702,7 +2825,7 @@ select_project_page(void *p)
 {
 	json::value to_return;
 	for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-		to_return[to_string(j)]=json::value::string(Project::get_projname(j).c_str());
+		to_return[to_string(j)] = json::value::string(Project::get_projname(j).c_str());
 
 	return to_return;
 }
@@ -2928,7 +3051,7 @@ file_page(void *p)
 	
 	
 	for (int j = 0; j < FileMetrics::metric_max; j++)
-			to_return["metrics"][Metrics::get_name<FileMetrics>(j)]=json::value(i.metrics().get_metric(j));
+			to_return["metrics"][Metrics::get_name<FileMetrics>(j)] = json::value(i.metrics().get_metric(j));
 	return to_return;
 }
 
@@ -2991,7 +3114,7 @@ fedit_page(void *p)
 	}
 		
 	modification_state = ms_hand_edit;
-	to_return["ok"]=json::value("done");
+	to_return["ok"] = json::value("done");
 	if(re!=NULL) delete re;
 	return to_return;
 }
@@ -3032,14 +3155,14 @@ query_include_page(void *p)
 	int id;
 	json::value to_return;
 	if (!(id = server.getIntParam("id"))) {
-		to_return["error"]=json::value::string("Missing value");
+		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
 	Fileid f(id);
 	const string &pathname = f.get_path();
 	const char *qname = server.getCharPParam("n");
 	if (qname && *qname)
-		to_return["qname"]=json::value(qname);
+		to_return["qname"] = json::value(qname);
 	
 	to_return["pathname"]= json::value::string(html(pathname));
 	
@@ -3049,8 +3172,8 @@ query_include_page(void *p)
 	bool used = !!server.getBoolParam("used");
 	bool includes = !!server.getBoolParam("includes");
 	const FileIncMap &m = includes ? f.get_includes() : f.get_includers();
-	to_return["table"]["h"]=json::value::string(html_file_begin());
-	to_return["table"]["hend"]=json::value::string(html_file_set_begin());
+	to_return["table"]["h"] = json::value::string(html_file_begin());
+	to_return["table"]["hend"] = json::value::string(html_file_set_begin());
 	std::ostringstream fs;
 	for (FileIncMap::const_iterator i = m.begin(); i != m.end(); i++) {
 		Fileid f2 = (*i).first;
@@ -3074,7 +3197,7 @@ query_include_page(void *p)
 	}
 	to_return["table"]["content"] = json::value::string(fs.str());
 	to_return["table"]["end"] = json::value::string(html_file_end());
-	to_return["end"]=json::value::string("</ul>\n");
+	to_return["end"] = json::value::string("</ul>\n");
 	if(qname!=NULL) delete qname;
 	return to_return;
 }
@@ -3097,7 +3220,7 @@ replacements_page(void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	to_return["form"]=json::value::string("<form action=\"xreplacements.html\" method=\"put\">\n"
+	to_return["form"] = json::value::string("<form action=\"xreplacements.html\" method=\"put\">\n"
 		"<table><tr><th>Identifier</th><th>Replacement</th><th>Active</th></tr>\n");
 	
 	int no = 0;
@@ -3107,11 +3230,11 @@ replacements_page(void *p)
 		progress(i, ids);
 		if (i->second.get_replaced()) {
 			fs.flush();
-			to_return["content"][no]["start"]=json::value::string("<tr><td>");
-			to_return["content"][no]["name"]=json::value::string(html(*i));
+			to_return["content"][no]["start"] = json::value::string("<tr><td>");
+			to_return["content"][no]["name"] = json::value::string(html(*i));
 			fs<<"</td><td><input type=\"text\" name=\"r"<<&(i->second)
 			<<"\" value=\""<<i->second.get_newid()<<"\" size=\"10\" maxlength=\"256\"></td>";
-			to_return["content"][no]["text"]=json::value::string(fs.str());
+			to_return["content"][no]["text"] = json::value::string(fs.str());
 			fs.flush();
 			fs<<"<td><input type=\"checkbox\" name=\"a"<<&(i->second)<<"\" value=\"1\" "
 			<<(i->second.get_active() ? "checked" : "")<<"></td></tr>\n";
@@ -3124,7 +3247,7 @@ replacements_page(void *p)
 		}
 	}
 	cerr << endl;
-	to_return["end"]=json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
+	to_return["end"] = json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
 
 	return to_return;
 
@@ -3162,7 +3285,7 @@ xreplacements_page(void *p)
 		}
 	}
 	cerr << endl;
-	to_return["ok"]=json::value::string("done");
+	to_return["ok"] = json::value::string("done");
 	return to_return;
 
 }
@@ -3178,7 +3301,7 @@ funargrefs_page( void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	to_return["form"]=json::value::string("<form action=\"xfunargrefs.html\" method=\"get\">\n");
+	to_return["form"] = json::value::string("<form action=\"xfunargrefs.html\" method=\"get\">\n");
 	to_return["table"]["start"]= json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
 
 	int no =0;
@@ -3186,15 +3309,15 @@ funargrefs_page( void *p)
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		fs.flush();
 		fs<<i->first;
-		to_return["table"]["contents"][no]=json::value::string("<tr><td>"+html(*(i->second.get_function()))
-		+"</td><td><input type=\"text\" name=\"r"+fs.str()+"\" value=\""+i->second.get_replacement()+
+		to_return["table"]["contents"][no] = json::value::string("<tr><td>"+html(*(i->second.get_function()))
+		+"</td><td><input type=\"text\" name=\"r"+fs.str() + "\" value=\""+i->second.get_replacement()+
 		"\" size=\"10\" maxlength=\"256\"></td>""<td><input type=\"checkbox\" name=\"a"+fs.str()+
-		"\" value=\"1\" "+(i->second.is_active() ? "checked" : "")+"></td></tr>\n");
-		to_return["variables"][no]["address"]=json::value(fs.str());
-		to_return["variables"][no]["replacement"]=json::value(i->second.get_replacement());
-		to_return["variables"][no++]["active"]=json::value(i->second.is_active());
+		"\" value=\"1\" " + (i->second.is_active() ? "checked" : "") + "></td></tr>\n");
+		to_return["variables"][no]["address"] = json::value(fs.str());
+		to_return["variables"][no]["replacement"] = json::value(i->second.get_replacement());
+		to_return["variables"][no++]["active"] = json::value(i->second.is_active());
 	}
-	to_return["table"]["end"]=json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
+	to_return["table"]["end"] = json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
 	return to_return;
 }
 
@@ -3224,7 +3347,7 @@ xfunargrefs_page(void *p)
 		i->second.set_active(!!server.getBoolParam(varname));
 	}
 	
-	to_return["ok"]=json::value::string("done");
+	to_return["ok"] = json::value::string("done");
 	return to_return;
 }
 
@@ -3243,12 +3366,12 @@ write_quit_page(void *exit)
 	}
 
 	if (exit){
-		to_return["exit"]=json::value(true);
+		to_return["exit"] = json::value(true);
 		must_exit=true;
 	}
 	else {
 		if (Option::sfile_re_string->get().length() == 0) {
-			to_return["error"]=json::value::string("Not Allowed");
+			to_return["error"] = json::value::string("Not Allowed");
 			return to_return;
 		}
 	}
@@ -3282,7 +3405,7 @@ write_quit_page(void *exit)
 		Token::check_clashes = false;
 	}
 	if (Token::found_clashes) {
-		to_return["error"]=json::value::string("Renamed identifier clashes detected."
+		to_return["error"] = json::value::string("Renamed identifier clashes detected."
 		" Errors reported on console output. No files were saved.");
 		return to_return;
 	}
@@ -3304,14 +3427,14 @@ write_quit_page(void *exit)
 	for (IFSet::const_iterator i = process.begin(); i != process.end(); i++)
 		to_return["refactors"][no++] = file_refactor(*i);
 	to_return["statistics"]["html"] = json::value::string("A total of "+
-		to_string(num_id_replacements)+" replacements and "+
-		to_string(num_fun_call_refactorings)+" function call refactorings were made in "+
-		to_string((unsigned)(process.size()))+" files.");
+		to_string(num_id_replacements) + " replacements and "+
+		to_string(num_fun_call_refactorings) + " function call refactorings were made in "+
+		to_string((unsigned)(process.size())) + " files.");
 	to_return["statistics"]["no_id_replacement"] = json::value (num_id_replacements); 
 	to_return["statistics"]["no_fun_refactorings"] = json::value (num_fun_call_refactorings);
 	to_return["statistics"]["no_files"] = json::value( (unsigned)(process.size()) );
 	if (exit) {
-		to_return["exit"]=json::value(true);
+		to_return["exit"] = json::value(true);
 		must_exit = true;
 	} 
 
@@ -3330,7 +3453,7 @@ quit_page(void *p)
 		return to_return;
 	}
 
-	to_return["exit"]=json::value(true);
+	to_return["exit"] = json::value(true);
 	must_exit = true;
 	return to_return;
 }
