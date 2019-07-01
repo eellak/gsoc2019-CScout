@@ -253,7 +253,7 @@ static string
 html(const Call &c)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"fun.html?f=" << &c <<"\">"
+	to_ret << "<a href=\"fun.html?f=" << &c << "\">"
 	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
 }
@@ -271,12 +271,7 @@ html_address(const Call &c)
 	return to_return;
 }
 
-// Return a hyperlink based on a string and its starting tokid in JSON
-// {
-//		html: "html code",
-//		identifiers: [
-//				
-//}
+// Return a hyperlink based on a string and its starting tokid as string
 static json::value
 html_string(const string &s, Tokid t)
 {
@@ -326,7 +321,7 @@ html_string(const Call *f)
 //			]
 // }
 static json::value
-html_json( const Call *f)
+html_json(const Call *f)
 {
 	int start = 0;
 	string to_ret;
@@ -986,7 +981,7 @@ file_refactor(Fileid fid)
 		if (sfile_re.exec(fid.get_path().c_str(), 1, &be, 0) == REG_NOMATCH ||
 		    be.rm_so == -1 || be.rm_eo == -1)
 			 to_return["ok"] = json::value::string("File " + ofname + " does not match file replacement RE."
-				"Replacements will be saved in "+ ofname + ".repl.\n");
+				"Replacements will be saved in " + ofname + ".repl.\n");
 		else {
 			string newname(fid.get_path().c_str());
 			newname.replace(be.rm_so, be.rm_eo - be.rm_so, Option::sfile_repl_string->get());
@@ -1049,7 +1044,7 @@ change_prohibited()
 static void
 nonbrowse_operation_prohibited(std::ostringstream *fs)
 {
-	(*fs)<<"This is a multiuser browse-only CScout session."
+	(*fs) << "This is a multiuser browse-only CScout session."
 		"Non-browsing operations are disabled.";
 }
 
@@ -1264,7 +1259,7 @@ display_sorted(const Query &query, const container &sorted_ids)
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	typename container::const_iterator i;
 	int no = 0;
-	char * s = new char[20];
+
 	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
 			to_return["address"][no] = html_address(**i);			
@@ -1600,7 +1595,7 @@ xiquery_page(void * p)
 		to_return["ids"].erase("address");		
 	}	
 	if (q_file)
-		to_return["files"]= display_files(query, sorted_files);
+		to_return["files"] = display_files(query, sorted_files);
 	if (q_fun) {
 		fputs("<h2>Matching Functions</h2>\n", stdout);
 		Sfuns sorted_funs;
@@ -1843,7 +1838,7 @@ identifier_page(void *p)
 	to_return["endAttr"][0] = json::value::string("<li><a href=\"xiquery.html?ec="
 		+ fs.str() + "&n=Dependent+Files+for+Identifier+" +
 		id.get_id() + "&qf=1\">Dependent files</a>");
-	to_return["endAttr"][1] = json::value::string("<li><a href=\"xfunquery.html?ec="+
+	to_return["endAttr"][1] = json::value::string("<li><a href=\"xfunquery.html?ec=" +
 	fs.str() + "&qi=1&n=Functions+Containing+Identifier+"
 	+ id.get_id() + "\">Associated functions</a>");
 	to_return["ec"] = json::value(fs.str());
@@ -1891,13 +1886,75 @@ identifier_page(void *p)
 
 }
 
-// Details for each function
+// Details for each function 
+// {
+//		fname: "function name",
+//		fun_name: "html function name".
+//		data: [
+//			identifiers: [
+//				{
+//					id: "id-address",
+//					name: "identifier name"
+//				}
+//		],	
+//		form: "html of start form",
+//		(
+//			declared: {
+//				tokid: declaration token id,
+//				tokpath: "declaration token path name",
+//				html: "html of file declarations",
+//				lnum: line number of declaration
+//			},
+//		)
+//		defined: {
+//			html: "html of defined"
+//			(,
+//				tokid: definition token id,
+//				tokpath: "definition token path name",
+//				lnum: line number of definition
+//			)
+//		}
+//		list: [
+//			8 html links to graphs or pages about the function
+//		],
+//		f: "function call object address",
+//		no_call: number of functions this function calls,
+//		no_called: number of functions that call this function 	
+//		(
+//			refactor: {
+//				start: "html of start refactor form",
+//				content: [
+//					"html of input ncall",
+//					"html of input replace"
+//				],
+//				hidden: [
+//					"html f value",
+//					"html ec value"
+//				],
+//				inactive: "html of refactorings page link",
+//			},
+//		)
+//		end_list: "html end list of links",
+//		(,
+//			metrics: {
+//				start: "html of metrics table head",
+//				content: [
+//					"html of table rows"
+//				],
+//				end: "html of end table".
+//				data:{
+//					metrics_name0: metrics_value0,
+//					metrics_name1: metrics_value1,
+//					....
+//				},
+//		)
+//		end: "html of end"
+//	}
 json::value
 function_page(void *p)
 {
 	json::value to_return;
 	Call *f = (Call *)server.getAddrParam("f");
-	// cout <<f;
 	if (f == NULL) {
 		to_return["error"] = json::value::string("Missing value");
 		return to_return;
@@ -1912,7 +1969,7 @@ function_page(void *p)
 		const char *error;
 		if (!is_function_call_replacement_valid(ssubst.begin(), ssubst.end(), &error)) {
 			to_return["error"] = json::value(
-				"Invalid function call refactoring template: "+ string(error));
+				"Invalid function call refactoring template: " + string(error));
 			return to_return;
 		}
 		Eclass *ec = (Eclass *)server.getAddrParam("id");
@@ -1921,7 +1978,7 @@ function_page(void *p)
 			return to_return;
 		}
 		if (modification_state == ms_hand_edit) {
-			to_return["error"]=change_prohibited();
+			to_return["error"] = change_prohibited();
 			return to_return;
 		}
 		std::ostringstream fs;
@@ -1935,59 +1992,71 @@ function_page(void *p)
 		modification_state = ms_subst;
 	}
 	std::ostringstream fs;
-	to_return["fun_name"]= json::value::string(html(f->get_name()) + " (" + f->entity_type_name() + ')');
+	to_return["fname"] = json::value(f->get_name());
+	to_return["etype"] = json::value(f->entity_type_name());
+	to_return["fun_name"] = json::value::string(html(f->get_name()) + " (" + f->entity_type_name() + ')');
+	json::value temp = html_json(f);
+	to_return["data"] = temp["data"];
 	to_return["form"] = json::value::string("<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n"
-	"<ul>\n <li> Associated identifier(s): "+ html_string(f));
+	"<ul>\n <li> Associated identifier(s): " + temp["string"].as_string());
+
 	Tokid t = f->get_tokid();
+	
 	if (f->is_declared()) {
-		fs<<"\n<li> Declared in file <a href=\"file.html?id="<<t.get_fileid().get_id()
-		<<"\">"<<t.get_fileid().get_path()<<"</a>";
+		fs << "\n<li> Declared in file <a href=\"file.html?id=" << t.get_fileid().get_id()
+		<< "\">" << t.get_fileid().get_path() << "</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fs<<" <a href=\"src.html?id="<< t.get_fileid().get_id()<<"#"<<lnum
-		 <<"\">line "<<lnum<<"</a><br />(and possibly in other places)\n"
-		 <<" &mdash; <a href=\"qsrc.html?qt=fun&id="<<t.get_fileid().get_id()
-		 <<"&match=Y&call="<<f<<"&n=Declaration+of+"<<f->get_name() 
-		 <<"\">marked source</a>";
+		fs << " <a href=\"src.html?id=" << t.get_fileid().get_id() << "#" << lnum
+		 << "\">line " << lnum << "</a><br />(and possibly in other places)\n"
+		 << " &mdash; <a href=\"qsrc.html?qt=fun&id=" << t.get_fileid().get_id()
+		 << "&match=Y&call=" << f << "&n=Declaration+of+" << f->get_name() 
+		 << "\">marked source</a>";
 			if (modification_state != ms_subst && !browse_only)
-				fs<<" &mdash; <a href=\"fedit.html?id="<<t.get_fileid().get_id()<<
-				"&re="<<f->get_name()<<"\">edit</a>";
+				fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id() <<
+				"&re=" << f->get_name() << "\">edit</a>";
+		to_return["declared"]["tokid"] = json::value(t.get_fileid().get_id());
+		to_return["declared"]["tokpath"] = json::value(t.get_fileid().get_path());
+		to_return["declared"]["html"] = json::value::string(fs.str());
+		to_return["declared"]["lnum"] = json::value(lnum);
+
 	}
-	to_return["declared"] = json::value::string(fs.str());
 	fs.flush();
 	if (f->is_defined()) {
 		t = f->get_definition();
-		fs<<"<li> Defined in file <a href=\"file.html?id="
-		<<t.get_fileid().get_id()<<"\">"<<t.get_fileid().get_path()<<"</a>";
+		fs << "<li> Defined in file <a href=\"file.html?id="
+		<< t.get_fileid().get_id() << "\">" << t.get_fileid().get_path() << "</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fs<<" <a href=\"src.html?id="<<	t.get_fileid().get_id()
-		<<"#"<<lnum<<"\">line "<<lnum<<"</a>\n";
+		fs << " <a href=\"src.html?id=" <<	t.get_fileid().get_id()
+		<< "#" << lnum << "\">line " << lnum << "</a>\n";
 		if (modification_state != ms_subst && !browse_only)
-			fs<<" &mdash; <a href=\"fedit.html?id="<<t.get_fileid().get_id()
-			<<"&re="<<f->get_name()<<"\">edit</a>";
+			fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id()
+			<< "&re=" << f->get_name() << "\">edit</a>";
+		to_return["defined"]["tokid"] = json::value(t.get_fileid().get_id());
+		to_return["defined"]["tokpath"] = json::value(t.get_fileid().get_path());
+		to_return["defined"]["lnum"] = json::value(lnum);
 	} else
-		fs<<"<li> No definition found\n";
-	to_return["definition"] = json::value::string(fs.str());
+		fs << "<li> No definition found\n";
+	to_return["defined"]["html"] = json::value::string(fs.str());
 	fs.flush();
-	fs<<f;
-	// cout<<fs.str()<<endl;
+	fs << f;
 	// Functions that are Down from us in the call graph
-	to_return["list"][0] = json::value::string("<li> Calls directly "+
+	to_return["list"][0] = json::value::string("<li> Calls directly " +
 	to_string(f->get_num_call()) + " functions" );
-	to_return["list"][1] = json::value::string("<li> <a href=\"funlist.html?f="+fs.str() + "&n=d&e=1\">Explore directly called functions</a>\n");
-	to_return["list"][2] = json::value::string("<li> <a href=\"funlist.html?f="+
+	to_return["list"][1] = json::value::string("<li> <a href=\"funlist.html?f=" + fs.str() + "&n=d&e=1\">Explore directly called functions</a>\n");
+	to_return["list"][2] = json::value::string("<li> <a href=\"funlist.html?f=" +
 	fs.str() + "&n=D\">List of all called functions</a>\n");
-	to_return["list"][3] = json::value::string("<li> <a href=\"cgraph"+
-	graph_suffix() + "?all=1&f="+fs.str() + "&n=D\">Call graph of all called functions</a>");
+	to_return["list"][3] = json::value::string("<li> <a href=\"cgraph" +
+	graph_suffix() + "?all=1&f=" + fs.str() + "&n=D\">Call graph of all called functions</a>");
 	// Functions that are Up from us in the call graph
-	to_return["list"][4] = json::value::string("<li> Called directly by "+to_string(f->get_num_caller()) + " functions");
-	to_return["list"][5] = json::value::string("<li> <a href=\"funlist.html?f="+
+	to_return["list"][4] = json::value::string("<li> Called directly by " + to_string(f->get_num_caller()) + " functions");
+	to_return["list"][5] = json::value::string("<li> <a href=\"funlist.html?f=" +
 	fs.str() + "&n=u&e=1\">Explore direct callers</a>\n");
-	to_return["list"][6] = json::value::string("<li> <a href=\"funlist.html?f="+
+	to_return["list"][6] = json::value::string("<li> <a href=\"funlist.html?f=" +
 	fs.str() + "&n=U\">List of all callers</a>\n");
 	to_return["list"][7] = json::value::string("<li> <a href=\"cgraph"
-	+graph_suffix() + "?all=1&f="+ fs.str() + "&n=U\">Call graph of all callers</a>");
+	+ graph_suffix() + "?all=1&f=" + fs.str() + "&n=U\">Call graph of all callers</a>");
 	to_return["list"][8] = json::value::string("<li> <a href=\"cgraph"
-	+graph_suffix() + "?all=1&f="+fs.str() + "&n=B\">Call graph of all calling and called functions</a> (function in context)");
+	+ graph_suffix() + "?all=1&f=" + fs.str() + "&n=B\">Call graph of all calling and called functions</a> (function in context)");
 	to_return["f"] = json::value::string(fs.str());
 	to_return["graph_suffix"] = json::value::string(graph_suffix());
 	to_return["no_call"] = json::value(f->get_num_call());
@@ -2018,14 +2087,14 @@ function_page(void *p)
 				}
 			to_return["refractor"]["start"] = json::value::string("<li> Refactor arguments into: \n");
 			to_return["refractor"]["content"][0] = json::value::string("<INPUT TYPE=\"text\" NAME=\"ncall\" VALUE=\""
-			+repl_temp.str()+ "\" SIZE=40 MAXLENGTH=256> ");
+			+ repl_temp.str() + "\" SIZE=40 MAXLENGTH=256> ");
 			
 			to_return["refractor"]["content"][1] = json::value::string("<INPUT TYPE=\"submit\" NAME=\"repl\" VALUE=\"Save\">\n");
-			to_return["refractor"]["hidden"] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\""+fs.str() + "\">\n");
+			to_return["refractor"]["hidden"][0] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"f\" VALUE=\"" + fs.str() + "\">\n");
 			fs.flush();
-			fs<<ec;
-			to_return["refractor"]["content"][2] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
-			+fs.str() + "\">\n");
+			fs << ec;
+			to_return["refractor"]["hidden"][1] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
+			+ fs.str() + "\">\n");
 			to_return["ec"] = json::value::string(fs.str());
 			if (rfc != RefFunCall::store.end() && !rfc->second.is_active())
 				to_return["refractor"]["inactive"] = json::value::string("<br>(This refactoring is inactive."
@@ -2038,10 +2107,12 @@ function_page(void *p)
 		to_return["metrics"]["start"] = json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
 		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
-			if (!Metrics::is_internal<FunMetrics>(j))
-				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>"+
-				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>"+
+			if (!Metrics::is_internal<FunMetrics>(j)){
+				to_return["metrics"]["data"][Metrics::get_name<FunMetrics>(j)] = json::value(f->metrics().get_metric(j));
+				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>" +
+				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>" +
 				to_string(f->metrics().get_metric(j)) + "</td></tr>");
+			}
 		to_return["metrics"]["end"] = json::value::string("</table>\n");
 	}
 	to_return["end"] = json::value::string("</FORM>\n");
@@ -2059,6 +2130,15 @@ function_page(void *p)
  * associated children functions.
  * If show is true, then a function hyperlink is printed, otherwise
  * only the visited flag is set to visit_id.
+ * [
+ * 		(
+ * 		(cgraph:"call path",)
+ * 		fid: "html file id link",
+ * 		f: "function call object address",
+ * 		fname: "funciton name"),
+ * 		call: [
+ * 			recursive json visit_functions
+ * 		]
  */
 static json::value
 visit_functions(const char *call_path, Call *f,
@@ -2071,8 +2151,8 @@ visit_functions(const char *call_path, Call *f,
 		return json::value::array();
 
 	Call::const_fiterator_type i;
-	int no=0;
-	char * s=new char[256];
+	int no = 0;
+	char * s = new char[256];
 	
 	f->set_visited(visit_id);
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {
@@ -2081,7 +2161,13 @@ visit_functions(const char *call_path, Call *f,
 				sprintf(s, call_path, *i);
 				to_return[no]["cgraph"] = json::value(s);
 			}
-			to_return[no++]["fid"] = json::value::string(html(**i));			
+			to_return[no]["fid"] = json::value::string(html(**i));			
+			char * p = new char[20];
+			sprintf(p, "%p", *i);
+			to_return[no]["fname"] = json::value((*i)->get_name());
+			to_return[no++]["f"] = json::value(s);
+			delete p;
+			
 		}
 		if (recurse && !(*i)->is_visited(visit_id)){
 			if(show || *i == f)
@@ -2101,6 +2187,8 @@ visit_functions(const char *call_path, Call *f,
  * The method to check if a file should be included in the visit is passed through the
  * the is_ok method pointer.
  * Set the visited flag for all nodes visited.
+ * 
+ * 
  */
 static void
 visit_include_files(Fileid f, const FileIncMap & (Fileid::*get_map)() const,
@@ -2180,8 +2268,16 @@ visit_fcall_files(Fileid f, Call::const_fiterator_type (Call::*abegin)() const, 
  extern "C" { const char *swill_getquerystring(void); }
 
 /*
- * Print a list of callers or called functions for the given function,
+ * Return a list of callers or called functions for the given function,
  * recursively expanding functions that the user has specified.
+ * 	[
+ * 		fname: "name of function",
+ * 		f: "function call object address",
+ * 		html: "html code of function link"
+ * 		(,call: [
+ * 			recursive json of explore_functions			
+ * 		])
+ * 	]
  */
 static json::value
 explore_functions(Call *f,
@@ -2192,17 +2288,34 @@ explore_functions(Call *f,
 	Call::const_fiterator_type i;
 	json::value to_return = NULL;
 	int no = 0;
+	char * s = new char[20];
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {				
-		to_return[no++][(**i).get_name()] = json::value::string(html(**i));
+		to_return[no]["fname"] = json::value((**i).get_name());
+		sprintf(s, "%p", *i);
+		to_return[no]["f"] = json::value(s);
+		s[0] = 0;
+		to_return[no++]["html"] = json::value::string(html(**i));
 		if(recursive){
-			to_return[no-1]["called"] = explore_functions(f, fbegin, fend, true);
+			to_return[no-1]["call"] = explore_functions(f, fbegin, fend, true);
 		}
 	} 
+	delete s;
 	return to_return;		
 }
 
 
 // List of functions associated with a given one
+// {
+//		start: "html of start",
+//		fname: "function name",
+//		f: "function adress",
+//		ltype: "",
+// 		calltype: "calltype directly or all",
+//		graph_suffix: "suffix for graph()",
+//		title: "html title and link to graph",
+//		exfuns: { explore_function return JSON} or
+//		vfuns: { visit_function return JSON}	
+// }
 static json::value
 funlist_page(void *p)
 {
@@ -2212,14 +2325,16 @@ funlist_page(void *p)
 	string s = server.getStrParam("n");
 	const char *ltype = s.c_str();
 	
-	cout<<"n:"<<ltype<<endl;
 	if (f == NULL || !ltype) {
 		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
-	
-	to_return["start"] = json::value::string("<h2>Function "+html(*f) + "</h2>");
-	printf("nn:%c\n",ltype[1]);
+	char * temp = new char[20];
+	sprintf(temp,"%p",f);
+	to_return["fname"] = json::value(f->get_name());
+	to_return["f"] = json::value(s);
+	to_return["start"] = json::value::string("<h2>Function " + html(*f) + "</h2>");
+	delete temp;
 	const char *calltype;
 	bool recurse;
 	switch (*ltype) {
@@ -2238,28 +2353,31 @@ funlist_page(void *p)
 	// Pointers to the ...begin and ...end methods
 	Call::const_fiterator_type (Call::*fbegin)() const;
 	Call::const_fiterator_type (Call::*fend)() const;
+	to_return["ltype"] = json::value(ltype);
+	to_return["calltype"] = json::value(calltype);
+	to_return["graph_suffix"] = json::value(graph_suffix().c_str());
 	switch (*ltype) {
 	default:
 	case 'u':
 	case 'U':
 		fbegin = &Call::caller_begin;
 		fend = &Call::caller_end;
-		to_return["title"] = json::value::string("List of "+string(calltype) + " calling functions\n");
+		to_return["title"] = json::value::string("List of " + string(calltype) + " calling functions\n");
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%%p&to=%p\">call path from function</a>", graph_suffix().c_str(), f);
 		break;
 	case 'd':
 	case 'D':
 		fbegin = &Call::call_begin;
 		fend = &Call::call_end;
-		to_return["title"] = json::value::string("List of "+string(calltype) + " called functions\n");
+		to_return["title"] = json::value::string("List of " + string(calltype) + " called functions\n");
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix().c_str(), f);
 		break;
 	}
 	if (server.getBoolParam("e")) {
-		to_return["funs"]=explore_functions(f, fbegin, fend, false);
+		to_return["exfuns"] = explore_functions(f, fbegin, fend, false);
 	} else {
 		Call::clear_visit_flags();
-		to_return["funs"]=visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
+		to_return["vfuns"] = visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
 	}
 	return to_return;
 }
@@ -2333,12 +2451,17 @@ cpath_page(GraphDisplay *gd)
 
 
 // Front-end global options page
+// {
+//		form: "html start of form",
+//		main: { display_all return JSON},
+//		end: "html end of form"
+// }
 json::value
 options_page(void *p)
 {
 	json::value to_return;
 	to_return["form"] = json::value("<FORM ACTION=\"soptions.html\" METHOD=\"PUT\">\n");
-	to_return["main"]=Option::display_all();
+	to_return["main"] = Option::display_all();
 	to_return["end"] = json::value("<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n"
 		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Cancel\">\n"
 		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Apply\">\n"
@@ -2347,6 +2470,9 @@ options_page(void *p)
 }
 
 // Front-end global options page
+// {
+//		action: "action to take"
+// }
 json::value
 set_options_page(void *p)
 {
@@ -2367,7 +2493,7 @@ set_options_page(void *p)
 		sfile_re = CompiledRE(Option::sfile_re_string->get().c_str(), REG_EXTENDED);
 		if (!sfile_re.isCorrect()) {
 			
-			to_return["error"] = json::value::string("Filename regular expression error"+sfile_re.getError());
+			to_return["error"] = json::value::string("Filename regular expression error" + sfile_re.getError());
 			return to_return;
 		}
 	}
@@ -2380,6 +2506,9 @@ set_options_page(void *p)
 }
 
 // Save options in .cscout/options
+// { 
+// 		fname: "filename" if save was a success	
+// }
 static json::value
 save_options_page(void *p)
 {
@@ -2429,18 +2558,21 @@ options_load()
 	fprintf(stderr, "Options loaded from %s\n", fname.c_str());
 }
 
+// Return file metrics JSON
 json::value
 file_metrics_page(void *p)
 {
 	return file_msum.json();
 }
 
+// Return function metrics JSON
 json::value
 function_metrics_page(void *p)
 {
 	return fun_msum.json();
 }
 
+// Return id metrics JSON
 json::value
 id_metrics_page(void *p)
 {
@@ -2761,8 +2893,8 @@ fgraph_page(GraphDisplay *gd)
 end:
 	gd->tail();
 		if (gd->uses_swill) {
-		if(gtype!=NULL) delete gtype;		// Graph type
-		if(ltype!=NULL) delete ltype;
+		if(gtype != NULL) delete gtype;		// Graph type
+		if(ltype != NULL) delete ltype;
 	}
 }
 
@@ -2934,12 +3066,15 @@ graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 }
 
 // Display all projects, allowing user to select
+// {
+//		project name: project id
+// } 
 json::value
 select_project_page(void *p)
 {
 	json::value to_return;
 	for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
-		to_return[to_string(j)] = json::value::string(Project::get_projname(j).c_str());
+		to_return[Project::get_projname(j)] = json::value(j);
 
 	return to_return;
 }
@@ -2961,7 +3096,9 @@ set_project_page(void *p)
 		to_return["error"] = json::value::string("Missing value");
 		return to_return;
 	}
+	to_return["ok"] = json::value(true); 
 	//index_page(fo, p);
+	return to_return;
 }
 
 // Return version information
@@ -3014,9 +3151,11 @@ version_info(bool html)
 // 	html_tail(fo);
 // }
 
+// Return top directory JSON
 json::value top_file(void *p){
 	return dir_top("Browse file tree");
 }
+
 // Index
 // void
 // index_page(FILE *of, void *data)
@@ -3117,6 +3256,38 @@ json::value top_file(void *p){
 
 // }
 
+// Return file information as JSON
+// {
+//		pathname: "path of the file",
+//		readonly: true if file is readonly,
+//		(
+//			files: [
+//				"project names"
+//			],
+//		)
+//		(
+//			copies: [
+//				"copies path names"
+//			],
+//		),
+//		handEdit: true if file is hand edited,
+//		fileDir: "file object adress",
+//		queries: {
+//			id: file id,
+//			read_only: query read only code,
+//			lscope: query lscope code,
+//			(fedit: true if file is edited ,)
+//			fname: "file name",
+//			graph_suffix: "graph suffix"
+//		},
+//		metrics: {
+//			metrics_name0: metrics value0,
+//			metrics_name1: metrics value1,
+//			...
+//		}
+// }
+
+
 json::value
 file_page(void *p)
 {
@@ -3129,18 +3300,18 @@ file_page(void *p)
 	Fileid i(id);
 	const string &pathname = i.get_path();
 	to_return["pathname"] = json::value::string(pathname);
-	to_return["readonly"] = json::value::string(to_string(i.get_readonly()));
+	to_return["readonly"] = json::value(i.get_readonly());
 	
 	if (Option::show_projects->get()) {
 		int no = 0;
 		for (Attributes::size_type j = attr_end; j < Attributes::get_num_attributes(); j++)
 			if (i.get_attribute(j))
-				to_return["files"][no++]= json::value::string(Project::get_projname(j));
+				to_return["files"][no++] = json::value::string(Project::get_projname(j));
 
 	}
 	if (Option::show_identical_files->get()) {
 		const set <Fileid> &copies(i.get_identical_files());
-		//to_return["copies"]["size"] = json::value::value(copies.size());
+
 		int no = 0;
 		for (set <Fileid>::const_iterator j = copies.begin(); j != copies.end(); j++) {
 			
@@ -3150,17 +3321,19 @@ file_page(void *p)
 		}
 
 	}
-
-	to_return["handEdit"] = json::value::string(to_string(i.is_hand_edited()));
-	to_return["fileDir"] = json::value((uint64_t)dir_add_file(i));
+	char * s = new char[20];
+	sprintf(s, "%p", dir_add_file(i));
+	to_return["handEdit"] = json::value(i.is_hand_edited());
+	to_return["fileDir"] = json::value(s);
+	delete s;
 	to_return["queries"]["id"] = json::value(i.get_id());
-	to_return["queries"]["readOnly"] = json::value::string(to_string(is_readonly));
+	to_return["queries"]["readOnly"] = json::value(is_readonly);
 	to_return["queries"]["lscope"] = json::value(is_lscope);
 	if (modification_state != ms_subst && !browse_only)
 		to_return["queries"]["fedit"] = json::value(true);
 
 	to_return["queries"]["fname"] = json::value::string(i.get_fname());
-	to_return["queries"]["graph"] = json::value(graph_suffix());
+	to_return["queries"]["graph_suffix"] = json::value(graph_suffix());
 
 	
 	
@@ -3175,28 +3348,33 @@ source_page(void *p)
 	
 	int id;
 	json::value to_return;
-	// cout << "source page" << endl;
+	
 	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("No id found");
 		return to_return;
 	}
 	Fileid i(id);
-		// cout<< id<<endl;
+	
 	const string &pathname = i.get_path();
 	to_return["source"] = json::value::string(pathname);
 // 	modify file_hypertext
-	to_return["html"]=file_hypertext(&i, false);
+	to_return["html"] =file_hypertext(&i, false);
 	
 	return to_return;
 
 }
 
+// Edit file returns JSON
+// {
+//		ok:true if edited or else
+//		error: "error message"
+// }
 static json::value
 fedit_page(void *p)
 {
 	json::value to_return;
 	if (modification_state == ms_subst) {
-		to_return["error"]=change_prohibited();
+		to_return["error"] = change_prohibited();
 		return to_return;
 	}
 	std::ostringstream fs;
@@ -3216,23 +3394,27 @@ fedit_page(void *p)
 	const char *re = server.getCharPParam("re");
 	char buff[4096];
 	snprintf(buff, sizeof(buff), Option::start_editor_cmd ->get().c_str(), (re ? re : "^"), i.get_path().c_str());
-
-	char * s;
-	sprintf(s,"Running %s\n",buff);
-	cerr << s;
+	if(DP())
+		cout << "Running " << buff << endl;
 	
 	if (system(buff) != 0) {
-		to_return["error"] = json::value::string(string("Launching") +s + "failed");
-		if(re!=NULL) delete re;
+		to_return["error"] = json::value::string("Launching" + string(buff) + "failed");
+		if(re != NULL) delete re;
 		return to_return;
 	}
 		
 	modification_state = ms_hand_edit;
-	to_return["ok"] = json::value("done");
-	if(re!=NULL) delete re;
+	to_return["ok"] = json::value(true);
+	if(re != NULL) delete re;
 	return to_return;
 }
 
+// Return file source code with links based on a query
+// {
+//		(qname: "query name",)
+//		pathname: "path name",
+//		html: { file_hypertext return JSON}
+// }
 json::value
 query_source_page(void *)
 {
@@ -3240,8 +3422,7 @@ query_source_page(void *)
 	json::value to_return;
 	
 	if (!(id = server.getIntParam("id"))){
-			to_return["error"] = json::value::string("File not found");
-			// cout << "query_source_page: file not found" << endl;
+		to_return["error"] = json::value::string("File not found");
 		return to_return;
 	}
 
@@ -3256,13 +3437,39 @@ query_source_page(void *)
 		to_return["qname"] = json::value::string(qname);		
 
 	to_return["pathname"] = json::value::string(pathname);
-	// cout << "query_source_page: JSON before file_hypertext:" << endl << to_return.serialize() << endl;
-	//fputs("<p>Use the tab key to move to each marked element.</p>", of);
+
 	to_return["html"] = file_hypertext(&i, true);
-	if(qname!=NULL) delete qname;
+	if(qname != NULL) delete qname;
 	return to_return;
 }
 
+// Return info about includes for a file based on a query
+// {
+//		(qname: "query name",)
+//		pathname: "path name of file",
+//		table: {
+//			h: "html table start",
+//			hend: "html table header end",
+//			content: "html of table body",
+//			end: "html of table end"
+//		},
+//		(
+//			data: [
+//				{
+//					id: file id,
+//					name: "file name",
+//					(includes: [
+//						{
+//							id: included file id,
+//							name: "included file name"
+//						}
+//					],)
+//					required: true if it is required
+//				}
+//			],
+//		)
+//		end: "html end of page"
+// }
 json::value
 query_include_page(void *p)
 {
@@ -3278,7 +3485,7 @@ query_include_page(void *p)
 	if (qname && *qname)
 		to_return["qname"] = json::value(qname);
 	
-	to_return["pathname"]= json::value::string(html(pathname));
+	to_return["pathname"] = json::value::string(html(pathname));
 	
 	bool writable = !!server.getBoolParam("writable");
 	bool direct = !!server.getBoolParam("direct");
@@ -3289,6 +3496,7 @@ query_include_page(void *p)
 	to_return["table"]["h"] = json::value::string(html_file_begin());
 	to_return["table"]["hend"] = json::value::string(html_file_set_begin());
 	std::ostringstream fs;
+	int no = 0;
 	for (FileIncMap::const_iterator i = m.begin(); i != m.end(); i++) {
 		Fileid f2 = (*i).first;
 		const IncDetails &id = (*i).second;
@@ -3296,38 +3504,61 @@ query_include_page(void *p)
 		    (!direct || id.is_directly_included()) &&
 		    (!used || id.is_required()) &&
 		    (!unused || !id.is_required())) {
-			fs<<html_file(f2);
+			fs << html_file(f2);
+			to_return["data"][no]["id"] = json::value(f2.get_id());
+			to_return["data"][no]["name"] = json::value(f2.get_path());
+
 			if (id.is_directly_included()) {
 				fs << "<td>line ";
 				const set <int> &lines = id.include_line_numbers();
-				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++)
-					fs<< " <a href=\"src.html?id="<<(includes ? f : f2).get_id()<<"#"<<*j<<"\">"<<*j<<"</a> ";
+				int m = 0;
+				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++){
+					fs << " <a href=\"src.html?id=" << (includes ? f : f2).get_id() << "#" << *j << "\">" << *j << "</a> ";
+					to_return["data"][no]["includes"][m]["id"] = json::value((includes ? f : f2).get_id());
+					to_return["data"][no]["includes"][m++]["name"] = json::value(*j);
+				}
+				to_return["data"][no]["required"] = json::value(id.is_required());
+				no++;
 				if (!id.is_required())
-					fs<< " (not required)";
-				fs<< "</td>";
+					fs << " (not required)";
+				fs << "</td>";
 			}
-			fs<<html_file_record_end();
+			fs << html_file_record_end();
 		}
 	}
 	to_return["table"]["content"] = json::value::string(fs.str());
 	to_return["table"]["end"] = json::value::string(html_file_end());
 	to_return["end"] = json::value::string("</ul>\n");
-	if(qname!=NULL) delete qname;
+	if(qname != NULL) delete qname;
 	return to_return;
 }
 
-// static void
-// logo_page(FILE *fo, void *p)
-// {
-// 	Logo::logo(fo);
-// }
 
+// Return replacement page
+// {
+//		form: "html start form table",
+//		content: [
+//			{
+//				start:	"html of row start",
+//				name: "html of link to id page",
+//				text: "html of input text",
+//				checkbox: "html of checkbox",
+//				id: "Eclass object address",
+//				id_adress: "id address",
+//				new_id: "new id",
+//				active: true if active id replacement
+//			},
+//		],
+//		end: "html of page end"
+// }
 static json::value
 replacements_page(void *p)
 {
 	json::value to_return;
 	// define JSON func
-	cerr << "Creating identifier list"<<endl;
+	if(DP()){
+		cerr << "Creating identifier list" << endl;
+	}
 	ostringstream fs;
 	prohibit_remote_access(&fs);
 	if (fs.str().length() > 0){
@@ -3346,21 +3577,23 @@ replacements_page(void *p)
 			fs.flush();
 			to_return["content"][no]["start"] = json::value::string("<tr><td>");
 			to_return["content"][no]["name"] = json::value::string(html(*i));
-			fs<<"</td><td><input type=\"text\" name=\"r"<<&(i->second)
-			<<"\" value=\""<<i->second.get_newid()<<"\" size=\"10\" maxlength=\"256\"></td>";
+			fs << "</td><td><input type=\"text\" name=\"r" << &(i->second)
+			<< "\" value=\"" << i->second.get_newid() << "\" size=\"10\" maxlength=\"256\"></td>";
 			to_return["content"][no]["text"] = json::value::string(fs.str());
 			fs.flush();
-			fs<<"<td><input type=\"checkbox\" name=\"a"<<&(i->second)<<"\" value=\"1\" "
-			<<(i->second.get_active() ? "checked" : "")<<"></td></tr>\n";
+			fs << "<td><input type=\"checkbox\" name=\"a" << &(i->second) << "\" value=\"1\" "
+			<< (i->second.get_active() ? "checked" : "") << "></td></tr>\n";
 			to_return["content"][no]["checkbox"] = json::value::string(fs.str());
 			fs.flush();
-			fs<<&(i->second);
+			fs << &(i->first);
+			to_return["content"][no]["id"] = json::value(fs.str());
+			fs.flush();
+			fs << &(i->second);
 			to_return["content"][no]["id_adress"] = json::value::string(fs.str());
 			to_return["content"][no]["new_id"] = json::value::string(i->second.get_newid());
 			to_return["content"][no++]["active"] = json::value(i->second.get_active());
 		}
 	}
-	cerr << endl;
 	to_return["end"] = json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
 
 	return to_return;
@@ -3368,6 +3601,8 @@ replacements_page(void *p)
 }
 
 // Process an identifier replacements form
+// Return { ok: true} if replacement was succesful
+// or {error: "error message"}
 static json::value
 xreplacements_page(void *p)
 {
@@ -3387,8 +3622,8 @@ xreplacements_page(void *p)
 			char varname[128];
 			snprintf(varname, sizeof(varname), "r%p", &(i->second));
 			const char *subst;
-			// cout<<"varname"<<varname<<endl;
-			if ((subst = server.getCharPParam(varname))!= NULL) {
+			
+			if ((subst = server.getCharPParam(varname)) != NULL) {
 				string ssubst(subst);
 				i->second.set_newid(ssubst);
 				delete subst;
@@ -3398,13 +3633,32 @@ xreplacements_page(void *p)
 			i->second.set_active(!!server.getBoolParam(varname));
 		}
 	}
-	cerr << endl;
-	to_return["ok"] = json::value::string("done");
+
+	to_return["ok"] = json::value(true);
 	return to_return;
 
 }
 
-
+// Return function argument refactorings
+// {
+//		form: "html start of form",
+//		table: {
+//	 		start: "html head start",
+//			contents: [
+//				"html of table row"
+//			],
+//			end: "html end of table"
+//		},
+//		data: [
+//			{
+//				address: "function Eclass object address",
+//				f: "function call object adress",
+//				name: "function name",
+//				replacement: "function replacement",
+//				active: true if refactoring active
+//			}
+//		]
+// }
 static json::value
 funargrefs_page( void *p)
 {
@@ -3416,26 +3670,32 @@ funargrefs_page( void *p)
 		return to_return;
 	}
 	to_return["form"] = json::value::string("<form action=\"xfunargrefs.html\" method=\"get\">\n");
-	to_return["table"]["start"]= json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
+	to_return["table"]["start"] = json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
 
-	int no =0;
+	int no = 0;
 
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		fs.flush();
-		fs<<i->first;
-		to_return["table"]["contents"][no] = json::value::string("<tr><td>"+html(*(i->second.get_function()))
-		+"</td><td><input type=\"text\" name=\"r"+fs.str() + "\" value=\""+i->second.get_replacement()+
-		"\" size=\"10\" maxlength=\"256\"></td>""<td><input type=\"checkbox\" name=\"a"+fs.str()+
+		fs << i->first;
+		to_return["table"]["contents"][no] = json::value::string("<tr><td>" + html(*(i->second.get_function()))
+		+ "</td><td><input type=\"text\" name=\"r" + fs.str() + "\" value=\"" + i->second.get_replacement() +
+		"\" size=\"10\" maxlength=\"256\"></td>""<td><input type=\"checkbox\" name=\"a" + fs.str() +
 		"\" value=\"1\" " + (i->second.is_active() ? "checked" : "") + "></td></tr>\n");
-		to_return["variables"][no]["address"] = json::value(fs.str());
-		to_return["variables"][no]["replacement"] = json::value(i->second.get_replacement());
-		to_return["variables"][no++]["active"] = json::value(i->second.is_active());
+		to_return["data"][no]["address"] = json::value(fs.str());
+		fs.flush();
+		fs << i->second.get_function();
+		to_return["data"][no]["f"] = json::value(fs.str());
+		to_return["data"][no]["name"] = json::value(i->second.get_function()->get_name());
+		to_return["data"][no]["replacement"] = json::value(i->second.get_replacement());
+		to_return["data"][no++]["active"] = json::value(i->second.is_active());
 	}
 	to_return["table"]["end"] = json::value::string("</table><p><INPUT TYPE=\"submit\" name=\"repl\" value=\"OK\">\n");
 	return to_return;
 }
 
 // Process a function argument refactorings form
+// Return {ok: true} if exit perimitted
+// else {error: "error message"}
 static json::value
 xfunargrefs_page(void *p)
 {
@@ -3452,7 +3712,7 @@ xfunargrefs_page(void *p)
 		char varname[128];
 		snprintf(varname, sizeof(varname), "r%p", i->first);
 		const char *subst;
-		if ((subst = server.getStrParam(varname).c_str())!= NULL) {
+		if ((subst = server.getStrParam(varname).c_str()) != NULL) {
 			string ssubst(subst);
 			i->second.set_replacement(ssubst);
 		}
@@ -3461,11 +3721,23 @@ xfunargrefs_page(void *p)
 		i->second.set_active(!!server.getBoolParam(varname));
 	}
 	
-	to_return["ok"] = json::value::string("done");
+	to_return["ok"] = json::value(true);
 	return to_return;
 }
 
-
+// Save refactorings and replacements and exit return JSON message
+// {
+//		refactors:[
+//			"refactoring messages from files"
+//		],
+//		statistics: {
+//			msg: "msg of statistics",
+//			no_id_replacement: number of id replacements,
+//			no_fun_refactorings: number of function refactorings,
+//			no_files: number of refactored files
+//		}
+//		(,exit: true if going to exit)
+// }
 json::value
 write_quit_page(void *exit)
 {
@@ -3537,16 +3809,16 @@ write_quit_page(void *exit)
 
 	// Now do the replacements
 	cerr << "Processing files" << endl;
-	int no =0;
+	int no = 0;
 	for (IFSet::const_iterator i = process.begin(); i != process.end(); i++)
 		to_return["refactors"][no++] = file_refactor(*i);
-	to_return["statistics"]["html"] = json::value::string("A total of "+
-		to_string(num_id_replacements) + " replacements and "+
-		to_string(num_fun_call_refactorings) + " function call refactorings were made in "+
+	to_return["statistics"]["msg"] = json::value::string("A total of " +
+		to_string(num_id_replacements) + " replacements and " +
+		to_string(num_fun_call_refactorings) + " function call refactorings were made in " +
 		to_string((unsigned)(process.size())) + " files.");
 	to_return["statistics"]["no_id_replacement"] = json::value (num_id_replacements); 
 	to_return["statistics"]["no_fun_refactorings"] = json::value (num_fun_call_refactorings);
-	to_return["statistics"]["no_files"] = json::value( (unsigned)(process.size()) );
+	to_return["statistics"]["no_files"] = json::value((unsigned)(process.size()));
 	if (exit) {
 		to_return["exit"] = json::value(true);
 		must_exit = true;
@@ -3555,6 +3827,8 @@ write_quit_page(void *exit)
 	return to_return;
 }
 
+// Return {exit: true} if exit perimitted
+// else {error: "error message"}
 json::value
 quit_page(void *p)
 {
@@ -3966,7 +4240,7 @@ main(int argc, char *argv[])
 		// Update metrics
 		id_msum.add_unique_id(e);
 	}
-	cerr <<"done processing identifiers" <<endl;
+	cerr << endl;
 
 	if (DP())
 		cout << "Size " << file_msum.get_total(Metrics::em_nchar) << endl;
