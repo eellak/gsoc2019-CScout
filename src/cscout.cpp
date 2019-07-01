@@ -499,7 +499,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 		have_idq = true;
 		
 		if(eval_query)
-			if(idq.getError() != NULL){
+			if(idq.getError() != NULL) {
 				to_return["IdMsg"] = json::value::string(idq.getError());
 				if(DP())
 			 		cout << "idq Error:" << idq.getError() << endl;
@@ -1173,7 +1173,7 @@ xfilequery_page(void *p)
 
 	if(!(fs.str().empty()))
 		to_return["Xerror"] = json::value::string(fs.str());
-	if (!query.is_valid()){
+	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Non valid query");
 		if(qname!=NULL) delete qname;
 		return to_return;
@@ -1186,10 +1186,10 @@ xfilequery_page(void *p)
 			sorted_files.insert(*i);
 	}
 	to_return["table"]["h"] = json::value::string(html_file_begin());
-	if (modification_state != ms_subst && !browse_only){
+	if (modification_state != ms_subst && !browse_only) {
 		to_return["table"]["h1"] = json::value::string("<th></th>");
 	}
-	if (query.get_sort_order() != -1){
+	if (query.get_sort_order() != -1) {
 		to_return["mname"] = json::value::string(Metrics::get_name<FileMetrics>(query.get_sort_order()));
 		to_return["table"]["h2"] = json::value::string("<th>" + Metrics::get_name<FileMetrics>(query.get_sort_order()) + "</th>\n",true);
 	}
@@ -1211,7 +1211,7 @@ xfilequery_page(void *p)
 			to_return["file"][no]["name"] = json::value::string(i->get_path());
 			if (modification_state != ms_subst && !browse_only)
 				fs << "<td><a href=\"fedit.html?id=" << to_string(i->get_id()) << "\">edit</a></td>";
-			if (query.get_sort_order() != -1){
+			if (query.get_sort_order() != -1) {
 				fs << "<td align=\"right\">" << to_string(i->const_metrics().get_metric(query.get_sort_order())) 
 					<< "</td>";
 				to_return["file"][no]["metric"] = json::value(i->const_metrics().get_metric(query.get_sort_order()));
@@ -1345,7 +1345,7 @@ iquery_page(void *p)
 		" METHOD=\"GET\">\n"
 		"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n", true);
 	int i;
-	for (i = attr_begin; i < attr_end; i++){
+	for (i = attr_begin; i < attr_end; i++) {
 		to_return["attributes"][i] = json::value(Attributes::name(i));
 		to_return["input"][i] = json::value::string("<input type=\"checkbox\" name=\"a"
 		+ to_string(i) + "\" value=\"1\">" + Attributes::name(i) + "<br>\n", true);
@@ -1550,7 +1550,7 @@ xiquery_page(void * p)
 	json::value to_return;
 	std::ostringstream fs;
 	prohibit_remote_access(&fs);
-	if(!fs.str().empty()){
+	if(!fs.str().empty()) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
@@ -1577,7 +1577,7 @@ xiquery_page(void * p)
 		progress(i, ids);
 		if (!query.eval(*i))
 			continue;
-		if (q_id){
+		if (q_id) {
 			sorted_ids.insert(&*i);
 		}
 		else if (q_file) {
@@ -1636,7 +1636,7 @@ xfunquery_page(void *p)
 	ostringstream fs;
 	json::value to_return;
 	prohibit_remote_access(&fs);
-	if(!fs.str().empty()){
+	if(!fs.str().empty()) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
@@ -1649,7 +1649,7 @@ xfunquery_page(void *p)
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	const char *qname = server.getCharPParam("n");
 	FunQuery query(NULL, Option::file_icase->get(), current_project);
-	if (!query.is_valid()){
+	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Invalid Query");
 		if(qname!=NULL) 
 			delete qname;
@@ -1779,7 +1779,7 @@ identifier_page(void *p)
 		ostringstream fs;
 		prohibit_browsers(&fs);
 		prohibit_remote_access(&fs);
-		if (fs.str().length() > 0){
+		if (fs.str().length() > 0) {
 			to_return["error"] = json::value::string(fs.str());
 			delete subst;
 			return to_return;
@@ -1796,10 +1796,10 @@ identifier_page(void *p)
 	
 	to_return["form"] = json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
 	string s;
-	for (int i = attr_begin; i < attr_end; i++){		
+	for (int i = attr_begin; i < attr_end; i++) {		
 		s = show_id_prop(Attributes::name(i), e->get_attribute(i));		
 
-		if(!s.empty()){
+		if(!s.empty()) {
 			to_return["attribute"][no]["name"] = json::value(Attributes::name(i));
 			to_return["attribute"][no]["get"] = json::value(e->get_attribute(i));
 			to_return["attribute"][no++]["html"] = json::value::string(s);
@@ -1807,14 +1807,14 @@ identifier_page(void *p)
 	}
 	
 	s = show_id_prop("Crosses file boundary", id.get_xfile());
-	if(!s.empty()){
+	if(!s.empty()) {
 		to_return["file_boundary"]["name"] = json::value("Crosses file boundary");
 		to_return["file_boundary"]["get"] = json::value(id.get_xfile());
 		to_return["file_boundary"]["html"] = json::value::string(s);
 	}
 	s = show_id_prop("Unused", e->is_unused());
 
-	if(!s.empty()){
+	if(!s.empty()) {
 		to_return["unused"]["name"] = json::value("Unused");
 		to_return["unused"]["get"] = json::value(e->is_unused());
 		to_return["unused"]["html"] = json::value::string(s);
@@ -1984,7 +1984,7 @@ function_page(void *p)
 		std::ostringstream fs;
 		prohibit_browsers(&fs);
 		prohibit_remote_access(&fs);
-		if (fs.str().length() > 0){
+		if (fs.str().length() > 0) {
 			to_return["error"] = json::value::string(fs.str());
 			return to_return;
 		}
@@ -2107,7 +2107,7 @@ function_page(void *p)
 		to_return["metrics"]["start"] = json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
 		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
-			if (!Metrics::is_internal<FunMetrics>(j)){
+			if (!Metrics::is_internal<FunMetrics>(j)) {
 				to_return["metrics"]["data"][Metrics::get_name<FunMetrics>(j)] = json::value(f->metrics().get_metric(j));
 				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>" +
 				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>" +
@@ -2157,7 +2157,7 @@ visit_functions(const char *call_path, Call *f,
 	f->set_visited(visit_id);
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {
 		if (show && (!(*i)->is_visited(visit_id) || *i == f)) {			
-			if (recurse && call_path){
+			if (recurse && call_path) {
 				sprintf(s, call_path, *i);
 				to_return[no]["cgraph"] = json::value(s);
 			}
@@ -2169,7 +2169,7 @@ visit_functions(const char *call_path, Call *f,
 			delete p;
 			
 		}
-		if (recurse && !(*i)->is_visited(visit_id)){
+		if (recurse && !(*i)->is_visited(visit_id)) {
 			if(show || *i == f)
 				to_return[no-1]["call"] = visit_functions(call_path, *i, fbegin, fend, recurse, show, level - 1, visit_id);
 			else 
@@ -2295,7 +2295,7 @@ explore_functions(Call *f,
 		to_return[no]["f"] = json::value(s);
 		s[0] = 0;
 		to_return[no++]["html"] = json::value::string(html(**i));
-		if(recursive){
+		if(recursive) {
 			to_return[no-1]["call"] = explore_functions(f, fbegin, fend, true);
 		}
 	} 
@@ -2479,7 +2479,7 @@ set_options_page(void *p)
 	json::value to_return;
 	ostringstream fs;
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 			to_return["error"] = json::value::string(fs.str());
 			return to_return;
 		}
@@ -2517,7 +2517,7 @@ save_options_page(void *p)
 	ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if(!fs.str().empty()){
+	if(!fs.str().empty()) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	} 
@@ -2975,7 +2975,8 @@ end:
 
 
 // Split a string by delimiter
-vector<string> split_by_delimiter(string &s, char delim) {
+vector<string> split_by_delimiter(string &s, char delim) 
+{
 	string buf;                 // Have a buffer string
 	stringstream ss(s);       // Insert the string into a stream
 
@@ -3087,7 +3088,7 @@ set_project_page(void *p)
 	json::value to_return;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3152,7 +3153,8 @@ version_info(bool html)
 // }
 
 // Return top directory JSON
-json::value top_file(void *p){
+json::value top_file(void *p) 
+{
 	return dir_top("Browse file tree");
 }
 
@@ -3380,7 +3382,7 @@ fedit_page(void *p)
 	std::ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3421,7 +3423,7 @@ query_source_page(void *)
 	int id;
 	json::value to_return;
 	
-	if (!(id = server.getIntParam("id"))){
+	if (!(id = server.getIntParam("id"))) {
 		to_return["error"] = json::value::string("File not found");
 		return to_return;
 	}
@@ -3512,7 +3514,7 @@ query_include_page(void *p)
 				fs << "<td>line ";
 				const set <int> &lines = id.include_line_numbers();
 				int m = 0;
-				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++){
+				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++) {
 					fs << " <a href=\"src.html?id=" << (includes ? f : f2).get_id() << "#" << *j << "\">" << *j << "</a> ";
 					to_return["data"][no]["includes"][m]["id"] = json::value((includes ? f : f2).get_id());
 					to_return["data"][no]["includes"][m++]["name"] = json::value(*j);
@@ -3556,12 +3558,12 @@ replacements_page(void *p)
 {
 	json::value to_return;
 	// define JSON func
-	if(DP()){
+	if(DP()) {
 		cerr << "Creating identifier list" << endl;
 	}
 	ostringstream fs;
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3610,7 +3612,7 @@ xreplacements_page(void *p)
 	ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3665,7 +3667,7 @@ funargrefs_page( void *p)
 	json::value to_return;
 	ostringstream fs;
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3703,7 +3705,7 @@ xfunargrefs_page(void *p)
 	ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -3746,12 +3748,12 @@ write_quit_page(void *exit)
 	ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
 
-	if (exit){
+	if (exit) {
 		to_return["exit"] = json::value(true);
 		must_exit=true;
 	}
@@ -3836,7 +3838,7 @@ quit_page(void *p)
 	ostringstream fs;
 	prohibit_browsers(&fs);
 	prohibit_remote_access(&fs);
-	if (fs.str().length() > 0){
+	if (fs.str().length() > 0) {
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
@@ -4340,12 +4342,12 @@ main(int argc, char *argv[])
 	if (DP())
 		cout  << "Tokid EC map size is " << Tokid::map_size() << endl;
 	// Serve web pages
-	if (!must_exit){
+	if (!must_exit) {
 		cerr << "CScout is now ready to serve you at http://localhost:" << portno << endl;
 		
 	}
 
-	if (!must_exit){
+	if (!must_exit) {
 		server.serve();	
 	}
 

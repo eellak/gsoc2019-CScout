@@ -27,7 +27,7 @@ private :
     ofstream *log_file;
     static bool must_exit;
 public:
-    HttpServer(){}
+    HttpServer() {}
     // Constructor for HttpServer on a url
     HttpServer(utility::string_t url, ofstream * log);
     // HTTP GET handler

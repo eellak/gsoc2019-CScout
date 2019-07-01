@@ -3,14 +3,14 @@ import axios from 'axios';
 import Table from './Table';
 
 class Filemetrics extends Component{
-    constructor(){
+    constructor() {
         super();
         this.state={
             loaded:false
         }
         
     };
-    componentDidMount(){
+    componentDidMount() {
         this.getFileMetrics();
     }
 
@@ -31,7 +31,7 @@ class Filemetrics extends Component{
         });
     }
 
-    render(){
+    render() {
         console.log(this.state);
         if (this.state.loaded===false)
             return(

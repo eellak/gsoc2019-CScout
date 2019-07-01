@@ -197,7 +197,7 @@ void *HttpServer::getAddrParam(string name)
             cout << "no parameter named " << name << endl;
         return NULL;
     }
-    else if (server.params[name].is_null()){
+    else if (server.params[name].is_null()) {
         if(DP())
             cout << "parameter named " << name << " is NULL" << endl;
         return NULL;
@@ -221,7 +221,7 @@ int HttpServer::getIntParam(string name)
             cout << "no parameter named " << name << endl;
         return -1;
     }
-    else if (server.params[name].is_null()){
+    else if (server.params[name].is_null()) {
         if(DP())
             cout << "parameter named " << name <<  "is NULL" << endl;
         return -1;

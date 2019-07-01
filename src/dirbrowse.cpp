@@ -157,7 +157,7 @@ public:
 		string to_ret;
 		char* s= new char[20];
 		
-		if (parent != this){
+		if (parent != this) {
 			sprintf(s,"%p",parent);
 			to_ret = "<a href=\"dir.html?dir=" + string(s) + "\">..</a><br />";
 		}

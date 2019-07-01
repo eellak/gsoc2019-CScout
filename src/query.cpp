@@ -73,7 +73,7 @@ Query::compile_re(const char *name, const char *varname, CompiledRE &re, bool &m
 	
 	string t = server.getStrParam(varname);
 	char *s = NULL;
-	if(!t.empty()){
+	if(!t.empty()) {
 		s = new char[50]; 
 		strcpy(s,t.c_str());
 	}else

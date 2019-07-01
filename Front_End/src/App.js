@@ -3,7 +3,7 @@ import './App.css';
 import Toolbar from './Components/Toolbar/Toolbar'
 import Filemetrics from './Components/Filemetrics'
 class App extends Component {
-  constructor(){
+  constructor() {
     super();
     this.state =  { 
       type: "homepage"
@@ -19,7 +19,7 @@ class App extends Component {
 
   render() {
     let to_render;
-    switch(this.state.type){
+    switch(this.state.type) {
       case("files"):
         to_render = <Filemetrics/>;
         break;

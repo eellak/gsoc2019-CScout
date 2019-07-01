@@ -211,7 +211,7 @@ web::json::value to_json(const IdMetricsSet &mi)
 	to_return["content"][0][5] = web::json::value(m.maxlen.total);
 	
 	int no = 1;
-	for (int i = is_readonly + 1; i < attr_end; i++){
+	for (int i = is_readonly + 1; i < attr_end; i++) {
 		to_return["content"][no][0] = web::json::value(Attributes::name(i));
 		to_return["content"][no][1] = web::json::value(m.once.get_count(i));
 		to_return["content"][no][2] = web::json::value(m.all.get_count(i));

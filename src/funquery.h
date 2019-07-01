@@ -90,7 +90,7 @@ public:
 
 	// Destructor
 	virtual ~FunQuery() {}
-	char * getError(){return error;}
+	char * getError() {return error;}
 	// Perform a query
 	bool eval(Call *c);
 	// Return the URL for re-executing this query

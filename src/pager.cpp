@@ -37,7 +37,7 @@
 Pager::Pager(int ps, const string &qurl, bool bmk) : pagesize(ps), current(0), url(qurl), bookmarkable(bmk)
 {
 	skip = (unsigned int)server.getIntParam("skip");
-	if(skip == -1){
+	if(skip == -1) {
 		skip = 0;
 	}
 }
@@ -80,7 +80,7 @@ Pager::end()
 		to_return["total"] = json::value(1);
 		break;
 	default:
-		if (skip == -1){
+		if (skip == -1) {
 			to_return["start"] = json::value(1);
 			to_return["end"] = json::value(nelem);
 		}	
@@ -95,7 +95,7 @@ Pager::end()
 	if (nelem > pagesize) {
 		if (skip > 0)
 			to_return["prev"] = json::value::string(url + "&skip=" + to_string(skip - pagesize),true);
-		for (int i = 0; i < npages; i++){
+		for (int i = 0; i < npages; i++) {
 			
 			if (i == thispage && skip != -1)
 				to_return["others"][i] = json::value::string("this");

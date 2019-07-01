@@ -52,7 +52,7 @@ public:
 		name(tok.get_name()),
 		definition(tok.get_defining_tokid()),
 		kind(k),
-		tag(t){}
+		tag(t) {}
 	// ctor for enumerators, functions, variables, typedefs
 	CTag(const Token &tok, const Type &typ, enum e_storage_class sc) :
 		name(tok.get_name()),

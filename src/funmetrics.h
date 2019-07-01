@@ -169,7 +169,7 @@ public:
 	// Create function summary
 	void summarize_functions();
 	// Return json in form Metrics::to_json
-	web::json::value json(){return to_json(val);}
+	web::json::value json() {return to_json(val);}
 	friend ostream& operator<<(ostream& o,const FunMetricsSummary &ms);
 };
 

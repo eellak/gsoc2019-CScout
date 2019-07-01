@@ -79,7 +79,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	match(attr_end),
 	current_project(cp)
 {
-	if (lazy){
+	if (lazy) {
 
 		return;
 		}

@@ -1,14 +1,14 @@
 import React,{Component} from 'react';
 
 class Table extends Component{
-    constructor(){
+    constructor() {
         super();
         this.state={
 
         }
     }
 
-    render(){
+    render() {
         console.log(this.props.head);
         return(
             <table>

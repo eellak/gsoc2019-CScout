@@ -92,7 +92,7 @@ SelectionOption::display()
 	to_return["start"] = json::value("<tr><td>"+string(user_name) + "</td><td>");
 	to_return["user_name"] = json::value(user_name);
 	int no=0;
-	for (vector <SelectionElement>::const_iterator i = options.begin(); i != options.end(); i++){
+	for (vector <SelectionElement>::const_iterator i = options.begin(); i != options.end(); i++) {
 		to_return["input"][no]["html"] = json::value::string("<input type=\"radio\" name=\""+
 		string(short_name) + "\" value=\""+i->c+"\" "+ (v == i->c ? "checked" : "") + ">"+
 		i->name+"\n");

@@ -200,7 +200,7 @@ public:
 	void add_id(Eclass *ec);
 	// Called for every unique identifier occurence (EC)
 	void add_unique_id(Eclass *ec);
-	web::json::value json(){
+	web::json::value json() {
 		web::json::value to_return;
 		to_return["writable"] = to_json(rw[0]);
 		to_return["read-only"] = to_json(rw[1]);
@@ -353,7 +353,7 @@ public:
 	//			]
 	//	}
 template <class M, class E>
-web::json::value to_json(const MetricsRange<M,E> &m){
+web::json::value to_json(const MetricsRange<M,E> &m) {
 	web::json::value to_return;
 	to_return["no_elements"]=web::json::value(m.total.get_nelement());
 	if(m.total.get_nelement() == 0)
@@ -366,7 +366,7 @@ web::json::value to_json(const MetricsRange<M,E> &m){
 	
 	int no =0;
 	for (int i = 0; i < M::metric_max; i++)
-		if (!Metrics::is_internal<M>(i)){
+		if (!Metrics::is_internal<M>(i)) {
 			to_return["metrics"][no][0]=web::json::value(Metrics::get_name<M>(i));
 			to_return["metrics"][no][1]=web::json::value(m.total.get_metric(i));
 			to_return["metrics"][no][2]=web::json::value(m.min.get_metric(i));
