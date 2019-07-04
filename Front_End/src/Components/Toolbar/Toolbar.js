@@ -1,12 +1,13 @@
 import React from 'react';
 import './Toolbar.css';
-import logo from '../../../public/logo.png'
+import logo from '../../../public/logo.png';
+import DrawerToggleButton from './DrawerToggleButton';
 
 
 const Toolbar = props => (
         <header className="toolbar">
             <nav className="toolbar_navigation">
-                <div className="toolbar_toggle-button"></div>
+            <div className="toolbar_toggle-button"><DrawerToggleButton click={props.drawerClickHandler}/></div>
                 <div className="toolbar_logo" onClick={()=> props.changeType("homepage")} style={{cursor: 'pointer'}}>
                     <a ><img src={logo} alt="C"/></a>
                     <h1>Scout</h1>
