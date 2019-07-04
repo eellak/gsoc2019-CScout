@@ -1,4 +1,5 @@
 import React,{Component} from 'react';
+import './Table.css';
 
 class Table extends Component{
     constructor() {
@@ -22,11 +23,11 @@ class Table extends Component{
                 <tbody>
                     {this.props.contents.map((a,i) => 
                         <tr key={i}>
-                            {a.map((b,j)=> 
-                                <td key={j}>
+                            {a.map((b,j)=>     
+                                <td key={j} style={(j===0)?{textAlign: 'left'}:{textAlign:'right'}}>
                                     {b}
-                                </td>
-                                )
+                                </td>    
+                            )
                             }
                         </tr>
                         )
