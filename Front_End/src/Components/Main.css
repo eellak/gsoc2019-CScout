@@ -1,0 +1,10 @@
+.link {
+    color:#63b1ff; 
+    cursor: pointer;
+}
+
+.mainpage div { 
+    width: 50%; 
+    height: 50%; 
+    float: left; 
+}

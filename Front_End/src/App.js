@@ -37,11 +37,11 @@ class App extends Component {
       backdrop = <Backdrop click={this.backdropClickHandler}/>;
     }
     switch(this.state.type) {
-      case("files"):
+      case("filemetrics"):
         to_render = <Filemetrics/>;
         break;
       case("homepage"):
-        to_render = <Main/>;
+        to_render = <Main changeType={this.setType}/>;
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>
