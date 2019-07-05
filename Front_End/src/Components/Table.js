@@ -16,7 +16,7 @@ class Table extends Component{
                 <thead>
                     <tr>
                         {this.props.head.map((a,i)=>
-                                <td key={i}> {a}</td>
+                                <td key={i} style={{fontWeight:'bold'}}> {a}</td>
                         )}
                     </tr>
                 </thead>
