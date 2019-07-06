@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import './App.css';
 import Toolbar from './Components/Toolbar/Toolbar';
 import Main from './Components/Main';
-import Filemetrics from './Components/Filemetrics';
+import Metrics from './Components/Metrics';
 import SideDrawer from './Components/Toolbar/SideDrawer';
 import Backdrop from './Components/Toolbar/Backdrop';
+import FBrowse from './Components/FBrowse';
 class App extends Component {
   constructor() {
     super();
@@ -38,10 +39,19 @@ class App extends Component {
     }
     switch(this.state.type) {
       case("filemetrics"):
-        to_render = <Filemetrics/>;
+        to_render = <Metrics type='file'/>;
+        break;
+      case("idmetrics"):
+        to_render = <Metrics type='id'/>;
+        break;
+      case("funmetrics"):
+        to_render = <Metrics type='fun'/>;
         break;
       case("homepage"):
         to_render = <Main changeType={this.setType}/>;
+        break;
+      case("browse"):
+        to_render = <FBrowse type='top' changeType={this.setType}/>
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>
