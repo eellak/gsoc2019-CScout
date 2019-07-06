@@ -58,6 +58,8 @@ class DirFile;
 class DirEntry
 {
 public:
+	// Return entry's name
+	virtual string get_name() const = 0;
 	// Display a link to the entry's contents as HTML on of
 	virtual string html() const = 0;
 	virtual ~DirEntry() {}
@@ -71,6 +73,10 @@ private:
 public:
 	DirFile(Fileid i) : id(i) {}
 
+	virtual string get_name() const
+	{
+		return id.get_fname();
+	}
 	// Display a link to the files's contents as HTML on of
 	virtual string html() const
 	{
@@ -107,6 +113,11 @@ public:
 		const string &n = id.get_fname();
 		if (dir.find(n) == dir.end())
 			dir.insert(DirContents::value_type(n, new DirFile(id)));
+	}
+	
+	virtual string get_name() const 
+	{
+		return name;
 	}
 
 	/*
@@ -152,18 +163,24 @@ public:
 	}
 
 	// Return the directory's contents as HTML on of
-	string dirlist() const
+	json::value dirlist() const
 	{
-		string to_ret;
-		char* s= new char[20];
+		json::value to_return;
+		char* s = new char[20];
 		
 		if (parent != this) {
 			sprintf(s,"%p",parent);
-			to_ret = "<a href=\"dir.html?dir=" + string(s) + "\">..</a><br />";
+			to_return["parent"] = json::value(s);
 		}
-		for (DirContents::const_iterator i = dir.begin(); i != dir.end(); i++)
-			to_ret.append(i->second->html());
-		return to_ret;
+		int no = 0;
+		s[0] = 0;
+		for (DirContents::const_iterator i = dir.begin(); i != dir.end(); i++){
+			sprintf(s,"%p",i->second);
+			to_return["children"][no]["addr"] = json::value(s);
+			to_return["children"][no++]["name"] = json::value(i->second->get_name());
+			s[0] = 0;
+		}
+		return to_return;
 	}
 	virtual ~DirDir() {}
 	// Return a pointer for browsing the project's top directory
@@ -222,16 +239,14 @@ dir_page(void *p)
 {
 	DirDir *d;
 	json::value to_return;
-	string to_ret;
 	d = (DirDir *)server.getAddrParam("dir");
 	if (d == NULL)
 	{
 		to_return["error"] = json::value("Missing value");
 		return to_return;
 	}
-	to_ret = "Directory: " + html(d->get_path());
-	to_ret.append(d->dirlist());
-	to_return["dir"] = json::value::string(to_ret);
+	to_return["dir"] = json::value(html(d->get_path()));
+	to_return["tree"] = d->dirlist();
 	return to_return;
 }
 
