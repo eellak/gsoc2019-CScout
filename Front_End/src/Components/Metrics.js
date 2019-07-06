@@ -2,7 +2,7 @@ import React,{Component} from 'react';
 import axios from 'axios';
 import Table from './Table';
 
-class Filemetrics extends Component{
+class Metrics extends Component{
     constructor() {
         super();
         this.state={
@@ -15,18 +15,26 @@ class Filemetrics extends Component{
     }
 
     getFileMetrics = () => {
-        axios.get("http://localhost:8081/filemetrics.html")
+        axios.get("http://localhost:8081/"+this.props.type+"metrics.html")
         .then((response) => {
             if (response.data.errorMsg) {
                return response.data.errorMsg;
             } else  {
                
                 console.log(response.data);
-                this.setState({
-                    loaded: true,
-                    writable: response.data.writable,
-                    "read-only": response.data["read-only"]
-                }); 
+                if(this.props.type==="fun")
+                    this.setState({
+                        loaded: true,
+                        head: response.data.head,
+                        metrics: response.data.metrics
+                    });
+                else
+                    this.setState({
+                        loaded: true,
+                        writable: response.data.writable,
+                        "read-only": response.data["read-only"]
+                    });
+                 
             }
         });
     }
@@ -45,12 +53,13 @@ class Filemetrics extends Component{
             return (
                 <div>
                 {
-                    
+                   (this.props.type==="fun")?<Table head={this.state.head} contents={this.state.metrics}/>:
                     <Table head={this.state.writable.head} contents={this.state.writable.metrics}/>
+                    
                 }
             </div>
             );
     }
 };
 
-export default Filemetrics;
+export default Metrics;
