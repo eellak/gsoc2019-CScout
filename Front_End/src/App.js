@@ -5,7 +5,8 @@ import Main from './Components/Main';
 import Metrics from './Components/Metrics';
 import SideDrawer from './Components/Toolbar/SideDrawer';
 import Backdrop from './Components/Toolbar/Backdrop';
-import FBrowse from './Components/FBrowse';
+import FBrowse from './Components/FileBrowser/FBrowse';
+
 class App extends Component {
   constructor() {
     super();

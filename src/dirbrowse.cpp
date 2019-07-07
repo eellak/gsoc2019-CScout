@@ -59,10 +59,10 @@ class DirEntry
 {
 public:
 	// Return entry's name
-	virtual string get_name() const = 0;
+	virtual json::value get_file() const = 0;
 	// Display a link to the entry's contents as HTML on of
 	virtual string html() const = 0;
-	virtual ~DirEntry() {}
+	virtual ~DirEntry() {} 
 };
 
 // A file
@@ -73,9 +73,12 @@ private:
 public:
 	DirFile(Fileid i) : id(i) {}
 
-	virtual string get_name() const
+	virtual json::value get_file() const
 	{
-		return id.get_fname();
+		json::value to_return;
+		to_return["name"] = json::value(id.get_fname());
+		to_return["type"] = json::value("file");
+		return to_return;
 	}
 	// Display a link to the files's contents as HTML on of
 	virtual string html() const
@@ -115,9 +118,12 @@ public:
 			dir.insert(DirContents::value_type(n, new DirFile(id)));
 	}
 	
-	virtual string get_name() const 
+	virtual json::value get_file() const
 	{
-		return name;
+		json::value to_return;
+		to_return["name"] = json::value(name);
+		to_return["type"] = json::value("dir");
+		return to_return;
 	}
 
 	/*
@@ -177,7 +183,7 @@ public:
 		for (DirContents::const_iterator i = dir.begin(); i != dir.end(); i++){
 			sprintf(s,"%p",i->second);
 			to_return["children"][no]["addr"] = json::value(s);
-			to_return["children"][no++]["name"] = json::value(i->second->get_name());
+			to_return["children"][no++]["info"] = i->second->get_file();
 			s[0] = 0;
 		}
 		return to_return;
@@ -263,6 +269,7 @@ dir_top(const char *name)
 	to_return["html"] = json::value::string(DirDir::top()->html(name));
 	char *s = new char[20];
 	sprintf(s, "%p", DirDir::top());
+	to_return["info"] = DirDir::top()->get_file();
 	to_return["addr"] = json::value::string("dir.html?dir=" + string(s));
 	return to_return;
 }
