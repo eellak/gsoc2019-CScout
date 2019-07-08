@@ -2,13 +2,15 @@ import React,{Component} from 'react';
 import axios from 'axios';
 import '../../global.js';
 import Directory from './Directory';
+import './FBrowse.css';
 
 
 class FBrowse extends Component{
     constructor(props) {
         super(props);
         this.state={
-            loaded:false
+            loaded:false,
+            file:null
         }
         
     };
@@ -31,6 +33,15 @@ class FBrowse extends Component{
         }     
     }
 
+    getFileInfo = (param) => {
+        axios.get(global.address + "file.html?id="+param)
+        .then((response) => {
+            this.setState({
+                file: response.data
+            })
+        })
+    }
+
     render() {
         console.log(this.state);
         if (this.state.loaded===false)
@@ -43,8 +54,15 @@ class FBrowse extends Component{
             );
         else
             return (
-                <div>   
-                    <Directory addr={this.state.top} name={this.state.name} expand={true}/>
+                <div>
+                    <div className="FileBrowser">
+                        <h3>File Browser</h3>   
+                        <Directory addr={this.state.top} name={this.state.name} 
+                        expand={true} fileSelect={this.getFileInfo}/>
+                    </div>
+                    <div className="Fileinfo">
+                        {(this.state.file===null)?<p>No file selected</p>:<p>{JSON.stringify(this.state.file, null, 2)}</p>}
+                    </div>
                 </div>
             );
     }

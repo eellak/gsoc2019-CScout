@@ -76,6 +76,7 @@ public:
 	virtual json::value get_file() const
 	{
 		json::value to_return;
+		to_return["id"] = json::value(id.get_id());
 		to_return["name"] = json::value(id.get_fname());
 		to_return["type"] = json::value("file");
 		return to_return;

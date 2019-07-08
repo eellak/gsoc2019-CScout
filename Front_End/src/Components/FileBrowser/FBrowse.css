@@ -1,0 +1,23 @@
+.FileBrowser {
+    border: #63b1ff;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #63b1ff;
+    margin-top: 6%;
+    margin-left: 2%;
+    margin-right: 2%;
+    border-radius: 5px;
+    overflow-y:scroll;
+    height:30rem;
+    width: 25%;
+}
+
+.FileBrowser h3{
+    background: #63b1ff;
+    margin-block-start: 0px;
+    margin-block-end: 0px;
+    position: sticky;
+    top: 0;
+    left:0;
+    text-shadow: 1px 1px rgba(0,0,0,0.3);
+}

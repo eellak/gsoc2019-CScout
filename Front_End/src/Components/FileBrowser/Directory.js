@@ -10,7 +10,8 @@ class Directory extends Component {
         super(props);
         console.log(props);
         this.state = {
-            loaded:false
+            loaded:false,
+            hovered:false
         }
       
     };
@@ -46,6 +47,12 @@ class Directory extends Component {
             }     
         });
     }
+   
+    changeHoverState = () => {
+        this.setState({
+            hovered: !this.state.hovered
+        });
+    }
 
     render(){
         return(
@@ -53,8 +60,9 @@ class Directory extends Component {
                 {
                     this.state.loaded
                     ? <ul className='project' style={{listStyleType:"none", listStylePosition:"inside"}}>
-                        <li onClick={this.changeExpand} style={{cursor:'pointer', margin:'10px', textAlign:'left'}}>
-                            <img src={this.state.expand?openFolder:folder}/> {this.state.name}</li> 
+                        <li onClick={this.changeExpand} style={{cursor:'pointer', margin:'10px', textAlign:'left'}}
+                            onMouseEnter={this.changeHoverState} onMouseLeave={this.changeHoverState}>
+                            <img src={this.state.expand?openFolder:folder} alt='-'/> {this.state.name}</li> 
                         {this.state.expand
                             ?  <li>
                             {this.state.tree.children.map((child,i) => 
@@ -62,9 +70,11 @@ class Directory extends Component {
                                 {
                                     (child.info.type==="dir")
                                     ?<Directory addr={"dir.html?dir=" + child.addr} expand={false} 
-                                    onClick={console.log(child)} name={child.info.name}/>             
+                                    onClick={console.log(child)} name={child.info.name} fileSelect={this.props.fileSelect}/>             
                                     :<ul style={{listStyleType:"none", listStylePosition:"inside"}}>
-                                        <li style={{cursor:'pointer', margin:'10px', textAlign:'left'}}><img src={file} style={{width:'14px', height:'16px'}}/>  {child.info.name}</li>
+                                        <li style={{cursor:'pointer', margin:'10px', textAlign:'left'}} 
+                                        onClick={() => this.props.fileSelect(child.info.id)}>
+                                            <img src={file} style={{width:'14px', height:'16px'}} alt=' '/>  {child.info.name}</li>
                                     </ul>
                                 }
                                 </div>
