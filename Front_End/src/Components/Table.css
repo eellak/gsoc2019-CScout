@@ -1,0 +1,41 @@
+table{
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    cursor:'default'
+}
+
+table thead tr:first-child td:first-child {
+    border-top-left-radius: 10px;
+    padding: 5px;
+
+}
+
+table thead tr:first-child td:last-child {
+    border-top-right-radius: 10px;
+}
+
+
+table input{
+  width: 60%;
+}
+  
+table tbody td{
+    border: 1px solid #ddd;
+  padding: 5px;
+  cursor:'default'
+}
+
+table tbody tr:nth-child(even){background-color: #f2f2f2;}
+
+table tbody td:hover {background-color: #ddd; cursor:'default'}
+
+table thead {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #63b1ff;
+  color: white;
+  border-radius: 2px;
+}
+
