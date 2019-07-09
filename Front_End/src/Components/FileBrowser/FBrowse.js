@@ -3,6 +3,7 @@ import axios from 'axios';
 import '../../global.js';
 import Directory from './Directory';
 import './FBrowse.css';
+import Table from '../Table'
 
 
 class FBrowse extends Component{
@@ -39,8 +40,11 @@ class FBrowse extends Component{
             this.setState({
                 file: response.data
             })
+            console.log(Object.keys(this.state.file.metrics));
         })
     }
+
+
 
     render() {
         console.log(this.state);
@@ -54,14 +58,21 @@ class FBrowse extends Component{
             );
         else
             return (
-                <div>
+                <div style={{display:'flex'}}>
                     <div className="FileBrowser">
                         <h3>File Browser</h3>   
                         <Directory addr={this.state.top} name={this.state.name} 
                         expand={true} fileSelect={this.getFileInfo}/>
                     </div>
-                    <div className="Fileinfo">
-                        {(this.state.file===null)?<p>No file selected</p>:<p>{JSON.stringify(this.state.file, null, 2)}</p>}
+                    <div className="FileInfo">
+                        {(this.state.file===null)?<p>No file selected</p>
+                        :<div>
+                            <h2>
+                                {this.state.file.pathname}
+                            </h2>
+                            <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
+                        </div>
+                    }
                     </div>
                 </div>
             );

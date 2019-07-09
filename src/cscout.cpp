@@ -3282,11 +3282,11 @@ json::value top_file(void *p)
 //			fname: "file name",
 //			graph_suffix: "graph suffix"
 //		},
-//		metrics: {
-//			metrics_name0: metrics value0,
-//			metrics_name1: metrics value1,
+//		metrics: [
+//			[metrics_name0, metrics value0]
+//			[metrics_name1, metrics value1]
 //			...
-//		}
+//		]
 // }
 
 
@@ -3339,8 +3339,10 @@ file_page(void *p)
 
 	
 	
-	for (int j = 0; j < FileMetrics::metric_max; j++)
-			to_return["metrics"][Metrics::get_name<FileMetrics>(j)] = json::value(i.metrics().get_metric(j));
+	for (int j = 0; j < FileMetrics::metric_max; j++){
+			to_return["metrics"][j][0] = json::value(Metrics::get_name<FileMetrics>(j)); 
+			to_return["metrics"][j][1] = json::value(i.metrics().get_metric(j));
+	}
 	return to_return;
 }
 

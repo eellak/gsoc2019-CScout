@@ -21,3 +21,11 @@
     left:0;
     text-shadow: 1px 1px rgba(0,0,0,0.3);
 }
+
+.FileInfo {
+    display: inline-block;
+    margin-top: 2%;
+    margin-left: 2%;
+    margin-right: 2%;
+    width: 60%;
+}
