@@ -32,7 +32,7 @@ class SideDrawer extends Component  {
         return(
         <div>
             <nav className={this.state.drawerClasses}>
-            <a onClick={this.props.drawerClickHandler} id="slideBack">&#10094;</a> 
+            <a onClick={this.props.drawerClickHandler} id="slideBack">&#10005;</a> 
         
                 
                 <ul>
