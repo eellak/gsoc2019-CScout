@@ -18,7 +18,8 @@ class App extends Component {
 
   setType = (type) => {
     this.setState({
-      type: type,
+      sideDrawerOpen: false,
+      type: type
     });
   };
 
