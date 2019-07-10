@@ -6,6 +6,7 @@ import Metrics from './Components/Metrics';
 import SideDrawer from './Components/Toolbar/SideDrawer';
 import Backdrop from './Components/Toolbar/Backdrop';
 import FBrowse from './Components/FileBrowser/FBrowse';
+import Source from './Components/FileBrowser/Source';
 
 class App extends Component {
   constructor() {
@@ -33,6 +34,12 @@ class App extends Component {
     this.setState({sideDrawerOpen: false});
   };
 
+  linkSrc = (obj) => {
+      this.setState({
+        type: "link",
+        id: obj
+      });
+  }
   render() {
     let to_render;
     let backdrop;
@@ -54,6 +61,12 @@ class App extends Component {
         break;
       case("browse"):
         to_render = <FBrowse type='top' changeType={this.setType}/>
+        break;
+      case("source"):
+        to_render = <Source id='1' changeType={this.linkSrc}/>
+        break;
+      case("link"):
+        to_render = <div>{JSON.stringify(this.state)}</div>
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>

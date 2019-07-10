@@ -18,7 +18,7 @@ const Toolbar = props => (
                         <li onClick={()=>(props.changeType("files"))} style={{cursor: 'pointer'}}><a >Files</a></li>
                         <li onClick={()=>(props.changeType("identifiers"))} style={{cursor: 'pointer'}}><a >Identifiers</a></li>
                         <li onClick={()=>(props.changeType("funcs"))} style={{cursor: 'pointer'}}><a style={{top: '8px',bottom: '8px'}}>Functions<br/>and Macros</a></li>
-                        <li onClick={()=>(props.changeType("operations"))} style={{cursor: 'pointer'}}><a>Operations</a></li>
+                        <li onClick={()=>(props.changeType("source"))} style={{cursor: 'pointer'}}><a>Operations</a></li>
                     </ul>
                 </div>
             </nav>

@@ -465,7 +465,16 @@ file_analyze(Fileid fi)
 // {
 //		(IdMsg or FunMsg: "Error Message"),
 //		handEd: 1, 							//(exists only if hand edited) 
-//		file: "html code of according file"
+//		file: [
+//			{
+//				type:"html"	
+//				html:"html code of according file until a link"
+//			},
+//			{
+//				type:"fun" or "id",
+//				id: "addres or needed id"
+//			}
+//		]
 //	}
 static json::value
 file_hypertext( Fileid * fi,bool eval_query)
@@ -547,8 +556,8 @@ file_hypertext( Fileid * fi,bool eval_query)
 	fputs("<hr><code>", stdout);
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
-
-	string file;
+	int no = 0;
+	ostringstream file;
 	for (;;) {
 		Tokid ti;
 		int val;
@@ -556,18 +565,18 @@ file_hypertext( Fileid * fi,bool eval_query)
 		if ((val = in->get()) == EOF)
 			break;
 		if (at_bol) {
-			file.append("<a name=\"" + to_string(line_number) + "\"></a>\n");
+			file << ("<a name=\"" + to_string(line_number) + "\"></a>\n");
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
-				file.append("<span class=\"unused\">");
+				file << "<span class=\"unused\">";
 			if (Option::show_line_number->get()) {
 				char buff[50];
 				snprintf(buff, sizeof(buff), "%5d ", line_number);
 				// Do not go via HTML string to keep tabs ok
 				for (char *s = buff; *s; s++)
 					if (*s == ' ')
-						file.append("&nbsp;");
+						file << "&nbsp;";
 					else
-						file.append(1,*s);
+						file << *s;
 			}
 			at_bol = false;
 		}
@@ -581,11 +590,16 @@ file_hypertext( Fileid * fi,bool eval_query)
 				s += (char)in->get();
 			Identifier i(ec, s);
 			const IdPropElem ip(ec, i);
-			
-			if (idq.eval(ip))
-				file.append(html(ip));
-			else
-				file.append(html_string(s) + "\n");
+			to_return["file"][no]["type"] = json::value("html");
+			to_return["file"][no++]["html"] = json::value(file.str());
+			file.clear();
+			if (idq.eval(ip)){
+				to_return["file"][no]["type"] = json::value("id");
+				to_return["file"][no]["id"] = html_address(ip);
+				to_return["file"][no++]["name"] = json::value((ip.second).get_id());			
+			}
+			else	
+				file << html_string(s) << endl;
 			continue;
 		}
 		
@@ -600,25 +614,31 @@ file_hypertext( Fileid * fi,bool eval_query)
 					int len = ci->second->get_name().length();
 					for (int j = 1; j < len; j++)
 						s += (char)in->get();
-					file.append(html(*(ci->second)));
+					to_return["file"][no]["type"] = json::value("html");
+					to_return["file"][no++]["html"] = json::value(file.str());
+					file.clear();
+					to_return["file"][no]["type"] = json::value("fun");
+					to_return["file"][no++]["id"] = html_address(*(ci->second));
+					to_return["file"][no++]["name"] = json::value(ci->second->get_name());			
 					break;
 				}
 			if (ci != be.second)
 				continue;
 		}
 		
-		file.append(html((char)val));
+		file << html((char)val);
 		if ((char)val == '\n') {
 			at_bol = true;
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
-				file.append("</span>");
+				file << "</span>";
 			
 			line_number++;
 		}
 	}
 	delete in;
 	if(qtype != NULL) delete qtype;
-	to_return["file"] = json::value::string(file);
+	to_return["file"][no]["type"] = json::value("html");
+	to_return["file"][no++]["html"] = json::value::string(file.str());
 	return to_return;
 }
 
@@ -3362,7 +3382,7 @@ source_page(void *p)
 	const string &pathname = i.get_path();
 	to_return["source"] = json::value::string(pathname);
 // 	modify file_hypertext
-	to_return["html"] =file_hypertext(&i, false);
+	to_return["html"] = file_hypertext(&i, false);
 	
 	return to_return;
 
