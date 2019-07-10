@@ -3,7 +3,8 @@ import axios from 'axios';
 import '../../global.js';
 import Directory from './Directory';
 import './FBrowse.css';
-import Table from '../Table'
+import Table from '../Table';
+import Tabs from '../Tabs/Tabs';
 
 
 class FBrowse extends Component{
@@ -46,7 +47,9 @@ class FBrowse extends Component{
 
 
 
+
     render() {
+
         console.log(this.state);
         if (this.state.loaded===false)
             return(
@@ -56,7 +59,23 @@ class FBrowse extends Component{
                     </h2>
                 </div>
             );
-        else
+        else{
+            var tabs = {}
+            if(this.state.file!==null)                
+                tabs = [ 
+                    {
+                        title:"Details",
+                        content: <c>{JSON.stringify(this.state.file)}</c>
+                    },
+                    {
+                        title:"Metrics",
+                        content: <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
+                    },
+                    {
+                        title:"test",
+                        content: <p>wee it works</p>
+                    }
+            ];
             return (
                 <div style={{display:'flex'}}>
                     <div className="FileBrowser">
@@ -70,12 +89,16 @@ class FBrowse extends Component{
                             <h2>
                                 {this.state.file.pathname}
                             </h2>
-                            <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
-                        </div>
+                           {// <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
+                        
+                           }
+                           <Tabs children={tabs}/>
+                           </div>
                     }
                     </div>
                 </div>
             );
+        }
     }
 }
 export default FBrowse;
