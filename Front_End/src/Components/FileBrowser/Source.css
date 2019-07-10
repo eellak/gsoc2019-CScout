@@ -1,0 +1,14 @@
+.source div {
+    text-align: left;
+    font-family: monospace;
+}
+
+.srcHtml {
+    display: inline;
+}
+.srcLink {
+    color: #3366cc;
+    display: inline;
+    cursor: pointer;
+    text-decoration: underline
+}
