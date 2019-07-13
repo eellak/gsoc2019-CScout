@@ -12,7 +12,7 @@ class Table extends Component{
     render() {
         console.log(this.props.head);
         return(
-            <table>
+            <table className="datatable">
                 <thead>
                     <tr>
                         {this.props.head.map((a,i)=>

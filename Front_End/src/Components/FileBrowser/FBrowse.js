@@ -5,6 +5,7 @@ import Directory from './Directory';
 import './FBrowse.css';
 import Table from '../Table';
 import Tabs from '../Tabs/Tabs';
+import Source from './Source';
 
 
 class FBrowse extends Component{
@@ -65,11 +66,15 @@ class FBrowse extends Component{
                 tabs = [ 
                     {
                         title:"Details",
-                        content: <c>{JSON.stringify(this.state.file)}</c>
+                        content: <div>{JSON.stringify(this.state.file)}</div>
                     },
                     {
                         title:"Metrics",
                         content: <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
+                    },
+                    {
+                        title:"Source",
+                        content: <Source id={this.state.file.queries.id}/>
                     },
                     {
                         title:"test",

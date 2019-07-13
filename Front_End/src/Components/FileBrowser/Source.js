@@ -35,34 +35,32 @@ class Source extends  Component{
 
        
     }
-
-    parseHtml(){
-        return(
-            <div>
-                {this.state.html.map((obj,i) => 
-                    (obj.type==="html")?
-                    <div key={i} className="srcHtml" dangerouslySetInnerHTML={this.returnHtml(obj.html)} />
-                    :<div key={i} className="srcLink" onClick={() => {
-                            this.props.changeType(obj)
-                        } }>{obj.name}<br/></div>
-                    )}
-            </div>
-        )
-    }
-
+ 
     returnHtml(obj){
         return{
             __html: obj
         };
     }
 
+    contentClickHandler = (e) => {
+        const targetLink = e.target.closest('a');
+        if(!targetLink) return;
+        e.preventDefault();
+        
+        console.log(targetLink.href); 
+      };
+
+
     render(){
-        console.log(this.returnHtml);
+        console.log(this.state.html);
         return(
-            <div className='source' 
-            >
+            <div className='source'>
                 <div>
-                    {(this.state.loaded)?this.parseHtml():this.state.html}
+                    {(this.state.loaded)? 
+                    <div onClick={this.contentClickHandler} 
+                    dangerouslySetInnerHTML={this.returnHtml(this.state.html)}>              
+                </div>
+            :this.state.html}
                 </div>
             </div>
         );

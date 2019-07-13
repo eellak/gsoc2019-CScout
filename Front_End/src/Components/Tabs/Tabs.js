@@ -20,14 +20,15 @@ class Tabs extends Component {
 
         return(
             <nav className='tab-navigation'>
-                <div className='tabs'>
+                <table className='tabs'><tbody><tr>
                     {this.props.children.map((child,i) => 
-                        <div key={i} onClick={()=>this.setActive(i)} 
+                        <td key={i} onClick={()=>this.setActive(i)} 
                         className={(this.state.tabActive === i)?'active':'inactive'}>
                             {child.title}
-                        </div>
+                        </td>
                     )}
-                </div>
+                    </tr></tbody>
+                </table>
                 <div className="panel">
                     {this.props.children[this.state.tabActive].content}
                 </div>

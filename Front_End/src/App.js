@@ -63,7 +63,7 @@ class App extends Component {
         to_render = <FBrowse type='top' changeType={this.setType}/>
         break;
       case("source"):
-        to_render = <Source id='1' changeType={this.linkSrc}/>
+        to_render = <Source id='15' changeType={this.linkSrc}/>
         break;
       case("link"):
         to_render = <div>{JSON.stringify(this.state)}</div>

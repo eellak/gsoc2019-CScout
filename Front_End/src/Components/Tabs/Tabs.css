@@ -1,22 +1,25 @@
 .inactive {
-    margin: 10px;
     display: inline-block;
     cursor: pointer;
     padding-bottom: 10px;
-
+    border-collapse: collapse;
+    padding:4px;
 }
 .active {
-    margin: 10px;
     display: inline-block;
     cursor: pointer;
     padding-bottom: 10px;
     color:white;
     background: #63b1ff;
-    padding:5px;
-    border:1px black;
-    border-style: solid;
+    border-collapse: collapse;
+    padding:6px;
 }
 
+.tabs {
+    border-bottom:1px black;
+    border-style: solid;
+    width:100%;
+}
 .panel {
     border-style: solid;
     border: 1px black;
