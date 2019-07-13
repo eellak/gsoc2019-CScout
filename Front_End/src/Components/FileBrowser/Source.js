@@ -7,8 +7,9 @@ class Source extends  Component{
     constructor(props) {
         super(props);
         this.state = {
-            html:"<h3>Loading..</h3>",
-            loaded: false
+            html:"Loading...",
+            loaded: false,
+            type:0
         }
     }
 
@@ -16,8 +17,26 @@ class Source extends  Component{
         this.getSourceCode();
         console.log(this.state);
     }
+   
+    componentDidUpdate(prevProps) {
+        if(this.props.id !== prevProps.id)      
+        {
+            this.getSourceCode();
+        }
+    }
 
     getSourceCode(){
+        var url;
+        switch(this.type){
+            case(0):
+                url="src.html?id="+this.props.id;
+                break;
+            case(1):
+                url="src.html?id="+this.props.id+"&marku=1";
+                break;
+            case(2):
+                url="qsrc.html?id="+this.props.id+"&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks"
+        }
         Axios.get(global.address+"qsrc.html?id="+this.props.id+"&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks")
         .then((response) => {
             if(response.data.error)
@@ -47,7 +66,6 @@ class Source extends  Component{
         if(!targetLink) return;
         e.preventDefault();
         
-        console.log(targetLink.href); 
       };
 
 
@@ -57,10 +75,11 @@ class Source extends  Component{
             <div className='source'>
                 <div>
                     {(this.state.loaded)? 
-                    <div onClick={this.contentClickHandler} 
-                    dangerouslySetInnerHTML={this.returnHtml(this.state.html)}>              
-                </div>
-            :this.state.html}
+                        <div onClick={this.contentClickHandler} 
+                            dangerouslySetInnerHTML={this.returnHtml(this.state.html)}>              
+                        </div>
+                        :this.state.html
+                    }
                 </div>
             </div>
         );

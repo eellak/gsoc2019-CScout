@@ -3,7 +3,8 @@
     cursor: pointer;
     padding-bottom: 10px;
     border-collapse: collapse;
-    padding:4px;
+    background: rgb(202, 202, 202);
+    padding:6px;
 }
 .active {
     display: inline-block;
@@ -16,11 +17,14 @@
 }
 
 .tabs {
-    border-bottom:1px black;
-    border-style: solid;
-    width:100%;
+    width:100%
 }
-.panel {
-    border-style: solid;
-    border: 1px black;
+
+.tabs td:first-child{
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+.tabs td:last-child{
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
