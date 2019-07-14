@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import Axios from 'axios';
-import '../../global.js';
+import '../../../global.js';
 import './Source.css';
 
 class Source extends  Component{
@@ -8,8 +8,8 @@ class Source extends  Component{
         super(props);
         this.state = {
             html:"Loading...",
-            loaded: false,
-            type:0
+            loaded: false
+
         }
     }
 
@@ -19,7 +19,7 @@ class Source extends  Component{
     }
    
     componentDidUpdate(prevProps) {
-        if(this.props.id !== prevProps.id)      
+        if(this.props.id !== prevProps.id || this.props.type !== prevProps.type)      
         {
             this.getSourceCode();
         }
@@ -27,17 +27,24 @@ class Source extends  Component{
 
     getSourceCode(){
         var url;
-        switch(this.type){
-            case(0):
-                url="src.html?id="+this.props.id;
+        console.log(this.props.type)
+        switch(this.props.type){
+            case('0'):
+                url = "src.html?id=" + this.props.id;
                 break;
-            case(1):
-                url="src.html?id="+this.props.id+"&marku=1";
+            case('1'):
+                url = "src.html?id=" + this.props.id + "&marku=1";
                 break;
-            case(2):
-                url="qsrc.html?id="+this.props.id+"&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks"
-        }
-        Axios.get(global.address+"qsrc.html?id="+this.props.id+"&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks")
+            case('2'):
+                url = "qsrc.html?id=" + this.props.id + "&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks"
+                break;
+            case('3'):
+                url = "qsrc.html?id=" + this.props.id + "&qt=id&match=L&writable=1&a11=1&n=Source+Code+With+Hyperlinks+to+Project-global+Writable+Identifiers"
+                break;
+            case('4'):
+                url = "qsrc.html?id=" + this.props.id + "&qt=fun&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations"
+            }
+        Axios.get(global.address+url)
         .then((response) => {
             if(response.data.error)
                 this.setState({
@@ -70,7 +77,6 @@ class Source extends  Component{
 
 
     render(){
-        console.log(this.state.html);
         return(
             <div className='source'>
                 <div>

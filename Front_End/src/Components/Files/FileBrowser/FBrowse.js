@@ -1,11 +1,12 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import '../../global.js';
+import '../../../global.js';
 import Directory from './Directory';
 import './FBrowse.css';
-import Table from '../Table';
-import Tabs from '../Tabs/Tabs';
-import Source from './Source';
+import Table from '../../Table';
+import Tabs from '../../Tabs/Tabs';
+import SourceControl from '../Source/SourceControl';
+import Details from './Details';
 
 
 class FBrowse extends Component{
@@ -66,7 +67,7 @@ class FBrowse extends Component{
                 tabs = [ 
                     {
                         title:"Details",
-                        content: <div>{JSON.stringify(this.state.file)}</div>
+                        content: <Details dets={this.state.file}/>
                     },
                     {
                         title:"Metrics",
@@ -74,12 +75,9 @@ class FBrowse extends Component{
                     },
                     {
                         title:"Source",
-                        content: <Source id={this.state.file.queries.id}/>
-                    },
-                    {
-                        title:"test",
-                        content: <p>wee it works</p>
+                        content: <SourceControl id={this.state.file.queries.id}/>
                     }
+                   
             ];
             return (
                 <div style={{display:'flex'}}>
@@ -93,10 +91,8 @@ class FBrowse extends Component{
                         :<div>
                             <h2>
                                 {this.state.file.pathname}
-                            </h2>
-                           {// <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
-                        
-                           }
+                            </h2>                      
+                           
                            <Tabs children={tabs}/>
                            </div>
                     }

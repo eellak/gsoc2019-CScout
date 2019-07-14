@@ -1,0 +1,10 @@
+.FileResults td{
+    border-top: 2px black;
+    border-bottom: 2px black;
+    border-top-style: solid;
+    border-bottom-style: solid;
+
+}
+.FileResults{
+    border-collapse: collapse;
+}

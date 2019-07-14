@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import axios from 'axios';
-import '../../global.js';
+import '../../../global.js';
 import folder from './folder.svg';
 import openFolder from './openFolder.svg';
 import file from './file.ico';

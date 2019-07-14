@@ -1,0 +1,25 @@
+.selector {
+    text-align: left;
+    margin-top: 5px;
+}
+
+.selector select{
+    background:#63b1ff;
+    color: white;
+    border-radius:10px;
+}
+
+.selector option{
+    background:white;
+    color:black;
+}
+.selected {
+    background:#63b1ff
+}
+
+
+.selector option:hover{
+    border-top:10px;
+    background:#63b1ff;
+    color: white;
+}

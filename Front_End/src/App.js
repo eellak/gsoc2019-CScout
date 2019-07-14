@@ -5,9 +5,9 @@ import Main from './Components/Main';
 import Metrics from './Components/Metrics';
 import SideDrawer from './Components/Toolbar/SideDrawer';
 import Backdrop from './Components/Toolbar/Backdrop';
-import FBrowse from './Components/FileBrowser/FBrowse';
-import Source from './Components/FileBrowser/Source';
-
+import FBrowse from './Components/Files/FileBrowser/FBrowse';
+import Source from './Components/Files/Source/Source';
+import FileSearch from './Components/Files/FileSearch/FileSearch';
 class App extends Component {
   constructor() {
     super();
@@ -67,6 +67,9 @@ class App extends Component {
         break;
       case("link"):
         to_render = <div>{JSON.stringify(this.state)}</div>
+        break;
+      case("searchf"):
+        to_render = <div><FileSearch/></div>
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>

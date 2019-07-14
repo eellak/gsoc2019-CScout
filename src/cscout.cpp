@@ -1177,6 +1177,11 @@ xfilequery_page(void *p)
 	Timer timer;
 	json::value to_return;
 	const char *qname = server.getCharPParam("n");
+	int pageSize = server.getIntParam("ps");
+	if(pageSize == -1){
+		pageSize = Option::entries_per_page->get();
+	}
+
 	std::ostringstream fs;
 	FileQuery query(&fs, Option::file_icase->get(), current_project);
 
@@ -1194,22 +1199,18 @@ xfilequery_page(void *p)
 		if (query.eval(*i))
 			sorted_files.insert(*i);
 	}
-	to_return["table"]["h"] = json::value::string(html_file_begin());
-	if (modification_state != ms_subst && !browse_only) {
-		to_return["table"]["h1"] = json::value::string("<th></th>");
-	}
+
 	if (query.get_sort_order() != -1) {
 		to_return["mname"] = json::value::string(Metrics::get_name<FileMetrics>(query.get_sort_order()));
-		to_return["table"]["h2"] = json::value::string("<th>" + Metrics::get_name<FileMetrics>(query.get_sort_order()) + "</th>\n",true);
+		;
 	}
 
-	Pager pager(Option::entries_per_page->get(), query.base_url(), query.bookmarkable());	
+	Pager pager(pageSize, query.base_url(), query.bookmarkable());	
 		
-
-	to_return["table"]["hend"] = json::value::string(html_file_set_begin(),true);
+	
 	fs.flush();
 	int no = 0;
-	
+	to_return["metric"] = json::value(query.get_sort_order() != -1);
 	for (multiset <Fileid, FileQuery::specified_order>::iterator i = sorted_files.begin(); i != sorted_files.end(); i++) {
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
@@ -1226,12 +1227,11 @@ xfilequery_page(void *p)
 				to_return["file"][no]["metric"] = json::value(i->const_metrics().get_metric(query.get_sort_order()));
 			}
 			fs << html_file_record_end();
-			to_return["table"]["contents"][no++] = json::value::string(fs.str());
 			fs.flush();
+			no++;
 		}
 	}
 	
-	to_return["table"]["end"] = json::value::string(html_file_end(),true);
 	to_return["timer"] = json::value::string(timer.print_elapsed(),true);
 	
 	if(qname!=NULL) delete qname;
