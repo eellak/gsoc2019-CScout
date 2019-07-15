@@ -1215,10 +1215,12 @@ xfilequery_page(void *p)
 		Fileid f = *i;
 		if (current_project && !f.get_attribute(current_project))
 			continue;
-		if (pager.show_next()) {
+		//if (pager.show_next()) {
 			fs << html_file(*i);
 			to_return["file"][no]["id"] = json::value(i->get_id());
-			to_return["file"][no]["name"] = json::value::string(i->get_path());
+			size_t t = (i->get_path()).find_last_of('/');
+			to_return["file"][no]["name"] = json::value::string((i->get_path()).substr(t+1));
+			to_return["file"][no]["path"] = json::value::string((i->get_path()).substr(0,t));
 			if (modification_state != ms_subst && !browse_only)
 				fs << "<td><a href=\"fedit.html?id=" << to_string(i->get_id()) << "\">edit</a></td>";
 			if (query.get_sort_order() != -1) {
@@ -1229,7 +1231,7 @@ xfilequery_page(void *p)
 			fs << html_file_record_end();
 			fs.flush();
 			no++;
-		}
+		//}
 	}
 	
 	to_return["timer"] = json::value::string(timer.print_elapsed(),true);

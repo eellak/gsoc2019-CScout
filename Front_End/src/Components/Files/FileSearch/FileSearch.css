@@ -7,4 +7,26 @@
 }
 .FileResults{
     border-collapse: collapse;
+    display:inline-block;
+    width:70%;
+    right:0px;
+    position: absolute;
+}
+.titleSearch{
+    margin:5px;
+}
+.searchFields{
+    width: 30%;
+    display: inline-block;
+    top:15%;
+    left:0px;
+    position:absolute;
+}
+
+.searchFields form{
+    margin:10px;
+    text-align: left;
+}
+.textSearch input[type='text']{
+    padding-right: 40px;
 }
