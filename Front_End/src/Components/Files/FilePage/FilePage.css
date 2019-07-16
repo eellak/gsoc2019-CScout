@@ -1,0 +1,11 @@
+.FileInfo {
+    display: inline-block;
+    margin-top: 1%;
+    margin-left: 2%;
+    margin-right: 2%;
+    width: 60%;
+}
+.FileInfo h2{
+    margin-top:0%;
+    margin-bottom: 0%
+}
