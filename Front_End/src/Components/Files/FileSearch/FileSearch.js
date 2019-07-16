@@ -57,7 +57,9 @@ class FileSearch extends Component{
                 break;
             }
             toRender.push(<tr key={i}>
-                <td>{props[start + i].name}</td>
+                <td onDoubleClick={()=>
+                    this.props.toFile("filePage",props[start + i].id)
+                    } style={{cursor:'pointer'}}>{props[start + i].name}</td>
                 <td>{props[start + i].path}</td>
                 {this.state.metric?<td>{props[start + i].metric}</td>:null}
                 </tr>);

@@ -3,18 +3,15 @@ import axios from 'axios';
 import '../../../global.js';
 import Directory from './Directory';
 import './FBrowse.css';
-import Table from '../../Table';
-import Tabs from '../../Tabs/Tabs';
-import SourceControl from '../Source/SourceControl';
-import Details from './Details';
-
+import Files from '../FilePage/FilePage'
 
 class FBrowse extends Component{
     constructor(props) {
         super(props);
         this.state={
             loaded:false,
-            file:null
+            file:null,
+            id:null
         }
         
     };
@@ -38,12 +35,8 @@ class FBrowse extends Component{
     }
 
     getFileInfo = (param) => {
-        axios.get(global.address + "file.html?id="+param)
-        .then((response) => {
-            this.setState({
-                file: response.data
-            })
-            console.log(Object.keys(this.state.file.metrics));
+        this.setState({
+            id:param
         })
     }
 
@@ -62,23 +55,6 @@ class FBrowse extends Component{
                 </div>
             );
         else{
-            var tabs = {}
-            if(this.state.file!==null)                
-                tabs = [ 
-                    {
-                        title:"Details",
-                        content: <Details dets={this.state.file}/>
-                    },
-                    {
-                        title:"Metrics",
-                        content: <Table head={["Metrics","Values"]} contents={this.state.file.metrics}/>
-                    },
-                    {
-                        title:"Source",
-                        content: <SourceControl id={this.state.file.queries.id}/>
-                    }
-                   
-            ];
             return (
                 <div style={{display:'flex'}}>
                     <div className="FileBrowser">
@@ -86,17 +62,8 @@ class FBrowse extends Component{
                         <Directory addr={this.state.top} name={this.state.name} 
                         expand={true} fileSelect={this.getFileInfo}/>
                     </div>
-                    <div className="FileInfo">
-                        {(this.state.file===null)?<p>No file selected</p>
-                        :<div>
-                            <h2>
-                                {this.state.file.pathname}
-                            </h2>                      
-                           
-                           <Tabs children={tabs}/>
-                           </div>
-                    }
-                    </div>
+
+                    {(this.state.id===null)?null:<Files id={this.state.id}/>}
                 </div>
             );
         }

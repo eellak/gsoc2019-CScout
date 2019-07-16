@@ -8,6 +8,8 @@ import Backdrop from './Components/Toolbar/Backdrop';
 import FBrowse from './Components/Files/FileBrowser/FBrowse';
 import Source from './Components/Files/Source/Source';
 import FileSearch from './Components/Files/FileSearch/FileSearch';
+import FilePage from './Components/Files/FilePage/FilePage';
+
 class App extends Component {
   constructor() {
     super();
@@ -23,6 +25,14 @@ class App extends Component {
       type: type
     });
   };
+
+  setTypeId = (type,id) => {
+    this.setState({
+      sideDrawerOpen: false,
+      type: type,
+      id:id
+    })
+  }
 
   drawerToggleClickHandler = () => {
     this.setState((prevState) => {
@@ -65,11 +75,11 @@ class App extends Component {
       case("source"):
         to_render = <Source id='15' changeType={this.linkSrc}/>
         break;
-      case("link"):
-        to_render = <div>{JSON.stringify(this.state)}</div>
+      case("filePage"):
+        to_render = <FilePage id={this.state.id}/>
         break;
       case("searchf"):
-        to_render = <div><FileSearch/></div>
+        to_render = <div><FileSearch toFile={this.setTypeId}/></div>
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>
