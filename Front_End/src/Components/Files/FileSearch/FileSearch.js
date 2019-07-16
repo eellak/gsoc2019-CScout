@@ -1,7 +1,9 @@
 import React,{Component, Fragment} from 'react';
 import Axios from 'axios';
 import '../../../global.js';
-import './FileSearch.css'
+import './FileSearch.css';
+import Uarr from './asc.ico';
+import Pager from './Pager';
 
 class FileSearch extends Component{
     constructor(props){
@@ -10,9 +12,10 @@ class FileSearch extends Component{
             loaded: false,
             size: 20,
             page: 0,
-            orderby: 0,
+            orderby: "",
             orderField: 0,
-            selectedOption:"all"           
+            selectedOption:"all",
+            rev: false           
         }
         this.objectComp = this.objectComp.bind(this);
         this.handleOptionChange = this.handleOptionChange.bind(this);
@@ -27,19 +30,19 @@ class FileSearch extends Component{
         this.getFiles();
     }
 
-    objectComp(a,b){
-        if ( a[this.state.orderby] < b[this.state.orderby]){
+    objectComp(a,b,e){
+        if ( a[e] < b[e]){
             return -1;
         }
-        if ( a[this.state.orderby] > b[this.state.orderby] ){
+        if ( a[e] > b[e] ){
             return 1;
         }
         return 0;
     }
 
-    orderTable(){
-        var files = this.state.show;     
-        files.sort(this.objectComp);
+    orderTable(e){
+        var files = this.state.show;           
+        files.sort((a,b) => this.objectComp(a,b,e));
         this.setState({
             show: files
         })   
@@ -54,26 +57,50 @@ class FileSearch extends Component{
                 break;
             }
             toRender.push(<tr key={i}>
-                <td>{props[i].name}</td>
-                <td>{props[i].path}</td>
-                {this.state.metric?<td>{props[i].metric}</td>:null}
+                <td>{props[start + i].name}</td>
+                <td>{props[start + i].path}</td>
+                {this.state.metric?<td>{props[start + i].metric}</td>:null}
                 </tr>);
         }
         
         return toRender;
     }
 
-    changeOrder(e){     
-        this.setState({
-            orderby:Object.keys(this.state.files[0])[e],
-            orderField:e
-        })
-        this.orderTable();
+    changeOrder(e){ 
+        if(this.state.orderField !== e){    
+            console.log(e)
+            console.log(Object.keys(this.state.files[0])[e])
+            this.setState({
+                orderby:Object.keys(this.state.files[0])[e],
+                orderField:e,
+                rev:false
+            })
+            this.orderTable(Object.keys(this.state.files[0])[e]);
+        }
+        else{
+            if(this.state.rev){
+                this.setState({
+                    rev:false,
+                    orderField:0
+                })
+                
+            }
+            else
+                this.setState({
+                    rev: !this.state.rev,
+                    show: this.state.show.reverse()
+                });
+        }
     }
 
     pageNext(){
         this.setState({
             page: this.state.page+1
+        })
+    }
+    pagePrev(){
+        this.setState({
+            page: this.state.page-1
         })
     }
 
@@ -108,7 +135,8 @@ class FileSearch extends Component{
                     show: response.data.file,
                     size: 20,
                     start: 0
-                })
+                })                   
+
             }
         });
     }
@@ -162,46 +190,69 @@ class FileSearch extends Component{
                         <input type='radio' className="type" value='read-only' 
                         checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange}/>
                             Read-Only<br/>
-                        {//<button>Submit</button>
-                        }
+                     
                     </form>
                     <form onSubmit={(e)=> {
                         this.setState({
-                            size:this.maxShow
+                            size:this.maxShow,
+                            page:0
                         });
                         e.preventDefault()}
                         }> Results per Page:
-                        <input type='number' onChange={(e) => this.maxShow=e.target.value}/><br/>
+                        <input type='number' onChange={(e) => this.maxShow=e.target.value} min='1' max={this.state.loaded?this.state.show.length:200}/><br/>
                     </form>
-                    <button onClick={() => this.changeOrder((this.state.orderField + 1)%2)}>Change Order</button>
+                   
                 </div>
                
+              
                 {this.state.loaded?
-                <table className="FileResults">
-                    <thead>
-                        <tr>
-                            <td>
-                                Name
-                            </td>
-                            <td>
-                                Path
-                            </td>
-                            {
-                                this.state.metric?
-                                <td>Metric</td>
-                                :null
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {                        
-                        this.showPage(this.state.show)
-                    }
-                    </tbody>
-                </table>
+                <div className="results">
+                     <Pager setPage={(e) => this.setState({page:e,start:e*this.state.size})} 
+                     curPage={this.state.page} maxPage={this.state.show.length / this.state.size}
+                     size={this.state.size} totalObjs={this.state.show.length}/>
+                    <table className="FileResults">
+                        <thead>
+                            <tr>
+                                <td onClick={() => {this.changeOrder(1)}}>
+                                    Name
+                                    {
+                                        (this.state.orderField === 1)?
+                                            <img src={Uarr} align="right" style={(this.state.rev)?
+                                            {transform: "scaleY(-1)"}
+                                            :{}
+                                            }/>
+                                        :""                                   
+                                    }
+                                </td>
+                                <td onClick={() => {this.changeOrder(2)}}>
+                                    Path
+                                    {
+                                        (this.state.orderField === 2)?
+                                            <img src={Uarr} align="right" style={(this.state.rev)?
+                                            {transform: "scaleY(-1)"}
+                                            :{}
+                                            }/>
+                                        :""                                   
+                                    }
+                                </td>
+                                {
+                                    this.state.metric?
+                                    <td>Metric</td>
+                                    :null
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {                        
+                            this.showPage(this.state.show)
+                        }
+                        </tbody>
+                    </table>
+                   
+                </div> 
                 :<div>Loading..</div>
-
                 }
+              
             </div>
         )
     }

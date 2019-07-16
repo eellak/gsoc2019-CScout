@@ -1,0 +1,61 @@
+.pager {
+    display: block;
+    position:relative;
+    width:70%;
+    left:30%
+}
+.page{
+    display: inline-block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    cursor: 'pointer';
+}
+.pages{
+    display:inline-block;
+    position: relative;
+    width:50%;
+    left:-20%;
+    right:25%;
+    text-align: center;
+    margin-inline-end: 0px;
+    margin-inline-start: 0px;
+}
+
+.curPage{
+    font-size: large;
+    font-weight: bold;
+    display: inline-block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    cursor: 'pointer';
+}
+.prev{
+    cursor:pointer;
+    left:20%;
+    display: inline-block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    cursor: 'pointer';
+    position: absolute;
+    margin-inline-end: 0px;
+    margin-inline-start: 0px;
+    height:100%
+}
+
+.next{
+    cursor:pointer;
+    left:75%;
+    display: inline-block;
+    padding-inline-start: 2px;
+    padding-inline-end: 2px;
+    cursor: 'pointer';
+    position: absolute;
+    height: 100%;
+}
+
+.prev img{
+    align-items: center; 
+    transform: translate(-50%, -50%);
+    top:30%;
+    position: absolute
+}

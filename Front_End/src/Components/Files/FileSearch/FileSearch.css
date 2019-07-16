@@ -3,24 +3,53 @@
     border-bottom: 2px black;
     border-top-style: solid;
     border-bottom-style: solid;
+    padding-right: 5px;
 
+}
+
+.FileResults thead td{
+    cursor: pointer;
+    font-weight: 600;
+    color:white;
+    background: #63b1ff;
+    border-top-style:none;
+}
+.FileResults thead td:first-child{
+    border-top-left-radius: 5px;
+}
+
+.FileResults thead td:last-child{
+    border-top-right-radius: 5px;
+}
+
+.FileResults img{
+    margin:5px;
+    color :white
 }
 .FileResults{
     border-collapse: collapse;
-    display:inline-block;
+    display:inline-flexbox;
     width:70%;
     right:0px;
-    position: absolute;
+    position: flex;
+    text-align: left;
+    min-width: 300px;
+    max-width: 1000px;
+    float: right;
 }
+
 .titleSearch{
     margin:5px;
 }
 .searchFields{
-    width: 30%;
-    display: inline-block;
+    width: 25%;
     top:15%;
     left:0px;
-    position:absolute;
+    position:static;
+    min-width: 100px;
+    box-sizing: border-box;
+    float: left;
+    display: inline-flexbox;
 }
 
 .searchFields form{
@@ -28,5 +57,27 @@
     text-align: left;
 }
 .textSearch input[type='text']{
-    padding-right: 40px;
+    border-radius: 10px;
+    border:2px #63b1ff;
+    border-style: solid;
+    background-color: white;
+    background-image: url('search.ico');
+    background-color: white;
+    background-position: 5px 3px; 
+    background-repeat: no-repeat;
+    background-size: 15px 15px;
+    padding-left: 25px;
+    height:20px;
+    display: block;
+    margin-right: 5px;
+    width:87%
 }
+
+.searchFields input[type='number']{
+    border-radius: 10px;
+    border:2px #63b1ff;
+    border-style: solid;
+    height:20px;
+    width:25%
+}
+
