@@ -68,23 +68,9 @@ Query::url(const string &s)
 // Compile regular expression specs
 char *
 Query::compile_re(const char *name, const char *varname, CompiledRE &re, bool &match,  string &str, int compflags)
-{
-	cout << "compile_re" << endl;
-	
-	string t = server.getStrParam(varname);
-	char *s = NULL;
-	if(!t.empty()) {
-		s = new char[50]; 
-		strcpy(s,t.c_str());
-	}else
-	{
-		cout<<"EMPTY PARAM" <<endl;
-	}
-	
-
-		
-	 //(t.empty())?NULL:t.c_str();
-
+{	
+	 
+	const char *s = server.getCharPParam(varname);
 	match = false;
 	char* to_return = NULL;
 	if (s && *s) {
@@ -92,6 +78,7 @@ Query::compile_re(const char *name, const char *varname, CompiledRE &re, bool &m
 		str = s;
 		re = CompiledRE(s, REG_EXTENDED | REG_NOSUB | compflags);
 		if (!re.isCorrect()) {
+			to_return = new char[100];
 			sprintf(to_return, "%s regular expression error %s", name, re.getError().c_str());
 			valid = return_val = false;
 			lazy = true;

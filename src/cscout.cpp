@@ -1184,7 +1184,7 @@ xfilequery_page(void *p)
 
 	std::ostringstream fs;
 	FileQuery query(&fs, Option::file_icase->get(), current_project);
-
+	to_return["query"] = json::value(query.param_url());
 	if(!(fs.str().empty()))
 		to_return["Xerror"] = json::value::string(fs.str());
 	if (!query.is_valid()) {
@@ -1194,10 +1194,11 @@ xfilequery_page(void *p)
 	}
 	multiset <Fileid, FileQuery::specified_order> sorted_files;
 	to_return["xfilequery"] = json::value::string((qname && *qname) ? qname : "File Query Results");
-
+	
 	for (vector <Fileid>::iterator i = files.begin(); i != files.end(); i++) {
 		if (query.eval(*i))
 			sorted_files.insert(*i);
+	
 	}
 
 	if (query.get_sort_order() != -1) {
@@ -1216,7 +1217,6 @@ xfilequery_page(void *p)
 		if (current_project && !f.get_attribute(current_project))
 			continue;
 		//if (pager.show_next()) {
-			fs << html_file(*i);
 			to_return["file"][no]["id"] = json::value(i->get_id());
 			size_t t = (i->get_path()).find_last_of('/');
 			to_return["file"][no]["name"] = json::value::string((i->get_path()).substr(t+1));
@@ -1224,19 +1224,16 @@ xfilequery_page(void *p)
 			if (modification_state != ms_subst && !browse_only)
 				fs << "<td><a href=\"fedit.html?id=" << to_string(i->get_id()) << "\">edit</a></td>";
 			if (query.get_sort_order() != -1) {
-				fs << "<td align=\"right\">" << to_string(i->const_metrics().get_metric(query.get_sort_order())) 
-					<< "</td>";
+			
 				to_return["file"][no]["metric"] = json::value(i->const_metrics().get_metric(query.get_sort_order()));
 			}
-			fs << html_file_record_end();
-			fs.flush();
 			no++;
 		//}
 	}
 	
 	to_return["timer"] = json::value::string(timer.print_elapsed(),true);
 	
-	if(qname!=NULL) delete qname;
+	if(qname != NULL) delete qname;
 	return to_return;
 }
 
@@ -3169,6 +3166,20 @@ json::value top_file(void *p)
 	return dir_top("Browse file tree");
 }
 
+json::value file_search(void *p)
+{
+	json::value to_return;
+	to_return["lscope"] = json::value(is_lscope);
+	to_return["cscope"] = json::value(is_cscope);
+	to_return["nstatement"] = json::value(FileMetrics::em_nstatement); 
+	to_return["eq"] = json::value(Query::ec_eq);
+	to_return["nuline"] = json::value(Metrics::em_nuline); 
+	to_return["gt"] = json::value(Query::ec_gt);
+	to_return["nstring"] = json::value(Metrics::em_nstring);
+	to_return["nincfile"] = json::value(FileMetrics::em_nincfile);
+	return to_return;
+}
+
 // Index
 // void
 // index_page(FILE *of, void *data)
@@ -3187,13 +3198,13 @@ json::value top_file(void *p)
 // 		"<li> <a href=\"xfilequery.html?ro=1&writable=1&match=Y&n=All+Files\">All files</a>\n"
 // 		"<li> <a href=\"xfilequery.html?ro=1&match=Y&n=Read-only+Files\">Read-only files</a>\n"
 // 		"<li> <a href=\"xfilequery.html?writable=1&match=Y&n=Writable+Files\">Writable files</a>\n");
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers\">Files containing unused project-scoped writable identifiers</a>\n", is_lscope);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers\">Files containing unused file-scoped writable identifiers</a>\n", is_cscope);
-// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BcC%%5D%%24&n=Writable+.c+Files+Without+Any+Statements\">Writable .c files without any statements</a>\n", FileMetrics::em_nstatement, Query::ec_eq, FileMetrics::em_nstatement);
-// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&order=%d&c%d=%d&n%d=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines\">Writable files containing unprocessed lines</a>\n", Metrics::em_nuline, Metrics::em_nuline, Query::ec_gt, Metrics::em_nuline);
-// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&n=Writable+Files+Containing+Strings\">Writable files containing strings</a>\n", Metrics::em_nstring, Query::ec_gt, Metrics::em_nstring);
-// 	fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BhH%%5D%%24&n=Writable+.h+Files+With+%%23include+directives\">Writable .h files with #include directives</a>\n", FileMetrics::em_nincfile, Query::ec_gt, FileMetrics::em_nincfile);
-// 	fprintf(of, "<li> <a href=\"filequery.html\">Specify new file query</a>\n"
+	// fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers\">Files containing unused project-scoped writable identifiers</a>\n", is_lscope);
+	// fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers\">Files containing unused file-scoped writable identifiers</a>\n", is_cscope);
+	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BcC%%5D%%24&n=Writable+.c+Files+Without+Any+Statements\">Writable .c files without any statements</a>\n", FileMetrics::em_nstatement, Query::ec_eq, FileMetrics::em_nstatement);
+	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&order=%d&c%d=%d&n%d=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines\">Writable files containing unprocessed lines</a>\n", Metrics::em_nuline, Metrics::em_nuline, Query::ec_gt, Metrics::em_nuline);
+	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&n=Writable+Files+Containing+Strings\">Writable files containing strings</a>\n", Metrics::em_nstring, Query::ec_gt, Metrics::em_nstring);
+	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BhH%%5D%%24&n=Writable+.h+Files+With+%%23include+directives\">Writable .h files with #include directives</a>\n", FileMetrics::em_nincfile, Query::ec_gt, FileMetrics::em_nincfile);
+	// fprintf(of, "<li> <a href=\"filequery.html\">Specify new file query</a>\n"
 // 		"</ul></div>\n");
 
 // 	fputs(
@@ -4309,6 +4320,7 @@ main(int argc, char *argv[])
 		server.addHandler("browseTop.html",top_file, NULL);
 	//	server.addHandler("about.html", about_page, NULL);
 		server.addHandler("setproj.html", set_project_page, NULL);
+		server.addHandler("filesearch", file_search,NULL);
 		// server.addHandler("logo.png", logo_page, NULL);
 		//server.addHandler("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
 	}

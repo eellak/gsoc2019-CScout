@@ -86,12 +86,12 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 	match_type = *m;
 	mquery.set_match_type(match_type);
 
-	writable = !!server.getIntParam("writable");
-	ro = !!server.getIntParam("ro");
-	exclude_fre = !!server.getIntParam("xfre");
+	writable = !!server.getBoolParam("writable");
+	ro = !!server.getBoolParam("ro");
+	exclude_fre = !!server.getBoolParam("xfre");
 	// Compile regular expression specs
 	(*of) << compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
-	delete m;
+	
 	if (!(of->str().empty()))
 		return;
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
@@ -149,9 +149,10 @@ bool FileQuery::eval(Fileid &f)
 	}
 	if (!add)
 		return false;
-
+	
 	int retval = exclude_fre ? 0 : REG_NOMATCH;
-	if (match_fre && fre.exec(f.get_path()) == retval)
+	if (match_fre && fre.exec(f.get_path()) == retval){
 		return false; // RE match failed spec
+	}
 	return true;
 }

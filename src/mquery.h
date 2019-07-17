@@ -44,6 +44,10 @@ public:
 			argspec << "i(n" << i << ")";
 			op[i] = server.getIntParam("c"+to_string(i));
 			n[i] = server.getIntParam("n"+to_string(i));
+			if(op[i] == -1)
+				op[i] = 0;
+			if(n[i] == -1)
+				n[i] = 0;
 		}
 		if (!(sort_order = server.getIntParam("order")))
 			sort_order = -1;

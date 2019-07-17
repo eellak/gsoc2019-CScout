@@ -28,6 +28,17 @@ class FileSearch extends Component{
 
     componentDidMount(){
         this.getFiles();
+        this.getSearchParams();
+    }
+
+    getSearchParams(){
+        Axios.get(global.address + 'filesearch')
+        .then((response) => 
+            this.setState({
+                options:response.data,
+                optionsLoad: true
+            })
+        );
     }
 
     objectComp(a,b,e){
@@ -116,8 +127,25 @@ class FileSearch extends Component{
                 url = "ro=1&match=Y&n=Read-only+Files";
                 break;
             case('writable'):
-                url = "writable=1&match=Y&n=Writable+Files"
+                url = "writable=1&match=Y&n=Writable+Files";
                 break;
+            case('unused-proj-scoped-id'):
+                url = "writable=1&a11=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers";
+                break;
+            case('unused-file-scoped-id'):
+                url = "writable=1&a10=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers";
+                break;
+            case('wr-no-statement'):
+                url = "writable=1&c16=1&n16=0&match=L&fre=%5C.%5BcC%5D%24&n=Writable+.c+Files+Without+Any+Statements";
+                break;
+            case('wr-unprocessed'):
+                url = "writable=1&order=8&c8=4&n8=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines";
+                break;
+            case('wr-strings'):
+                url = "writable=1&c7=4&n7=0&match=L&n=Writable+Files+Containing+Strings";
+                break;
+            case('wr-h-include'):
+                url = "writable=1&c"+this.state.options.nincfile+"="+this.state.options.gt+"&n"+this.state.options.nincfile+"=0&match=L&fre=%5C.%5BhH%5D%24&n=Writable+.h+Files+With+%23include+directives";
         }
 
         Axios.get(global.address + "xfilequery.html?" + url)
@@ -128,6 +156,18 @@ class FileSearch extends Component{
                 })
             } else
             {
+                if(!response.data.file){
+                    this.setState({
+                        files: [],
+                        metric: response.metric,
+                        timer: response.data.timer,
+                        xfilequery: response.data.xfilequery,
+                        loaded:true,
+                        show: [],
+                        size: 20,
+                        start: 0
+                    })
+                } else 
                 this.setState({
                     files: response.data.file,
                     metric: response.metric,
@@ -182,17 +222,36 @@ class FileSearch extends Component{
                             placeholder="Search..." /><br/>
                         </div>
                     </form>
-                    <form>
+                    <form onSubmit={(e) => {this.setState({loaded:false}); e.preventDefault(); this.getFiles();}}>
                         <input type='radio' className="type" value='all' 
-                        checked={this.state.selectedOption === 'all'} onChange={this.handleOptionChange} />
+                            checked={this.state.selectedOption === 'all'} onChange={this.handleOptionChange} />
                             All<br/>
                         <input type='radio' className="type" value='writable' 
-                        checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange}/>
+                            checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange}/>
                             Writable<br/>
                         <input type='radio' className="type" value='read-only' 
-                        checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange}/>
+                            checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange}/>
                             Read-Only<br/>
-                     
+                            
+                        <input type='radio' className="type" value='unused-proj-scoped-id' 
+                            checked={this.state.selectedOption === 'unused-proj-scoped-id'} onChange={this.handleOptionChange}/>
+                            Files with unused project-scoped writable identifiers<br/>
+                        <input type='radio' className="type" value='unused-file-scoped-id' 
+                            checked={this.state.selectedOption === 'unused-file-scoped-id'} onChange={this.handleOptionChange}/>
+                            Files with unused file-scoped writable identifiers<br/>
+                        <input type='radio' className="type" value='wr-no-statement' 
+                            checked={this.state.selectedOption === 'wr-no-statement'} onChange={this.handleOptionChange}/>
+                            Writable Files without any statements<br/>       
+                        <input type='radio' className="type" value='wr-unprocessed' 
+                            checked={this.state.selectedOption === 'wr-unprocessed'} onChange={this.handleOptionChange}/>
+                            Writable Files with unprocessed lines<br/>       
+                        <input type='radio' className="type" value='wr-strings' 
+                            checked={this.state.selectedOption === 'wr-strings'} onChange={this.handleOptionChange}/>
+                            Writable Files with strings<br/> 
+                        <input type='radio' className="type" value='wr-h-include' 
+                            checked={this.state.selectedOption === 'wr-h-include'} onChange={this.handleOptionChange}/>
+                            Writable .h Files with #include directives<br/>           
+                        <button>Submit</button>
                     </form>
                     <form onSubmit={(e)=> {
                         this.setState({

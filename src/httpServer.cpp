@@ -95,9 +95,10 @@ void HttpServer::handle_get(http_request request)
     else
     {
         cerr << "HttpServer:handle_get: handler:" << it->first << endl;
-        cerr << "URI:" << request.request_uri().query() << endl;
+        utility::string_t dec_query = web::uri::decode(request.request_uri().query());
+        cerr << "URI:" << dec_query << endl;
         //Uri params to json value
-        std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
+        std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(dec_query);
 
         if(DP())
             cout << "Attributes:" << endl;
@@ -149,8 +150,9 @@ void HttpServer::handle_put(http_request request)
     else
     {
         cerr << "HttpServer:handle_put: handler:" << it->first << endl;
-        cerr << "URI:" << request.request_uri().query() << endl;
-        std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(request.request_uri().query());
+         utility::string_t dec_query = web::uri::decode(request.request_uri().query());
+        cerr << "URI:" << dec_query << endl;
+        std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(dec_query);
 
         if(DP())
             cout << "Attributes:" << endl;
