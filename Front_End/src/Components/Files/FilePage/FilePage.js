@@ -55,7 +55,7 @@ class Files extends Component {
                 },
                 {
                     title:"Source",
-                    content: <SourceControl id={this.state.file.queries.id}/>
+                    content: <SourceControl id={this.state.file.queries.id} changeType={this.props.changeType}/>
                 }
                
         ];

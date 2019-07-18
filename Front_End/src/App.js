@@ -9,6 +9,7 @@ import FBrowse from './Components/Files/FileBrowser/FBrowse';
 import Source from './Components/Files/Source/Source';
 import FileSearch from './Components/Files/FileSearch/FileSearch';
 import FilePage from './Components/Files/FilePage/FilePage';
+import Identifier from './Components/Identifiers/Identifier';
 
 class App extends Component {
   constructor() {
@@ -70,16 +71,19 @@ class App extends Component {
         to_render = <Main changeType={this.setType}/>;
         break;
       case("browse"):
-        to_render = <FBrowse type='top' changeType={this.setType}/>
+        to_render = <FBrowse type='top' changeType={this.setTypeId}/>
         break;
       case("source"):
         to_render = <Source id='15' changeType={this.linkSrc}/>
         break;
       case("filePage"):
-        to_render = <FilePage id={this.state.id}/>
+        to_render = <FilePage id={this.state.id} changeType={this.setTypeId}/>
         break;
       case("searchf"):
         to_render = <div><FileSearch toFile={this.setTypeId}/></div>
+        break;
+      case("id"):
+        to_render = <div><Identifier id={this.state.id} /></div>
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>

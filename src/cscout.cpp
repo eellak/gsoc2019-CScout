@@ -229,7 +229,7 @@ static string
 html(const IdPropElem &i)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"id.html?id=" << i.first << "\">" 
+	to_ret << "<a href=\"id.html?id=" << i.first << "\" type=\"id\" identifier=\""<< i.first << "\">" 
 		<< html_string((i.second).get_id()) + "</a>";
 	return to_ret.str();
 }
@@ -253,7 +253,7 @@ static string
 html(const Call &c)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"fun.html?f=" << &c << "\">"
+	to_ret << "<a href=\"fun.html?f=" << &c << "\" type=\"fun\" identifier=\""<< &c << "\">"
 	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
 }

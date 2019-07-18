@@ -63,7 +63,7 @@ class FBrowse extends Component{
                         expand={true} fileSelect={this.getFileInfo}/>
                     </div>
 
-                    {(this.state.id===null)?null:<Files id={this.state.id}/>}
+                    {(this.state.id===null)?null:<Files id={this.state.id} changeType={this.props.changeType}/>}
                 </div>
             );
         }

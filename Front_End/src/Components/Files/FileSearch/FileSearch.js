@@ -59,20 +59,28 @@ class FileSearch extends Component{
         })   
     }
 
-    showPage(props){
+    handleDoubleClick(){
+
+    }
+    
+    showPage(){
         var  toRender = [];
         var start = this.state.page * this.state.size;
         var i;
         for(i = 0; i < this.state.size; i++){
-            if((start + i) >= props.length){
+            if((start + i) >= this.state.show.length){
                 break;
             }
+            console.log("id:"+this.state.show[start + i].id)
             toRender.push(<tr key={i}>
-                <td onDoubleClick={()=>
-                    this.props.toFile("filePage",props[start + i].id)
-                    } style={{cursor:'pointer'}}>{props[start + i].name}</td>
-                <td>{props[start + i].path}</td>
-                {this.state.metric?<td>{props[start + i].metric}</td>:null}
+                <td onDoubleClick={(e) => {
+                        console.log(e.target.id)
+                        this.props.toFile("filePage",e.target.id)
+                    
+                    }} 
+                    id={this.state.show[start+i].id} style={{cursor:'pointer'}}>{this.state.show[start + i].name}</td>
+                <td>{this.state.show[start + i].path}</td>
+                {this.state.metric?<td>{this.state.show[start + i].metric}</td>:null}
                 </tr>);
         }
         
@@ -223,35 +231,61 @@ class FileSearch extends Component{
                         </div>
                     </form>
                     <form onSubmit={(e) => {this.setState({loaded:false}); e.preventDefault(); this.getFiles();}}>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='all' 
                             checked={this.state.selectedOption === 'all'} onChange={this.handleOptionChange} />
                             All<br/>
+                        <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='writable' 
                             checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange}/>
                             Writable<br/>
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='read-only' 
                             checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange}/>
                             Read-Only<br/>
-                            
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>    
                         <input type='radio' className="type" value='unused-proj-scoped-id' 
                             checked={this.state.selectedOption === 'unused-proj-scoped-id'} onChange={this.handleOptionChange}/>
                             Files with unused project-scoped writable identifiers<br/>
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='unused-file-scoped-id' 
                             checked={this.state.selectedOption === 'unused-file-scoped-id'} onChange={this.handleOptionChange}/>
                             Files with unused file-scoped writable identifiers<br/>
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='wr-no-statement' 
                             checked={this.state.selectedOption === 'wr-no-statement'} onChange={this.handleOptionChange}/>
                             Writable Files without any statements<br/>       
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='wr-unprocessed' 
                             checked={this.state.selectedOption === 'wr-unprocessed'} onChange={this.handleOptionChange}/>
                             Writable Files with unprocessed lines<br/>       
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='wr-strings' 
                             checked={this.state.selectedOption === 'wr-strings'} onChange={this.handleOptionChange}/>
                             Writable Files with strings<br/> 
+                            <span class='checkmark'/>
+                        </label>
+                        <label className='radioB'>
                         <input type='radio' className="type" value='wr-h-include' 
                             checked={this.state.selectedOption === 'wr-h-include'} onChange={this.handleOptionChange}/>
                             Writable .h Files with #include directives<br/>           
-                        <button>Submit</button>
+                            <span class='checkmark'/>
+                        </label>
+                        <button className="formButton">Submit</button>
                     </form>
                     <form onSubmit={(e)=> {
                         this.setState({
@@ -305,7 +339,7 @@ class FileSearch extends Component{
                         </thead>
                         <tbody>
                         {                        
-                            this.showPage(this.state.show)
+                            this.showPage()
                         }
                         </tbody>
                     </table>

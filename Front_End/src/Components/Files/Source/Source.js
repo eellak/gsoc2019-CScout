@@ -71,6 +71,8 @@ class Source extends  Component{
     contentClickHandler = (e) => {
         const targetLink = e.target.closest('a');
         if(!targetLink) return;
+        console.log(targetLink.getAttribute("identifier"));
+        this.props.changeType(targetLink.type,targetLink.getAttribute("identifier"));
         e.preventDefault();
         
       };
