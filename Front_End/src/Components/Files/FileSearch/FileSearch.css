@@ -7,6 +7,10 @@
 
 }
 
+.FileResults {
+  box-shadow: 0 0 6px 0 #63b1ff;
+}
+
 .FileResults thead td{
     cursor: pointer;
     font-weight: 600;
@@ -58,8 +62,8 @@
 }
 .textSearch input[type='text']{
     border-radius: 10px;
-    border:2px #63b1ff;
-    border-style: solid;
+    border:2px solid #63b1ff;
+    box-shadow: 0 0 3px 0px #63b1ff;
     background-color: white;
     background-image: url('search.ico');
     background-color: white;
@@ -70,14 +74,111 @@
     height:20px;
     display: block;
     margin-right: 5px;
-    width:87%
+    width:87%;
+    transition: box-shadow 0.2s
+}
+
+.textSearch input[type='text']:focus{
+  box-shadow: 0 0 8px 0px #63b1ff;
+  outline: none;
 }
 
 .searchFields input[type='number']{
     border-radius: 10px;
     border:2px #63b1ff;
     border-style: solid;
+    box-shadow: 0 0 3px 0px #63b1ff;
     height:20px;
     width:25%
 }
 
+.searchFields input[type='number']:focus{
+  box-shadow: 0 0 8px 0px #63b1ff;
+  outline: none;
+}
+
+/* Customize the label (the radioB) */
+.radioB {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  /* Hide the browser's default radio button */
+  .radioB input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  /* Create a custom radio button */
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 14px;
+    width: 14px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0px 0px 5px 0px gray inset;
+    outline: none;
+    border:1px solid darkgray;
+    
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .radioB:hover input ~ .checkmark {
+    background-color: #ccc;
+    box-shadow:0 0 5px 0 #63b1ff inset;
+  }
+  
+  /* When the radio button is checked, add a blue background */
+  .radioB input:checked ~ .checkmark {
+    background-color: #63b1ff;
+  }
+
+
+  
+  /* Create the indicator (the dot/circle - hidden when not checked) */
+  .checkmark:before {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  /* Show the indicator (dot/circle) when checked */
+  .radioB input:checked ~ .checkmark:before {
+    display: block;
+  }
+  
+  /* Style the indicator (dot/circle) */
+  .radioB .checkmark:before {
+    top: 6px;
+    left: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+   /* background: white;*/
+  }
+
+  .formButton{
+    background-color: #63b1ff;
+    border-radius: 10px;
+    border: 1px darkgray;
+    box-shadow: 0 0 4px 0px grey;
+    padding: 2px 6px;
+    color:white;
+    cursor: pointer;
+    outline: none;
+    transition: box-shadow 0.2s
+  }
+
+  .formButton:hover{
+    box-shadow: 0 0 10px 0px grey;
+    outline: none;
+  }
