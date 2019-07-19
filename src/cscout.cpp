@@ -303,7 +303,7 @@ html_string(const Call *f)
 	string to_ret;
 	for (dequeTpart::const_iterator i = f->get_token().get_parts_begin(); i != f->get_token().get_parts_end(); i++) {
 		Tokid t = i->get_tokid();
-		to_ret.append('[' + html_string(f->get_name().substr(start, i->get_len()), t)["string"].as_string() + ']');
+		to_ret.append('[' + html_string(f->get_name().substr(start, i->get_len()), t)["html"].as_string() + ']');
 		start += i->get_len();
 	}
 	return to_ret;
@@ -1810,7 +1810,8 @@ identifier_page(void *p)
 		if(!s.empty()) {
 			to_return["attribute"][no]["name"] = json::value(Attributes::name(i));
 			to_return["attribute"][no]["get"] = json::value(e->get_attribute(i));
-			to_return["attribute"][no++]["html"] = json::value::string(s);
+			to_return["html"][no++] = json::value::string(s);
+			
 		}
 	}
 	
