@@ -2,7 +2,7 @@ import React,{Component, Fragment} from 'react';
 import Axios from 'axios';
 import '../../../global.js';
 import './FileSearch.css';
-import Uarr from './asc.ico';
+import Uarr from '../../asc.ico';
 import Pager from './Pager';
 
 class FileSearch extends Component{
@@ -126,7 +126,7 @@ class FileSearch extends Component{
     }
 
     getFiles(){
-        var url;
+        var url = this.props.customQ?this.props.customQ+"&":"";
         switch(this.state.selectedOption){
             case('all'):
                 url = "ro=1&writable=1&match=Y&n=All+Files";
@@ -154,6 +154,9 @@ class FileSearch extends Component{
                 break;
             case('wr-h-include'):
                 url = "writable=1&c"+this.state.options.nincfile+"="+this.state.options.gt+"&n"+this.state.options.nincfile+"=0&match=L&fre=%5C.%5BhH%5D%24&n=Writable+.h+Files+With+%23include+directives";
+                break;
+            default:
+                break;
         }
 
         Axios.get(global.address + "xfilequery.html?" + url)

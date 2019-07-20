@@ -10,6 +10,7 @@ import Source from './Components/Files/Source/Source';
 import FileSearch from './Components/Files/FileSearch/FileSearch';
 import FilePage from './Components/Files/FilePage/FilePage';
 import Identifier from './Components/Identifiers/Identifier';
+import IdentifierSearch from './Components/Identifiers/IdentifierSearch';
 
 class App extends Component {
   constructor() {
@@ -83,7 +84,10 @@ class App extends Component {
         to_render = <div><FileSearch toFile={this.setTypeId}/></div>
         break;
       case("id"):
-        to_render = <div><Identifier id={this.state.id} /></div>
+        to_render = <div><Identifier id={this.state.id} changeType={this.setTypeId} /></div>
+        break;
+      case("searchId"):
+        to_render = <IdentifierSearch />
         break;
       default:
         to_render =  <h1>{this.state.type}</h1>

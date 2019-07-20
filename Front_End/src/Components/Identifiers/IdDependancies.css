@@ -1,0 +1,42 @@
+.FileDepends td{
+    border-top: 2px black;
+    border-bottom: 2px black;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    padding-right: 5px;
+
+}
+
+.FileDepends {
+  box-shadow: 0 0 6px 0 #63b1ff;
+}
+
+.FileDepends thead td{
+    cursor: pointer;
+    font-weight: 600;
+    color:white;
+    background: #63b1ff;
+    border-top-style:none;
+}
+.FileDepends thead td:first-child{
+    border-top-left-radius: 5px;
+}
+
+.FileDepends thead td:last-child{
+    border-top-right-radius: 5px;
+}
+
+.FileDepends img{
+    margin:5px;
+    color :white
+}
+.FileDepends{
+    border-collapse: collapse;
+    display: block;
+    position: relative;
+    width:70%;
+    text-align: left;
+    min-width: 300px;
+    max-width: 1000px;
+    left:15%
+}

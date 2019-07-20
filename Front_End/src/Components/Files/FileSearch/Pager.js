@@ -1,5 +1,5 @@
 import React from 'react'
-import Uarr from './asc.ico';
+import Uarr from '../../asc.ico';
 import './Pager.css'
 
 const Pager = props =>

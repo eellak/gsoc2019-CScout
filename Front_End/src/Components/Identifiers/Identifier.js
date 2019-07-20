@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import Axios from 'axios';
 import '../../global.js';
 import Table from '../Table';
+import IdDependancies from './IdDependancies';
 
 class Identifier extends Component{
     constructor(props){
@@ -29,22 +30,24 @@ class Identifier extends Component{
     
     
     getDetails(){
+        var values = ["Ordinary identifier","Macro","Undefined macro","File scope", "Yacc identifier", "Crosses file boundary"]
         return(
             <div>
                 <h3>
                     Details
                 </h3>
-                <table style={{textAlign:'left'}}>
+                <table style={{textAlign:'left'
+                }}>
 
                     <tbody>
                     {
-                        this.state.data.attribute.map((obj,i) => 
+                        values.map((obj,i) => 
                         <tr key={i}>
                             <td>
-                                {obj.name}
+                                {obj.names}
                             </td>
                             <td>
-                                {obj.get.toString()}
+                                {obj}
                             </td>
                         </tr>
                         )
@@ -54,14 +57,27 @@ class Identifier extends Component{
             </div>
         )
     }
+   
+
 
     render(){
         return(
             <div>
-                {this.state.loaded?<div>{
-                    //JSON.stringify(this.state.data.attribute)
-                    this.getDetails()
-                }</div>:<div>Loading ... </div>}
+                {this.state.loaded?
+                    <div>{
+                        //JSON.stringify(this.state.data.attribute)
+                        this.getDetails()
+                    }
+                    <a>This identifier was matched {this.state.data.occurences} occurences<br/> 
+                    This identifier appears in the following projects:
+                    </a>
+                    <ul>
+                        {this.state.data.projects.content.map((obj,i) => 
+                                <li style={{listStyle:'none'}} key={i}>{obj}</li>
+                            )}
+                    </ul>
+                    <IdDependancies search={"ec=" + this.state.data.ec +"&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType}/>
+                </div>:<div>Loading ... </div>}
             </div>
         )
     }
