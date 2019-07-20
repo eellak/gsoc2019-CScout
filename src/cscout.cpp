@@ -234,6 +234,15 @@ html(const IdPropElem &i)
 	return to_ret.str();
 }
 
+// Return identifer name
+static json::value
+name(const IdPropElem &i)
+{
+	json::value to_return;
+	to_return["name"] = json::value((i.second).get_id());
+	to_return["occ"] = json::value(i.first->get_size());
+	return to_return;
+}
 
 
 // Return json value of identifer's address 
@@ -256,6 +265,13 @@ html(const Call &c)
 	to_ret << "<a href=\"fun.html?f=" << &c << "\" type=\"fun\" identifier=\""<< &c << "\">"
 	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
+}
+
+// Return function name
+static json::value
+name(const Call &c)
+{
+	return json::value(c.get_name());
 }
 
 // Return json value of function's address
@@ -1265,13 +1281,23 @@ display_sorted(const Query &query, const container &sorted_ids)
 		to_return["start"] = json::value::string("<p>\n");
 
 	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
-	typename container::const_iterator i;
 	int no = 0;
-
-	for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
-		if (pager.show_next()) {
-			to_return["address"][no] = html_address(**i);			
-			to_return["html"][no++] = json::value::string(html(**i));
+	typename container::const_iterator i;
+	if(server.getBoolParam("rev")){
+		typename container::const_reverse_iterator i;
+		for (i = sorted_ids.rbegin(); i != sorted_ids.rend(); i++) {
+			if (pager.show_next()) {
+				to_return["address"][no] = html_address(**i);			
+				to_return["info"][no++] = name(**i);
+			}
+		}
+	}
+	else{
+		for (i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
+			if (pager.show_next()) {
+				to_return["address"][no] = html_address(**i);			
+				to_return["info"][no++] = name(**i);
+			}
 		}
 	}
 	if (Option::sort_rev->get())
@@ -1512,7 +1538,9 @@ display_files(const Query &query, const IFSet &sorted_files)
 			continue;
 		if (pager.show_next()) {
 			to_return["files"][no]["id"] = json::value(f.get_id());
-			to_return["files"][no]["path"] = json::value(f.get_path());		
+			size_t t = (f.get_path()).find_last_of('/');
+			to_return["files"][no]["name"] = json::value::string((f.get_path()).substr(t+1));
+			to_return["files"][no]["path"] = json::value::string((f.get_path()).substr(0,t));
 			fs << html_file(*i);
 			fs << "<td><a href=\"qsrc.html?id=" << f.get_id() << "&"
 			<< query_url << "\">marked source</a></td>";
@@ -1564,11 +1592,13 @@ xiquery_page(void * p)
 	} 
 
 	Sids sorted_ids;
+	Sids_Occ sorted_ids_occurences;
 	IFSet sorted_files;
 	set <Call *> funs;
 	bool q_id = !!server.getBoolParam("qi");	// Show matching identifiers
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	bool q_fun = !!server.getBoolParam("qfun");	// Show matching functions
+	bool q_occ = !!server.getBoolParam("qocc");	// order by number of occurences
 	const char *qname = server.getCharPParam("n");
 	IdQuery query(Option::file_icase->get(), current_project);
 
@@ -1586,7 +1616,11 @@ xiquery_page(void * p)
 		if (!query.eval(*i))
 			continue;
 		if (q_id) {
-			sorted_ids.insert(&*i);
+			if(q_occ)
+				sorted_ids_occurences.insert(&*i);
+			else
+				sorted_ids.insert(&*i);
+			
 		}
 		else if (q_file) {
 			IFSet f = i->first->sorted_files();
@@ -1598,7 +1632,13 @@ xiquery_page(void * p)
 	}
 	
 	if (q_id) {
-		to_return["ids"] = display_sorted(query, sorted_ids);
+		if(q_occ)
+			to_return["ids"] = display_sorted(query,sorted_ids_occurences);
+		else{
+			to_return["ids"] = display_sorted(query,sorted_ids);
+			for(auto i = sorted_ids.begin(); i != sorted_ids.end();i++){
+			}
+		}
 		to_return["id"] = to_return["ids"]["address"];
 		to_return["ids"].erase("address");		
 	}	

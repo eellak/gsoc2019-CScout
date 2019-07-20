@@ -142,6 +142,23 @@ struct idcmp : public binary_function<const IdProp::value_type *, const IdProp::
 	}
 };
 
+/*
+ * Function object to compare IdProp identifier's 
+ * number of occurances
+ */
+struct id_Occur_Cmp : public binary_function<const IdProp::value_type *, const IdProp::value_type *, bool>
+{
+	bool operator()(const IdProp::value_type *i1, const IdProp::value_type *i2) const
+	{
+		if(i1->first->get_size() > i2->first->get_size())
+			return true;
+		else if(i1->first->get_size() == i2->first->get_size())
+			return Query::string_bi_compare(i1->second.get_id(), i2->second.get_id());
+		else return false;
+	}
+};
+
 typedef multiset<const IdProp::value_type *, idcmp> Sids;
+typedef multiset<const IdProp::value_type *, id_Occur_Cmp> Sids_Occ;
 
 #endif // IDQUERY_

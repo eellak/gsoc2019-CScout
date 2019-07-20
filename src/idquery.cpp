@@ -97,14 +97,13 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		ec = NULL;
 
 		// Type of boolean match
-		const char *m= server.getCharPParam("match");
-		if (m==NULL ) {
+		const char *m = server.getCharPParam("match");
+		if (m == NULL ) {
 			error = "Missing value: match";
 			valid = return_val = false;
 			lazy = true;
 			return;
 		}
-		// cout<<"m:"<<m<<endl;;
 		match_type = *m;
 		delete m;
 	}
@@ -311,13 +310,18 @@ IdQuery::eval(const IdPropElem &i)
 					cout << "Identifier " << i.second.get_id() <<
 					    " occurs in file " << j->get_path() <<
 					    ", which matches RE " << str_fre << "\n";
-				if (exclude_fre)
+				if (exclude_fre){
+					cout<<"fail"<<endl;
 					return false;	// Match; fail
+				}
 				else
 					break;		// Match; stop search
 			}
-		if (!exclude_fre && j == f.end())
+		if (!exclude_fre && j == f.end()){
+			cout<<"no match"<<endl;
 			return false;	// Asked to match and no match found
+		}
+
 	}
 	return true;
 }
