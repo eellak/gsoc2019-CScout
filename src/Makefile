@@ -220,6 +220,11 @@ test:
 	./runtest.sh $(TEST_FLAGS)
 	cd test/csmake && ./runtest.sh
 
+testServ: runtest build/cscout
+	$(CXX) -o runtest ./testServer.cpp $(ADDLIBS)
+	cd ../example && ../src/build/cscout -t awk.cs
+
+
 # Used for regenerating the logo
 logo.cpp: logo.png
 	echo '#include <stdio.h>' >logo.cpp
