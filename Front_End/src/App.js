@@ -98,7 +98,7 @@ class App extends Component {
             drawerClickHandler={this.drawerToggleClickHandler}/>
           {backdrop}
           <Toolbar changeType={this.setType} style={{zIndex:'20'}}  
-            drawerClickHandler={this.drawerToggleClickHandler} style={{zIndex:"600"}}/>
+            drawerClickHandler={this.drawerToggleClickHandler} />
           {to_render}
       </div>
     );
