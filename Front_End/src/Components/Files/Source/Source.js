@@ -43,6 +43,9 @@ class Source extends  Component{
                 break;
             case('4'):
                 url = "qsrc.html?id=" + this.props.id + "&qt=fun&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations"
+                break;
+            default:
+                return;
             }
         Axios.get(global.address+url)
         .then((response) => {
@@ -84,8 +87,7 @@ class Source extends  Component{
                 <div>
                     {(this.state.loaded)? 
                         <div onClick={this.contentClickHandler} 
-                            dangerouslySetInnerHTML={this.returnHtml(this.state.html)}>              
-                        </div>
+                            dangerouslySetInnerHTML={this.returnHtml(this.state.html)}/>              
                         :this.state.html
                     }
                 </div>

@@ -1,4 +1,4 @@
-import React,{Component, Fragment} from 'react';
+import React,{Component} from 'react';
 import Axios from 'axios';
 import '../../../global.js';
 import './FileSearch.css';
@@ -315,7 +315,7 @@ class FileSearch extends Component{
                                     Name
                                     {
                                         (this.state.orderField === 1)?
-                                            <img src={Uarr} align="right" style={(this.state.rev)?
+                                            <img src={Uarr} alt={'&#8592;'} align="right" style={(this.state.rev)?
                                             {transform: "scaleY(-1)"}
                                             :{}
                                             }/>
@@ -326,7 +326,7 @@ class FileSearch extends Component{
                                     Path
                                     {
                                         (this.state.orderField === 2)?
-                                            <img src={Uarr} align="right" style={(this.state.rev)?
+                                            <img src={Uarr} alt={'&#8594;'} align="right" style={(this.state.rev)?
                                             {transform: "scaleY(-1)"}
                                             :{}
                                             }/>

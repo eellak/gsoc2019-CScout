@@ -64,7 +64,7 @@ class SideDrawer extends Component  {
                         <a>Function Metrics</a></li>
 
             
-                    <li className='title'><a onClick ={() => console.log('options')}>Options</a></li>
+                    <li className='title'><a onClick={() => console.log('options')}>Options</a></li>
 
                 </ul>
             </nav>

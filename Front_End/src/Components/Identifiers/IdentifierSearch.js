@@ -1,7 +1,6 @@
 import React,{Component} from 'react';
 import Axios from 'axios';
 import '../../global.js';
-import IdDependancies from './IdDependancies';
 import Uarr from '../asc.ico';
 
 class IdentifierSearch extends Component{
@@ -80,7 +79,7 @@ class IdentifierSearch extends Component{
         var url = this.state.rev ? "&rev=1":"";
         url += (this.state.orderField === 2)?"&qocc=1":"";
         console.log(url);
-        Axios.get(global.address + "xiquery.html?"+"writable=1&a2=1&match=Y&qi=1&n=All+Identifiers"+url)
+        Axios.get(global.address + "xiquery.html?writable=1&a2=1&match=Y&qi=1&n=All+Identifiers"+url)
         .then((response) => {
             if(response.data.error){
                 this.setState({
@@ -125,7 +124,7 @@ class IdentifierSearch extends Component{
                                 Name
                                 {
                                     (this.state.orderField === 1)?
-                                        <img src={Uarr} align="right" style={(this.state.rev)?
+                                        <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev)?
                                         {transform: "scaleY(-1)"}
                                         :{}
                                         }/>
@@ -136,7 +135,7 @@ class IdentifierSearch extends Component{
                                 Occurences
                                 {
                                     (this.state.orderField === 2)?
-                                        <img src={Uarr} align="right" style={(this.state.rev)?
+                                        <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev)?
                                         {transform: "scaleY(-1)"}
                                         :{}
                                         }/>

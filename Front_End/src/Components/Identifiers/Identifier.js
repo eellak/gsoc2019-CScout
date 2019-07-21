@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import Axios from 'axios';
 import '../../global.js';
-import Table from '../Table';
 import IdDependancies from './IdDependancies';
 
 class Identifier extends Component{

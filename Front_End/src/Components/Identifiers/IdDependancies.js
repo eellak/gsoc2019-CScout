@@ -132,10 +132,12 @@ class IdDependancies extends Component{
                                     Name
                                     {
                                         (this.state.orderField === 1)?
-                                            <img src={Uarr} align="right" style={(this.state.rev)?
-                                            {transform: "scaleY(-1)"}
-                                            :{}
-                                            }/>
+                                            <img src={Uarr} align="right" alt={'&#8593;'} 
+                                                style={(this.state.rev)?
+                                                    {transform: "scaleY(-1)"}
+                                                    :{}
+                                                }
+                                            />
                                         :""                                   
                                     }
                                 </td>
@@ -143,10 +145,12 @@ class IdDependancies extends Component{
                                     Path
                                     {
                                         (this.state.orderField === 2)?
-                                            <img src={Uarr} align="right" style={(this.state.rev)?
-                                            {transform: "scaleY(-1)"}
-                                            :{}
-                                            }/>
+                                            <img src={Uarr} align="right" alt={'&#8593;'} 
+                                                style={(this.state.rev)?
+                                                    {transform: "scaleY(-1)"}
+                                                    :{}
+                                                }
+                                            />
                                         :""                                   
                                     }
                                 </td>
