@@ -46,7 +46,6 @@
 #include <getopt.h>
 
 
-
 #include "cpp.h"
 #include "debug.h"
 #include "error.h"
@@ -4087,6 +4086,7 @@ usage(char *fname)
 		"\t-o\tCreate obfuscated versions of the processed files\n"
 		"\t-p port\tSpecify TCP port for serving the CScout web pages\n"
 		"\t\t(the port number must be in the range 1024-32767)\n"
+		"\t-t run in test mode\n"
 #ifdef PICO_QL
 		"\t-q\tProvide a PiCO_QL query interface\n"
 #endif
@@ -4111,7 +4111,8 @@ main(int argc, char *argv[])
 	vector<string> call_graphs;
 	Debug::db_read();
 	ofstream *logfile = NULL;
-	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:" PICO_QL_OPTIONS)) != EOF)
+	pid_t * p = NULL;
+	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:t" PICO_QL_OPTIONS)) != EOF)
 		switch (c) {
 		case '3':
 			Fchar::enable_trigraphs();
@@ -4208,6 +4209,18 @@ main(int argc, char *argv[])
 			process_mode = pm_r_option;
 			call_graphs.push_back(string(optarg));
 			break;
+		case 't':
+			p = new pid_t;
+			*p = fork();
+			if(*p < 0)
+				cerr <<  "Fork Failed";
+			else if(*p == 0){
+				if(execvp("../src/runtest",NULL) == -1){
+					cout << "execve failed:" << strerror(errno)<< endl;			
+					return -1;
+				}
+			}
+			break;		
 		case '?':
 			usage(argv[0]);
 		}
@@ -4415,6 +4428,8 @@ main(int argc, char *argv[])
 	}
 
 	if (!must_exit) {
+		if(p != NULL)
+			kill(*p,SIGUSR1);
 		server.serve();	
 	}
 
