@@ -1,5 +1,6 @@
 #include <cpprest/http_client.h>
 #include <cpprest/json.h>
+#include <csignal>
 
 using namespace web;
 using namespace web::http;
@@ -12,6 +13,13 @@ pplx::task<http_response> make_task_request(http_client &client, method mtd, con
 {
    return client.request(mtd, path);
 }
+
+void sigHandler(int signum)
+{
+   if(signum == SIGUSR1)
+      cout << "Begin Sending requests" << endl;
+}
+
 
 void to_query(json::value jvalue, uri_builder *builder)
 {
@@ -72,19 +80,40 @@ bool make_request(
                 for (auto i = req["dependantQuery"].as_array().cbegin();
                      i != req["dependantQuery"].as_array().cend(); i++)
                 {
-                   if (returned.has_array_field(i->as_string()))
-                      for (int j = 0; j < returned[i->as_string()].size(); j++)
-                      {
+                  if(i->is_string()){ 
+                     if (returned.has_array_field(i->as_string()))
+                        for (int j = 0; j < returned[i->as_string()].size(); j++)
+                        {
 
-                         if (returned[i->as_string()][j].is_string())
-                            jvalue[i->as_string()] = returned[i->as_string()][j];
-                         else
-                            jvalue[i->as_string()] = json::value::string(returned[i->as_string()][j].serialize());
-                         if (!make_request(client, mtd, path, jvalue, json::value(), no++))
-                            return false;
-                      }
-                   else
-                      jvalue[i->as_string()] = previousTask.get()[i->as_string()];
+                           if (returned[i->as_string()][j].is_string())
+                              jvalue[i->as_string()] = returned[i->as_string()][j];
+                           else
+                              jvalue[i->as_string()] = json::value::string(returned[i->as_string()][j].serialize());
+                           if (!make_request(client, mtd, path, jvalue, json::value(), no++))
+                              return false;
+                        }
+                     else
+                        jvalue[i->as_string()] = returned[i->as_string()];
+                  }
+                  else {
+                     json::object dep = i->as_object();
+                    
+                     for (auto j = dep.begin(); j != dep.end();j++){
+                        for (int k = 0; k < returned[j->first].size(); j++)
+                        {
+                          if (returned[j->first][k].is_string())
+                              jvalue[(j->second).as_string()] = returned[j->first][k];
+                           else
+                              jvalue[(j->second).as_string()] = json::value(returned[j->first][k][(j->second).as_string()].serialize());
+                           if (!make_request(client, mtd, path, jvalue, json::value(), no++)){
+                              cout<< "req failed" << endl;
+                              return false;
+                           }
+                        }
+                        
+                     }
+                  }
+                  cout << "jvalue:" << jvalue.serialize() << endl;
                 }
              }
              catch (http_exception const &e)
@@ -99,9 +128,10 @@ bool make_request(
    if (!jvalue.as_object().empty())
    {
       to_query(jvalue, &builder);
-   }
-   cout << "Request to " << builder.to_string() << endl;
-   make_task_request(client, mtd, builder.to_string().c_str())
+   } 
+   string toURL = (s == NULL)?builder.to_string():(*s);
+   cout << "Request to " << toURL << endl;
+   make_task_request(client, mtd, toURL.c_str())
        .then([](http_response response) {
           // cout<<"RESPONSe:"<<response.to_string()<<endl;
           cout << "response:" << response.status_code();
@@ -117,14 +147,14 @@ bool make_request(
           try
           {
              std::fstream fs;
-             fs.open("./test/responses/" + string(path) + "-" + to_string(no) + ".json", std::fstream::out);
+             fs.open("../src/test/responses/" + string(path) + "-" + to_string(no) + ".json", std::fstream::out);
              fs << endl;
              fs << previousTask.get().serialize() << endl;
              valid = check_valid(previousTask.get(), path);
              fs.close();
           }
           catch (http_exception const &e)
-          {
+          {         
              wcout << e.what() << endl;
           }
        })
@@ -155,15 +185,18 @@ save requests in ./test/requests.json in format
 int main()
 {
    http_client client(U("http://localhost:8081"));
-
+      signal(SIGUSR1, sigHandler);
+   pause();
    std::fstream fs;
-   fs.open("./test/requests.json", std::fstream::in);
+   fs.open("../src/test/requests.json", std::fstream::in);
+  
    json::array req = json::value::parse(fs).as_array();
    fs.close();
    method t;
+
    for (int i = 0; i < req.size(); i++)
    {
-      // cout<<"path:"<<req[i]["path"].as_string()<<endl;
+      cout<<"path:"<<req[i]["path"].as_string()<<endl;
       // cout<<"query"<<req[i]["query"].serialize()<<endl;
       // cout <<(req[i]["query"].is_null()?"empty":req[i]["query"].serialize())<<endl;
       t = req[i].has_field("put") ? methods::PUT : methods::GET;
