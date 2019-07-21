@@ -51,7 +51,9 @@
         "path":"file.html",
         "query":{},
         "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
-        "dependantQuery":["id"]
+        "dependantQuery":[
+            {"file":"id"}
+        ]
     },
     {
         "path":"fedit.html",
