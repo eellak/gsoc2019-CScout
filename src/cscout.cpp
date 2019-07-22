@@ -1278,8 +1278,9 @@ display_sorted(const Query &query, const container &sorted_ids)
 		to_return["start"] = json::value::string("<table><tr><td width=\"50%\" align=\"right\">\n");
 	else
 		to_return["start"] = json::value::string("<p>\n");
+	int pagesize = server.getBoolParam("pages")? server.getIntParam("pages"):Option::entries_per_page->get();
 
-	Pager pager(Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
+	Pager pager(pagesize, query.base_url() + "&qi=1", query.bookmarkable());
 	int no = 0;
 	typename container::const_iterator i;
 	if(server.getBoolParam("rev")){
@@ -1603,13 +1604,14 @@ xiquery_page(void * p)
 
 	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Invalid query");
-		if(qname!=NULL) delete qname;
+		if(qname != NULL) delete qname;
 		return to_return;
 	}
 
 	to_return["qname"] = json::value::string((qname && *qname) ? qname : "Identifier Query Results");
 	if(DP())
 		cout << "Evaluating identifier query" << endl;
+	
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 		if (!query.eval(*i))
@@ -1629,17 +1631,20 @@ xiquery_page(void * p)
 			funs.insert(ecfuns.begin(), ecfuns.end());
 		}
 	}
-	
+
 	if (q_id) {
-		if(q_occ)
+		if(q_occ){
 			to_return["ids"] = display_sorted(query,sorted_ids_occurences);
+			to_return["max"] = json::value(sorted_ids_occurences.size());
+
+		}
 		else{
 			to_return["ids"] = display_sorted(query,sorted_ids);
-			for(auto i = sorted_ids.begin(); i != sorted_ids.end();i++){
-			}
+			to_return["max"] = json::value(sorted_ids.size());
 		}
 		to_return["id"] = to_return["ids"]["address"];
 		to_return["ids"].erase("address");		
+		
 	}	
 	if (q_file)
 		to_return["files"] = display_files(query, sorted_files);
@@ -1651,7 +1656,7 @@ xiquery_page(void * p)
 		to_return["f"] = to_return["funs"]["address"];
 		to_return["funs"].erase("address");
 	}
-
+	
 	to_return["timer"] = json::value::string(timer.print_elapsed());
 	if(DP())
 		cout << "xiquery:" << to_return.serialize() << endl;
