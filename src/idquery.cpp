@@ -80,7 +80,6 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	current_project(cp)
 {
 	if (lazy) {
-
 		return;
 		}
 	// Query name
@@ -91,7 +90,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	
 	// Identifier EC match to change
 	void * t = server.getAddrParam("ec"); 
-	if (t!=NULL) {
+	if (t != NULL) {
 		ec = (Eclass *)t;
 	} else {
 		ec = NULL;
@@ -105,14 +104,13 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 			return;
 		}
 		match_type = *m;
-		delete m;
 	}
 
-	xfile = !!server.getIntParam("xfile");
-	unused = !!server.getIntParam("unused");
-	writable = !!server.getIntParam("writable");
-	exclude_ire = !!server.getIntParam("xire");
-	exclude_fre = !!server.getIntParam("xfre");
+	xfile = !!server.getBoolParam("xfile");
+	unused = !!server.getBoolParam("unused");
+	writable = !!server.getBoolParam("writable");
+	exclude_ire = !!server.getBoolParam("xire");
+	exclude_fre = !!server.getBoolParam("xfre");
 	error = compile_re("Identifier", "ire", ire, match_ire, str_ire);
 	// Compile regular expression specs
 	if (error != NULL)
@@ -127,7 +125,7 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		ostringstream varname;
 
 		varname << "a" << i;
-		match[i] = !!server.getIntParam(varname.str());
+		match[i] = !!server.getBoolParam(varname.str());
 		if (DP())
 			cout << "v=[" << varname.str() << "] m=" << match[i] << "\n";
 	}
@@ -250,8 +248,8 @@ IdQuery::eval(const IdPropElem &i)
 	int retval = exclude_ire ? 0 : REG_NOMATCH;
 	if (match_ire && ire.exec(i.second.get_id()) == retval)
 		return false;
+	
 	bool add = false;
-//	cerr<<"not vars problem xiquery-match:"<<match_type<<endl;
 	switch (match_type) {
 	case 'Y':	// anY match
 		add = false;
@@ -311,14 +309,12 @@ IdQuery::eval(const IdPropElem &i)
 					    " occurs in file " << j->get_path() <<
 					    ", which matches RE " << str_fre << "\n";
 				if (exclude_fre){
-					cout<<"fail"<<endl;
 					return false;	// Match; fail
 				}
 				else
 					break;		// Match; stop search
 			}
 		if (!exclude_fre && j == f.end()){
-			cout<<"no match"<<endl;
 			return false;	// Asked to match and no match found
 		}
 
