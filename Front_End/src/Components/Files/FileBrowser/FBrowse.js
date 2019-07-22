@@ -1,69 +1,67 @@
-import React,{Component} from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
 import '../../../global.js';
 import Directory from './Directory';
 import './FBrowse.css';
 import Files from '../FilePage/FilePage'
 
-class FBrowse extends Component{
+class FBrowse extends Component {
     constructor(props) {
         super(props);
-        this.state={
-            loaded:false,
-            file:null,
-            id:null
+        this.state = {
+            loaded: false,
+            file: null,
+            id: null
         }
-        
+
     };
 
     componentDidMount() {
         this.getTopDir();
     }
 
-
     getTopDir = () => {
-        if(this.props.type === "top"){
+        if (this.props.type === "top") {
             axios.get(global.address + "browseTop.html")
-            .then((response) => {
-                this.setState({
-                    loaded:true,
-                    top: response.data.addr,
-                    name: response.data.info.name
-                });
-            })
-        }     
+                .then((response) => {
+                    this.setState({
+                        loaded: true,
+                        top: response.data.addr,
+                        name: response.data.info.name
+                    });
+                })
+        }
     }
 
     getFileInfo = (param) => {
         this.setState({
-            id:param
+            id: param
         })
     }
 
-
-
-
     render() {
-
-        console.log(this.state);
-        if (this.state.loaded===false)
-            return(
+        if (this.state.loaded === false)
+            return (
                 <div>
                     <h2>
                         Loading...
                     </h2>
                 </div>
             );
-        else{
+        else {
             return (
-                <div style={{display:'flex'}}>
+                <div style={{ display: 'flex' }}>
                     <div className="FileBrowser">
-                        <h3>File Browser</h3>   
-                        <Directory addr={this.state.top} name={this.state.name} 
-                        expand={true} fileSelect={this.getFileInfo}/>
+                        <h3>File Browser</h3>
+                        <Directory addr={this.state.top} name={this.state.name}
+                            expand={true} fileSelect={this.getFileInfo} />
                     </div>
-
-                    {(this.state.id===null)?null:<Files id={this.state.id} changeType={this.props.changeType}/>}
+                    {
+                        (this.state.id === null) ?
+                            null
+                            : <Files id={this.state.id}
+                                changeType={this.props.changeType} />
+                    }
                 </div>
             );
         }
