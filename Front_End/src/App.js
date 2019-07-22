@@ -15,7 +15,7 @@ import IdentifierSearch from './Components/Identifiers/IdentifierSearch';
 class App extends Component {
   constructor() {
     super();
-    this.state =  { 
+    this.state = {
       type: "homepage",
       sideDrawerOpen: false
     }
@@ -28,78 +28,78 @@ class App extends Component {
     });
   };
 
-  setTypeId = (type,id) => {
+  setTypeId = (type, id) => {
     this.setState({
       sideDrawerOpen: false,
       type: type,
-      id:id
+      id: id
     })
   }
 
   drawerToggleClickHandler = () => {
     this.setState((prevState) => {
-      return {sideDrawerOpen: !prevState.sideDrawerOpen};
+      return { sideDrawerOpen: !prevState.sideDrawerOpen };
     });
   };
 
   backdropClickHandler = () => {
-    this.setState({sideDrawerOpen: false});
+    this.setState({ sideDrawerOpen: false });
   };
 
   linkSrc = (obj) => {
-      this.setState({
-        type: "link",
-        id: obj
-      });
+    this.setState({
+      type: "link",
+      id: obj
+    });
   }
   render() {
     let to_render;
     let backdrop;
     if (this.state.sideDrawerOpen) {
-      backdrop = <Backdrop click={this.backdropClickHandler}/>;
+      backdrop = <Backdrop click={this.backdropClickHandler} />;
     }
-    switch(this.state.type) {
-      case("filemetrics"):
-        to_render = <Metrics type='file'/>;
+    switch (this.state.type) {
+      case ("filemetrics"):
+        to_render = <Metrics type='file' />;
         break;
-      case("idmetrics"):
-        to_render = <Metrics type='id'/>;
+      case ("idmetrics"):
+        to_render = <Metrics type='id' />;
         break;
-      case("funmetrics"):
-        to_render = <Metrics type='fun'/>;
+      case ("funmetrics"):
+        to_render = <Metrics type='fun' />;
         break;
-      case("homepage"):
-        to_render = <Main changeType={this.setType}/>;
+      case ("homepage"):
+        to_render = <Main changeType={this.setType} />;
         break;
-      case("browse"):
-        to_render = <FBrowse type='top' changeType={this.setTypeId}/>
+      case ("browse"):
+        to_render = <FBrowse type='top' changeType={this.setTypeId} />
         break;
-      case("source"):
-        to_render = <Source id='15' changeType={this.linkSrc}/>
+      case ("source"):
+        to_render = <Source id='15' changeType={this.linkSrc} />
         break;
-      case("filePage"):
-        to_render = <FilePage id={this.state.id} changeType={this.setTypeId}/>
+      case ("filePage"):
+        to_render = <FilePage id={this.state.id} changeType={this.setTypeId} />
         break;
-      case("searchf"):
-        to_render = <div><FileSearch toFile={this.setTypeId}/></div>
+      case ("searchf"):
+        to_render = <div><FileSearch toFile={this.setTypeId} /></div>
         break;
-      case("id"):
+      case ("id"):
         to_render = <div><Identifier id={this.state.id} changeType={this.setTypeId} /></div>
         break;
-      case("searchId"):
-        to_render = <IdentifierSearch />
+      case ("searchId"):
+        to_render = <IdentifierSearch changeType={this.setTypeId} />
         break;
       default:
-        to_render =  <h1>{this.state.type}</h1>
+        to_render = <h1>{this.state.type}</h1>
     }
     return (
       <div className="App">
-          <SideDrawer changeType={this.setType} show={this.state.sideDrawerOpen}
-            drawerClickHandler={this.drawerToggleClickHandler}/>
-          {backdrop}
-          <Toolbar changeType={this.setType} style={{zIndex:'20'}}  
-            drawerClickHandler={this.drawerToggleClickHandler} />
-          {to_render}
+        <SideDrawer changeType={this.setType} show={this.state.sideDrawerOpen}
+          drawerClickHandler={this.drawerToggleClickHandler} />
+        {backdrop}
+        <Toolbar changeType={this.setType} style={{ zIndex: '20' }}
+          drawerClickHandler={this.drawerToggleClickHandler} />
+        {to_render}
       </div>
     );
   }
