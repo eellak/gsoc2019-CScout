@@ -4210,15 +4210,16 @@ main(int argc, char *argv[])
 			call_graphs.push_back(string(optarg));
 			break;
 		case 't':
-			p = new pid_t;
 			*p = fork();
-			if(*p < 0)
-				cerr <<  "Fork Failed";
-			else if(*p == 0){
-				if(execvp("../src/runtest",NULL) == -1){
-					cout << "execve failed:" << strerror(errno)<< endl;			
-					return -1;
-				}
+			switch(*p){ 
+				case(-1):
+					cerr <<  "Fork Failed";
+					break;
+				case(0):
+					if(execvp("../src/runtest",NULL) == -1){
+						cout << "execve failed:" << strerror(errno)<< endl;			
+						return -1;
+					}
 			}
 			break;		
 		case '?':
@@ -4428,8 +4429,8 @@ main(int argc, char *argv[])
 	}
 
 	if (!must_exit) {
-		if(p != NULL)
-			kill(*p,SIGUSR1);
+		if (p != NULL)
+			kill(*p, SIGUSR1);
 		server.serve();	
 	}
 
