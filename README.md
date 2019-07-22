@@ -55,6 +55,7 @@ your executable file path.
 
 * To build run `make`. You can also use the `-j` make option to increase the build's speed.
 * To build and test, run `make test`.
+* To test Server, run `make testServ`.
 * To install (typically after building and testing), run `sudo make install`.
 * To see CScout in action run `make example`.
 

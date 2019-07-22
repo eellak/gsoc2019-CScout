@@ -61,6 +61,9 @@ hsqldb-$(HSQLDB_VERSION).zip:
 test: src/build/cscout $(HSQLDB_DIR)
 	cd src && $(MAKE) test
 
+testServ: 
+	cd src && $(MAKE) testServ
+
 clean:
 	cd src && $(MAKE) clean
 
