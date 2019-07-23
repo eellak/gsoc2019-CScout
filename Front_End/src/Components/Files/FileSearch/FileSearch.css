@@ -9,7 +9,12 @@
 
 .FileResults {
   box-shadow: 0 0 6px 0 #63b1ff;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  margin-top:2px;
 }
+
+
 
 .FileResults thead td{
     cursor: pointer;
@@ -89,7 +94,8 @@
     border-style: solid;
     box-shadow: 0 0 3px 0px #63b1ff;
     height:20px;
-    width:25%
+    width:25%;
+    padding-left: 2px;
 }
 
 .searchFields input[type='number']:focus{

@@ -59,3 +59,18 @@
     top:30%;
     position: absolute
 }
+
+.pager input[type='number']{
+    border-radius: 10px;
+    border:2px #63b1ff;
+    border-style: solid;
+    box-shadow: 0 0 3px 0px #63b1ff;
+    height:20px;
+    width:38px;
+    padding-left: 2px;
+}
+
+.pager input[type='number']:focus{
+    box-shadow: 0 0 8px 0px #63b1ff;
+    outline: none;
+  }

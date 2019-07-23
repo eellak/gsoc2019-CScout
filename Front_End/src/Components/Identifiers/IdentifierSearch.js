@@ -15,7 +15,8 @@ class IdentifierSearch extends Component {
             selectedOption: 'all',
             size: 20,
             page: 0,
-            max:0
+            max:0,
+            xfile: false
         }
         this.changeOrder = this.changeOrder.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -83,15 +84,15 @@ class IdentifierSearch extends Component {
                 url = "writable=1&a2=1&match=Y&qi=1&n=All+Identifiers";
                 break;
             case ('read-only'):
-                url = "a2=1&match=Y&qi=1&n=Read-only+Identifiers";
+                url = "a2=1&match=Υ&qi=1&n=Read-only+Identifiers";
                 break;
             case ('writable'):
-                url = "writable=1&match=Y&qi=1&n=Writable+Identifiers";
+                url = "writable=1&match=Υ&qi=1&n=Writable+Identifiers";
                 break;
             default:
                 url = "";
         }
-        
+        url += this.state.xfile?"&xfile=1":"";
         url += "&skip=" + this.state.page*this.state.size;
         url += "&pages=" + this.state.size;
         url += this.state.rev ? "&rev=1" : "";
@@ -174,13 +175,19 @@ class IdentifierSearch extends Component {
                             <input type='radio' className="type" value='writable'
                                 checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange} />
                             Writable<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='read-only'
                                 checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange} />
                             Read-Only<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
+                        </label>
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='xfile'
+                                onChange={() => this.setState({xfile: !this.state.xfile})} />
+                            File-scoped<br />
+                            <span className='chk' />
                         </label>
                         <button className="formButton">Submit</button>
                     </form>
@@ -203,6 +210,10 @@ class IdentifierSearch extends Component {
                             curPage={this.state.page} maxPage={this.state.max / this.state.size}
                             size={this.state.size} totalObjs={this.state.max} />
                         <table className="FileResults">
+                            <colgroup>
+                                <col style={{width:"70%"}}/>
+                                <col style={{width:"30%"}}/>
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <td onClick={() => { this.changeOrder(1); }}>
