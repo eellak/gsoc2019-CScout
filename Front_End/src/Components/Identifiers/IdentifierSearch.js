@@ -22,8 +22,10 @@ class IdentifierSearch extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleOptionChange = this.handleOptionChange.bind(this);
+        this.clearOptions = this.clearOptions.bind(this);
         this.inputValue = '';
         this.maxShow = 20;
+        this.options = [];
 
     }
 
@@ -49,6 +51,8 @@ class IdentifierSearch extends Component {
                 <td>{this.state.info[i].occ}</td>
             </tr>);
         }
+        if(toRender.length === 0)
+            toRender = <tr><td><h3>No identifier found</h3></td></tr>
 
         return toRender;
     }
@@ -78,26 +82,21 @@ class IdentifierSearch extends Component {
 
     getIds() {
         console.log(this.state);
-        var url;
-        switch (this.state.selectedOption) {
-            case ('all'):
-                url = "writable=1&a2=1&match=Y&qi=1&n=All+Identifiers";
-                break;
-            case ('read-only'):
-                url = "a2=1&match=Υ&qi=1&n=Read-only+Identifiers";
-                break;
-            case ('writable'):
-                url = "writable=1&match=Υ&qi=1&n=Writable+Identifiers";
-                break;
-            default:
-                url = "";
-        }
+        var url = "";
+        for(let i = 2; i < 16; i++)
+            url += this.state["a" + i]?("&a" + i + "=1"):"";
         url += this.state.xfile?"&xfile=1":"";
+        url += this.state.writable?"&writable=1":"";
+
+        url += (this.state.search) ?  "ire="+ this.inputValue  :  ""
+        if(url === "")
+            url = "writable=1&a2=1&match=Y&qi=1&n=All+Identifiers";
+        else
+            url+= "&match=L&qi=Custom+Identifiers";
         url += "&skip=" + this.state.page*this.state.size;
         url += "&pages=" + this.state.size;
         url += this.state.rev ? "&rev=1" : "";
         url += (this.state.orderField === 2) ? "&qocc=1" : "";
-        url += (this.state.search) ?  "ire="+ this.inputValue  :  ""
         console.log(url);
         Axios.get(global.address + "xiquery.html?" + url)
             .then((response) => {
@@ -113,6 +112,7 @@ class IdentifierSearch extends Component {
                             loaded: true,
                             name: [],
                             start: 0,
+                            info: [],
                             max: response.data.max
                         })
                     } else
@@ -148,9 +148,31 @@ class IdentifierSearch extends Component {
         });
     }
 
+    clearOptions() {
+        for(let i = 2; i < 16; i++){
+            this.setState({["a" + i]: false});
+        }
+        this.setState({writable: false})
+    }
 
     render() {
         console.log(this.state)
+        var opts = [
+            "Read-Only",
+            "Struct, union or enum",
+            "Member of struct or union",
+            "Label",
+            "Ordinary identifier",
+            "Macro",
+            "Undefined macro",
+            "Macro argument",
+            "File scope",
+            "Project scope",
+            "Typedef",
+            "Enumeration constant",
+            "Yacc identifier",
+            "Function"
+        ];
         return (
             <div>
                 <h3 className="titleSearch">
@@ -165,30 +187,34 @@ class IdentifierSearch extends Component {
                         </div>
                     </form>
                     <form onSubmit={(e) => { this.setState({ loaded: false }); e.preventDefault(); this.getIds(); }}>
-                        <label className='radioB'>
-                            <input type='radio' className="type" value='all'
-                                checked={this.state.selectedOption === 'all'} onChange={this.handleOptionChange} />
-                            All<br />
-                            <span className='checkmark' />
-                        </label>
-                        <label className='radioB'>
-                            <input type='radio' className="type" value='writable'
-                                checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange} />
+                        Type
+
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='writable'
+                                checked={this.state.writable} onChange={() => this.setState({writable: !this.state.writable})} 
+                                />
                             Writable<br />
-                            <span className='checkmark' />
+                            <span className='chk' />
                         </label>
-                        <label className='radioB'>
-                            <input type='radio' className="type" value='read-only'
-                                checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange} />
-                            Read-Only<br />
-                            <span className='checkmark' />
-                        </label>
+
+                        {
+                            opts.map((val,i) =>
+                            <label className='chk' key={i}>
+                                <input type='checkbox' className="chk" value={'a' + (i + 2)}
+                                    onChange={() => this.setState({["a" + (i + 2)]: !this.state["a" + (i + 2)]})} 
+                                    checked={this.state["a" + (i + 2)]}/>
+                                {val}<br />
+                                <span className='chk' />
+                            </label>
+                            )
+                        }
                         <label className='chk'>
                             <input type='checkbox' className="chk" value='xfile'
                                 onChange={() => this.setState({xfile: !this.state.xfile})} />
                             File-scoped<br />
                             <span className='chk' />
                         </label>
+                        <button className="formButton" onClick={this.clearOptions}>Clear</button>
                         <button className="formButton">Submit</button>
                     </form>
                     <form onSubmit={(e) => {
