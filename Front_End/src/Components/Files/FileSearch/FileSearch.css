@@ -12,6 +12,7 @@
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   margin-top:2px;
+  margin-right: 10px;
 }
 
 
@@ -59,6 +60,13 @@
     box-sizing: border-box;
     float: left;
     display: inline-flexbox;
+    border-right: 2px solid #63b1ff;
+    border-bottom: 2px solid #63b1ff;
+    border-top: 2px solid #63b1ff;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+    box-shadow: 0 0 6px 0 #63b1ff;
+
 }
 
 .searchFields form{
@@ -178,6 +186,8 @@
     border: 1px darkgray;
     box-shadow: 0 0 4px 0px grey;
     padding: 2px 6px;
+    margin-left: 2px;
+    margin-right: 2px;
     color:white;
     cursor: pointer;
     outline: none;

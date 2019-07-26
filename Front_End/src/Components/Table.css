@@ -1,8 +1,9 @@
 .datatable {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     border-collapse: collapse;
-    width: 100%;
-    cursor:'default'
+    width: 98%;
+    cursor:'default';
+    margin:10px;
 }
 
 .datatable  thead tr:first-child td:first-child {
