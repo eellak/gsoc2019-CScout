@@ -52,7 +52,7 @@ class IdentifierSearch extends Component {
             </tr>);
         }
         if(toRender.length === 0)
-            toRender = <tr><td><h3>No identifier found</h3></td></tr>
+            toRender = <tr><td style={{border:'none', fontWeight:'bold'}}>No identifier found</td></tr>
 
         return toRender;
     }
@@ -91,8 +91,13 @@ class IdentifierSearch extends Component {
         url += (this.state.search) ?  "ire="+ this.inputValue  :  ""
         if(url === "")
             url = "writable=1&a2=1&match=Y&qi=1&n=All+Identifiers";
-        else
-            url+= "&match=L&qi=Custom+Identifiers";
+        else {
+            if(this.state.match === undefined)
+                url += "&match=L";
+            else 
+                url += "&match=" + this.state.match;
+            url += "&qi=Custom+Identifiers"
+        }
         url += "&skip=" + this.state.page*this.state.size;
         url += "&pages=" + this.state.size;
         url += this.state.rev ? "&rev=1" : "";
@@ -139,7 +144,6 @@ class IdentifierSearch extends Component {
 
     handleInputChange(e) {
         this.inputValue = e.target.value
-
     }
 
     handleOptionChange(e) {
@@ -152,7 +156,10 @@ class IdentifierSearch extends Component {
         for(let i = 2; i < 16; i++){
             this.setState({["a" + i]: false});
         }
-        this.setState({writable: false})
+        this.setState({
+            writable: false,
+            match: undefined
+        })
     }
 
     render() {
@@ -186,8 +193,15 @@ class IdentifierSearch extends Component {
                                 placeholder="Search..." /><br />
                         </div>
                     </form>
-                    <form onSubmit={(e) => { this.setState({ loaded: false }); e.preventDefault(); this.getIds(); }}>
-                        Type
+                    <form onSubmit={(e) => { 
+                        e.preventDefault(); 
+                        this.setState({ 
+                            loaded: false
+                        });  
+                        console.log(e);
+                        this.getIds(); }}
+                    >
+                        <b>Type</b><br/>
 
                         <label className='chk'>
                             <input type='checkbox' className="chk" value='writable'
@@ -215,7 +229,8 @@ class IdentifierSearch extends Component {
                             <span className='chk' />
                         </label>
                         <button className="formButton" onClick={this.clearOptions}>Clear</button>
-                        <button className="formButton">Submit</button>
+                        <button className="formButton" onClick={() => this.setState({match:"L"}) }>Search All</button>
+                        <button className="formButton" onClick={() => this.setState({match:"Y"}) }>Search Any</button>
                     </form>
                     <form onSubmit={(e) => {
                         this.setState({

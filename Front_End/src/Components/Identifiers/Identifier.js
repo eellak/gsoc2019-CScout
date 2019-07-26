@@ -61,7 +61,6 @@ class Identifier extends Component {
             <div>
                 {this.state.loaded ?
                     <div>{
-                        //JSON.stringify(this.state.data.attribute)
                         this.getDetails()
                     }
                         <a>This identifier was matched {this.state.data.occurences} occurences<br />
@@ -73,6 +72,8 @@ class Identifier extends Component {
                             )}
                         </ul>
                         <IdDependancies search={"ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                        <IdDependancies search={"ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+
                     </div> : <div>Loading ... </div>}
             </div>
         )
