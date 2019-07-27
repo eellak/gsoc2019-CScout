@@ -71,8 +71,8 @@ class Identifier extends Component {
                                 <li style={{ listStyle: 'none' }} key={i}>{obj}</li>
                             )}
                         </ul>
-                        <IdDependancies search={"ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
-                        <IdDependancies search={"ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                        <IdDependancies search={"xiquery.html?ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                        <IdDependancies search={"xfunquery.html?ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
 
                     </div> : <div>Loading ... </div>}
             </div>

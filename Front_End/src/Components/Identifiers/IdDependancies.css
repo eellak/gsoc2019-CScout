@@ -32,7 +32,7 @@
 }
 .FileDepends{
     border-collapse: collapse;
-    display: block;
+  
     position: relative;
     width:70%;
     text-align: left;

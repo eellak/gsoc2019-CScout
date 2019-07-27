@@ -12,7 +12,9 @@ class IdDependancies extends Component {
             page: 0,
             orderby: "",
             orderField: 0,
-            rev: false
+            rev: false,
+            ids: [],
+            info: []
         }
     }
 
@@ -89,14 +91,14 @@ class IdDependancies extends Component {
     }
 
     getFiles() {
-        Axios.get(global.address + "xiquery.html?" + this.props.search)
+        Axios.get(global.address + this.props.search)
             .then((response) => {
                 if (response.data.error) {
                     this.setState({
                         error: response.data.error
                     })
                 } else {
-                    if (!response.data.files) {
+                    if (!response.data.files ) {
                         this.setState({
                             files: [],
                             timer: response.data.timer,
@@ -104,7 +106,9 @@ class IdDependancies extends Component {
                             show: [],
                             size: 20,
                             start: 0,
-                            page: 0
+                            page: 0,
+                            ids: [],
+                            info: [] 
                         })
                     } else
                         this.setState({
@@ -116,10 +120,55 @@ class IdDependancies extends Component {
                             start: 0,
                             page: 0
                         })
+
+                        if (!response.data.f) {
+                            this.setState({
+                                f: [],
+                                timer: response.data.timer,
+                                loaded: true,
+                                name: [],
+                                start: 0,
+                                info: [],
+                                max: response.data.max
+                            })
+                        } else
+                            this.setState({
+                                f: response.data.f,
+                                timer: response.data.timer,
+                                loaded: true,
+                                info: response.data.funs.info,
+                                start: 0,
+                                max: response.data.max
+                            })
                     console.log(this.state)
                 }
             });
     }
+
+    showFs() {
+        var toRender = [];
+        var start = this.state.page * this.state.size;
+        var i;
+        for (i = 0; i < this.state.size; i++) {
+            if ((i) >= this.state.info.length) {
+                break;
+            }
+            toRender.push(<tr key={i}>
+                <td onDoubleClick={(e) => {
+                    console.log(e.target.id)
+                    this.props.changeType("fun", e.target.f)
+
+                }}
+                    id={this.state.f[i]} style={{ cursor: 'pointer' }}>{this.state.info[i]}</td>
+                <td>{this.state.info[i]}</td>
+            </tr>);
+        }
+        if(toRender.length === 0)
+            toRender = <tr><td style={{border:'none', fontWeight:'bold'}}>No identifier found</td></tr>
+
+        return toRender;
+    }
+
 
     render() {
         return (
@@ -141,7 +190,7 @@ class IdDependancies extends Component {
                                 }
                             </td>
                             <td onClick={() => { this.changeOrder(2) }}>
-                                Path
+                                {this.state.info.length > 0?"Occurences":"Name"}
                                     {
                                     (this.state.orderField === 2) ?
                                         <img src={Uarr} align="right" alt={'&#8593;'}
@@ -155,7 +204,7 @@ class IdDependancies extends Component {
                             </td>
                         </tr>
                     </thead>
-                    <tbody>{this.showPage()}</tbody>
+                    <tbody>{this.state.info.length > 0?this.showFs():this.showPage()}</tbody>
                 </table> : <div>Loading...</div>}
             </div>
         )
