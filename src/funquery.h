@@ -93,6 +93,8 @@ public:
 	char * getError() {return error;}
 	// Perform a query
 	bool eval(Call *c);
+	// Returns how many times an identifier Appeared
+	int appeared(Call *c);
 	// Return the URL for re-executing this query
 	string base_url() const;
 	// Return the query's parameters as a URL

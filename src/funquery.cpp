@@ -83,17 +83,15 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	current_project(cp),
 	error(new char[256])
 {
-	cout << "FunQuery constructor" << endl;
 	if (lazy)
 		return;
 
 	valid = true;
-
 	// Query name
 	const char *qname = server.getCharPParam("n");
-	if (qname!=NULL && *qname)
+	if (qname != NULL && *qname)
 		name = qname;
-	if(qname!=NULL) delete qname;
+	// if(qname != NULL) delete qname;
 	// Match specific file
 	int flid = server.getIntParam("fid");
 	if (!flid) {
@@ -103,30 +101,29 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 
 	// Function call declaration direct match
 	call = (Call *)server.getAddrParam("call");
-	
 	// Identifier EC match
 	id_ec = (Eclass *)server.getAddrParam("ec");
-
 	// Type of boolean match
 	const char *m;
-	m = server.getCharPParam("match");
-	if (m==NULL) {
-		sprintf(error, "Missing value: match");
-		valid = return_val = false;
-		lazy = true;
-		return;
+	if (id_ec == NULL){
+		m = server.getCharPParam("match");
+		if (m == NULL) {
+			sprintf(error, "Missing value: match");
+			valid = return_val = false;
+			lazy = true;
+			return;
+		}
+		match_type = *m;
 	}
-	match_type = *m;
-
 	mquery.set_match_type(match_type);
 
-	cfun = !!server.getIntParam("cfun");
-	macro = !!server.getIntParam("macro");
-	writable = !!server.getIntParam("writable");
-	ro = !!server.getIntParam("ro");
-	pscope = !!server.getIntParam("pscope");
-	fscope = !!server.getIntParam("fscope");
-	defined = !!server.getIntParam("defined");
+	cfun = !!server.getBoolParam("cfun");
+	macro = !!server.getBoolParam("macro");
+	writable = !!server.getBoolParam("writable");
+	ro = !!server.getBoolParam("ro");
+	pscope = !!server.getBoolParam("pscope");
+	fscope = !!server.getBoolParam("fscope");
+	defined = !!server.getBoolParam("defined");
 	// Identifier EC match
 	if (!(ncallers = server.getIntParam("ncallers"))) {
 		ncallerop = ec_ignore;
@@ -136,19 +133,19 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	}
 
 
-	exclude_fnre = !!server.getIntParam("xfnre");
-	exclude_fure = !!server.getIntParam("xfure");
-	exclude_fdre = !!server.getIntParam("xfdre");
-	exclude_fre = !!server.getIntParam("xfre");
-	delete m;
+	exclude_fnre = !!server.getBoolParam("xfnre");
+	exclude_fure = !!server.getBoolParam("xfure");
+	exclude_fdre = !!server.getBoolParam("xfdre");
+	exclude_fre = !!server.getBoolParam("xfre");
+	// delete m;
 	// Compile regular expression specs
-	if((error =compile_re("Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
+	if((error = compile_re("Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
 		return;
-	if((error =compile_re("Calling function name", "fure", fure, match_fure, str_fure))==NULL)
+	if((error = compile_re("Calling function name", "fure", fure, match_fure, str_fure))==NULL)
 		return;
 	if((error = compile_re("Called function name", "fdre", fdre, match_fdre, str_fdre))==NULL)
 		return;
-	if((error =compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
+	if((error = compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
 		return;	
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
@@ -226,6 +223,26 @@ FunQuery::param_url() const
 	if (name.length())
 		r += "&n=" + Query::url(name);
 	return r;
+}
+
+// Find how many times an identifier has appeared
+// in a function
+int 
+FunQuery::appeared(Call *c){
+	int no = 0;
+	if (id_ec) {
+		if (!c->is_span_valid())
+			return 0;
+		const setTokid &m = id_ec->get_members();
+		for (setTokid::const_iterator i = m.begin(); i != m.end(); i++)
+			if (*i >= c->get_begin().get_tokid() && *i <= c->get_end().get_tokid())
+				no++;
+		return no;
+	}
+	else {
+		return -1;
+	}
+	
 }
 
 // Evaluate the object's identifier query against i

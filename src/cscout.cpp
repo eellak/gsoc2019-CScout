@@ -1700,10 +1700,12 @@ xfunquery_page(void *p)
 	bool q_id =!!server.getBoolParam("qi");
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	const char *qname = server.getCharPParam("n");
-	FunQuery query(NULL, Option::file_icase->get(), current_project);
+	FunQuery query(Option::file_icase->get(), current_project);
+	cout << "query val;" << query.is_valid() << endl;
+	
 	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Invalid Query");
-		if(qname!=NULL) 
+		if(qname != NULL) 
 			delete qname;
 		return to_return;
 	}
@@ -1717,8 +1719,10 @@ xfunquery_page(void *p)
 		progress(i, Call::functions());
 		if (!query.eval(i->second))
 			continue;
-		if (q_id)
+		if (q_id){
 			sorted_funs.insert(i->second);
+			
+		}
 		if (q_file)
 			sorted_files.insert(i->second->get_fileid());
 	}
@@ -1730,6 +1734,13 @@ xfunquery_page(void *p)
 		}
 		to_return["f"] = to_return["funs"]["address"];
 		to_return["funs"].erase("address");
+		if(!query.bookmarkable()){			
+			void *p;
+			for (int i = 0; i < to_return["f"].size(); i++){
+				sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
+				to_return["funs"]["occ"][i] = query.appeared((Call *)p);
+			}
+		}
 	}
 	if (q_file)
 		to_return["files"] = display_files(query, sorted_files);
