@@ -27,7 +27,7 @@ class Identifier extends Component {
     }
 
     getDetails() {
-        var values = ["Ordinary identifier", "Macro", "Undefined macro", "File scope", "Yacc identifier", "Crosses file boundary"]
+        console.log(this.state.data.attribute)
         return (
             <div>
                 <h3>
@@ -39,17 +39,21 @@ class Identifier extends Component {
 
                     <tbody>
                         {
-                            values.map((obj, i) =>
+                            this.state.data.attribute.map((obj, i) =>
                                 <tr key={i}>
                                     <td>
-                                        {obj.names}
+                                        {obj.name}
                                     </td>
                                     <td>
-                                        {obj}
+                                        {JSON.stringify(obj.get)}
                                     </td>
                                 </tr>
                             )
                         }
+                        <tr>
+                            <td>{this.state.data.file_boundary.name}</td>
+                            <td>{this.state.data.file_boundary.get}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -71,7 +75,10 @@ class Identifier extends Component {
                                 <li style={{ listStyle: 'none' }} key={i}>{obj}</li>
                             )}
                         </ul>
+                        Dependant Files
                         <IdDependancies search={"xiquery.html?ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                        <div><br/></div>
+                        Associated Functions
                         <IdDependancies search={"xfunquery.html?ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
 
                     </div> : <div>Loading ... </div>}

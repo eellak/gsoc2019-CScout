@@ -1540,7 +1540,7 @@ display_files(const Query &query, const IFSet &sorted_files)
 			to_return["files"][no]["id"] = json::value(f.get_id());
 			size_t t = (f.get_path()).find_last_of('/');
 			to_return["files"][no]["name"] = json::value::string((f.get_path()).substr(t+1));
-			to_return["files"][no]["path"] = json::value::string((f.get_path()).substr(0,t));
+			to_return["files"][no++]["path"] = json::value::string((f.get_path()).substr(0,t));
 			fs << html_file(*i);
 			fs << "<td><a href=\"qsrc.html?id=" << f.get_id() << "&"
 			<< query_url << "\">marked source</a></td>";
@@ -1861,13 +1861,13 @@ identifier_page(void *p)
 	string s;
 	for (int i = attr_begin; i < attr_end; i++) {		
 		s = show_id_prop(Attributes::name(i), e->get_attribute(i));		
-
-		if(!s.empty()) {
-			to_return["attribute"][no]["name"] = json::value(Attributes::name(i));
-			to_return["attribute"][no]["get"] = json::value(e->get_attribute(i));
-			to_return["html"][no++] = json::value::string(s);
-			
+		if(!s.empty()) {	
+			to_return["html"][no] = json::value::string(s);
 		}
+		
+		to_return["attribute"][no]["name"] = json::value(Attributes::name(i));
+		to_return["attribute"][no++]["get"] = json::value(e->get_attribute(i));
+	
 	}
 	
 	s = show_id_prop("Crosses file boundary", id.get_xfile());

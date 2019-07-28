@@ -129,7 +129,8 @@ class IdDependancies extends Component {
                                 name: [],
                                 start: 0,
                                 info: [],
-                                max: response.data.max
+                                max: response.data.max,
+                                occ: []
                             })
                         } else
                             this.setState({
@@ -138,7 +139,8 @@ class IdDependancies extends Component {
                                 loaded: true,
                                 info: response.data.funs.info,
                                 start: 0,
-                                max: response.data.max
+                                max: response.data.max,
+                                occ: response.data.funs.occ
                             })
                     console.log(this.state)
                 }
@@ -160,7 +162,7 @@ class IdDependancies extends Component {
 
                 }}
                     id={this.state.f[i]} style={{ cursor: 'pointer' }}>{this.state.info[i]}</td>
-                <td>{this.state.info[i]}</td>
+                <td>{this.state.occ[i]}</td>
             </tr>);
         }
         if(toRender.length === 0)
@@ -177,7 +179,7 @@ class IdDependancies extends Component {
                     <thead>
                         <tr>
                             <td onClick={() => { this.changeOrder(1) }}>
-                                Name
+                            {this.state.info.length > 0?"Function Name":"Name"}
                                     {
                                     (this.state.orderField === 1) ?
                                         <img src={Uarr} align="right" alt={'&#8593;'}
@@ -190,7 +192,7 @@ class IdDependancies extends Component {
                                 }
                             </td>
                             <td onClick={() => { this.changeOrder(2) }}>
-                                {this.state.info.length > 0?"Occurences":"Name"}
+                                {this.state.info.length > 0?"Occurences":"Path"}
                                     {
                                     (this.state.orderField === 2) ?
                                         <img src={Uarr} align="right" alt={'&#8593;'}
