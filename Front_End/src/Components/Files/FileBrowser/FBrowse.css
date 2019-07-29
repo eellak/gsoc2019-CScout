@@ -10,6 +10,7 @@
     overflow-y:scroll;
     height: 40rem;
     width: 25%;
+    box-shadow: 0 0 6px 0 #63b1ff;
 }
 
 .FileBrowser h3{

@@ -1,7 +1,9 @@
 .details{
     text-align: left;
-
+    height: 100%;
+    display: block
 }
 .details div {
-    margin-top:10px;
+    margin-top:5px;
+    padding: 5px;
 }

@@ -20,6 +20,12 @@ class Files extends Component {
         this.getFileInfo();
     }
 
+    componentDidUpdate(prevProps){
+        if (prevProps.id !== this.props.id) {
+            this.getFileInfo()
+        }
+    }
+
     getFileInfo = () => {
         axios.get(global.address + "file.html?id=" + this.props.id)
             .then((response) => {

@@ -68,7 +68,7 @@ class FileSearch extends Component {
             }
             console.log("id:" + this.state.show[start + i].id)
             toRender.push(<tr key={i}>
-                <td onDoubleClick={(e) => {
+                <td onClick={(e) => {
                     console.log(e.target.id)
                     this.props.toFile("filePage", e.target.id)
 

@@ -5,6 +5,7 @@
     border-collapse: collapse;
     background: rgb(202, 202, 202);
     padding:6px;
+    z-index: 1;
 }
 .active {
     display: inline-block;
@@ -14,6 +15,8 @@
     background: #63b1ff;
     border-collapse: collapse;
     padding:6px;
+    box-shadow: 0 0 6px 0 #63b1ff;
+    z-index: 2;
 }
 
 .tabs {
@@ -27,4 +30,29 @@
 .tabs td:last-child{
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
+}
+
+.tabs tr:hover {
+    background: none;
+}
+.tabs {
+    box-shadow: none;
+}
+
+.tabs td:before {
+    box-shadow: 0 0 6px 0 #63b1ff;
+    border: none;
+}
+
+.panel {
+    box-shadow: 0 0 6px 0 #63b1ff;
+    border-radius: 10px;
+    margin:10px;
+    overflow-y: scroll; 
+    height:40rem;
+}
+
+.panel table {
+    margin:0px;
+    width:100%
 }
