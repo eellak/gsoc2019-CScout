@@ -11,6 +11,7 @@ import FileSearch from './Components/Files/FileSearch/FileSearch';
 import FilePage from './Components/Files/FilePage/FilePage';
 import Identifier from './Components/Identifiers/Identifier';
 import IdentifierSearch from './Components/Identifiers/IdentifierSearch';
+import Fun from './Components/Functions/Fun';
 
 class App extends Component {
   constructor() {
@@ -88,6 +89,9 @@ class App extends Component {
         break;
       case ("searchId"):
         to_render = <IdentifierSearch changeType={this.setTypeId} />
+        break;
+      case ("fun"):
+        to_render = <Fun f={this.state.id} changeType={this.setTypeId}/>
         break;
       default:
         to_render = <h1>{this.state.type}</h1>

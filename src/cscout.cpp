@@ -2006,11 +2006,11 @@ identifier_page(void *p)
 //					"html of table rows"
 //				],
 //				end: "html of end table".
-//				data:{
-//					metrics_name0: metrics_value0,
-//					metrics_name1: metrics_value1,
+//				data:[
+//					[metrics_name0, metrics_value0]
+//					[metrics_name1, metrics_value1]
 //					....
-//				},
+//				],
 //		)
 //		end: "html of end"
 //	}
@@ -2172,7 +2172,8 @@ function_page(void *p)
 		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
 			if (!Metrics::is_internal<FunMetrics>(j)) {
-				to_return["metrics"]["data"][Metrics::get_name<FunMetrics>(j)] = json::value(f->metrics().get_metric(j));
+				to_return["metrics"]["data"][no][0] = json::value(Metrics::get_name<FunMetrics>(j));
+				to_return["metrics"]["data"][no][1] = json::value(f->metrics().get_metric(j));
 				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>" +
 				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>" +
 				to_string(f->metrics().get_metric(j)) + "</td></tr>");
