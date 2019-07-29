@@ -42,7 +42,7 @@ class IdentifierSearch extends Component {
                 break;
             }
             toRender.push(<tr key={i}>
-                <td onDoubleClick={(e) => {
+                <td onClick={(e) => {
                     console.log(e.target.id)
                     this.props.changeType("id", e.target.id)
 

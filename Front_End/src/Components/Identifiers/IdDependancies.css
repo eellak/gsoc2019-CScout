@@ -34,9 +34,6 @@
     border-collapse: collapse;
   
     position: relative;
-    width:70%;
     text-align: left;
     min-width: 300px;
-    max-width: 1000px;
-    left:15%
 }

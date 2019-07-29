@@ -1,0 +1,22 @@
+.IdDetails table {
+    width:60%;
+    border-radius: 0px;
+    display:inline-table;
+    position: relative;
+    top:0px;
+    left: 0px;
+}
+
+.IdDetails td:first-child {
+    text-align: left;
+}
+
+.IdDetails div {
+    display: inline-block;
+    margin:10px;
+    width: 35%;
+}
+
+.textIdDetails {
+    transform: translateY(15rem) 
+}

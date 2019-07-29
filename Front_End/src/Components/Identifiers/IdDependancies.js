@@ -21,6 +21,12 @@ class IdDependancies extends Component {
     componentDidMount() {
         this.getFiles()
     }
+
+    componentDidUpdate(prevProps) {
+        if(prevProps.search !== this.props.search)
+            this.getFiles()
+    }
+
     showPage() {
         var toRender = [];
         var start = this.state.page * this.state.size;
@@ -158,7 +164,7 @@ class IdDependancies extends Component {
             toRender.push(<tr key={i}>
                 <td onDoubleClick={(e) => {
                     console.log(e.target.id)
-                    this.props.changeType("fun", e.target.f)
+                    this.props.changeType("fun", e.target.id)
 
                 }}
                     id={this.state.f[i]} style={{ cursor: 'pointer' }}>{this.state.info[i]}</td>
@@ -175,39 +181,42 @@ class IdDependancies extends Component {
     render() {
         return (
             <div>
-                {this.state.loaded ? <table className='FileDepends'>
-                    <thead>
-                        <tr>
-                            <td onClick={() => { this.changeOrder(1) }}>
-                            {this.state.info.length > 0?"Function Name":"Name"}
-                                    {
-                                    (this.state.orderField === 1) ?
-                                        <img src={Uarr} align="right" alt={'&#8593;'}
-                                            style={(this.state.rev) ?
-                                                { transform: "scaleY(-1)" }
-                                                : {}
-                                            }
-                                        />
-                                        : ""
-                                }
-                            </td>
-                            <td onClick={() => { this.changeOrder(2) }}>
-                                {this.state.info.length > 0?"Occurences":"Path"}
-                                    {
-                                    (this.state.orderField === 2) ?
-                                        <img src={Uarr} align="right" alt={'&#8593;'}
-                                            style={(this.state.rev) ?
-                                                { transform: "scaleY(-1)" }
-                                                : {}
-                                            }
-                                        />
-                                        : ""
-                                }
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>{this.state.info.length > 0?this.showFs():this.showPage()}</tbody>
-                </table> : <div>Loading...</div>}
+                {this.state.loaded ? 
+                <div>
+                    <table className='FileDepends'>
+                        <thead>
+                            <tr>
+                                <td onClick={() => { this.changeOrder(1) }}>
+                                {this.state.info.length > 0?"Function Name":"Name"}
+                                        {
+                                        (this.state.orderField === 1) ?
+                                            <img src={Uarr} align="right" alt={'&#8593;'}
+                                                style={(this.state.rev) ?
+                                                    { transform: "scaleY(-1)" }
+                                                    : {}
+                                                }
+                                            />
+                                            : ""
+                                    }
+                                </td>
+                                <td onClick={() => { this.changeOrder(2) }}>
+                                    {this.state.info.length > 0?"Occurences":"Path"}
+                                        {
+                                        (this.state.orderField === 2) ?
+                                            <img src={Uarr} align="right" alt={'&#8593;'}
+                                                style={(this.state.rev) ?
+                                                    { transform: "scaleY(-1)" }
+                                                    : {}
+                                                }
+                                            />
+                                            : ""
+                                    }
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>{this.state.info.length > 0?this.showFs():this.showPage()}</tbody>
+                    </table> 
+                </div>: <div>Loading...</div>}
             </div>
         )
     }
