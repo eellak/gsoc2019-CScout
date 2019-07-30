@@ -1287,7 +1287,8 @@ display_sorted(const Query &query, const container &sorted_ids)
 		typename container::const_reverse_iterator i;
 		for (i = sorted_ids.rbegin(); i != sorted_ids.rend(); i++) {
 			if (pager.show_next()) {
-				to_return["address"][no] = html_address(**i);			
+				to_return["address"][no] = html_address(**i);
+				
 				to_return["info"][no++] = name(**i);
 			}
 		}
@@ -1701,7 +1702,6 @@ xfunquery_page(void *p)
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
 	const char *qname = server.getCharPParam("n");
 	FunQuery query(Option::file_icase->get(), current_project);
-	cout << "query val;" << query.is_valid() << endl;
 	
 	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Invalid Query");
@@ -1734,13 +1734,16 @@ xfunquery_page(void *p)
 		}
 		to_return["f"] = to_return["funs"]["address"];
 		to_return["funs"].erase("address");
-		if(!query.bookmarkable()){			
-			void *p;
-			for (int i = 0; i < to_return["f"].size(); i++){
-				sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
-				to_return["funs"]["occ"][i] = query.appeared((Call *)p);
+				
+		void *p;
+		for (int i = 0; i < to_return["f"].size(); i++){
+			sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
+			if(!query.bookmarkable()){	
+			to_return["funs"]["occ"][i] = query.appeared((Call *)p);
 			}
+			to_return["funs"]["ncallers"][i] = ((Call *)p)->get_num_caller();
 		}
+
 	}
 	if (q_file)
 		to_return["files"] = display_files(query, sorted_files);

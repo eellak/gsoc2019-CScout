@@ -2,7 +2,7 @@ import Axios from 'axios';
 import React, { Component } from 'react';
 import '../../global.js';
 import Uarr from '../asc.ico';
-import Pager from '../Files/FileSearch/Pager'
+import Pager from '../Pager/Pager'
 
 class IdentifierSearch extends Component {
     constructor(props) {
@@ -35,7 +35,7 @@ class IdentifierSearch extends Component {
 
     showPage() {
         var toRender = [];
-        var start = this.state.page * this.state.size;
+     
         var i;
         for (i = 0; i < this.state.size; i++) {
             if ((i) >= this.state.info.length) {

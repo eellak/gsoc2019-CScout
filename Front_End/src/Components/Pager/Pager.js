@@ -1,5 +1,5 @@
 import React,{Component} from 'react'
-import Uarr from '../../asc.ico';
+import Uarr from '../asc.ico';
 import './Pager.css'
 
 
@@ -82,7 +82,7 @@ class Pager extends Component{
             <form onSubmit={(e) => {e.preventDefault(); this.props.setPage(this.selPage);}}
                 style={{display:'inline-block'}}>
                 Page: <input type='number' onChange={(e) => 
-                    this.selPage = parseInt(e.target.value) -1} min='1'
+                    this.selPage = parseInt(e.target.value,10) -1} min='1'
                     max={Math.floor(this.props.maxPage+1)} value={this.props.curPage+1}/>
             </form>
         </div>

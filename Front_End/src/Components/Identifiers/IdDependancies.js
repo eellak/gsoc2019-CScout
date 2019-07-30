@@ -155,7 +155,6 @@ class IdDependancies extends Component {
 
     showFs() {
         var toRender = [];
-        var start = this.state.page * this.state.size;
         var i;
         for (i = 0; i < this.state.size; i++) {
             if ((i) >= this.state.info.length) {

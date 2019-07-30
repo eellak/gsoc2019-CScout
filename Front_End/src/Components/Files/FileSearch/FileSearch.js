@@ -3,7 +3,7 @@ import Axios from 'axios';
 import '../../../global.js';
 import './FileSearch.css';
 import Uarr from '../../asc.ico';
-import Pager from './Pager';
+import Pager from '../../Pager/Pager';
 
 class FileSearch extends Component {
     constructor(props) {
@@ -107,18 +107,6 @@ class FileSearch extends Component {
                     show: this.state.show.reverse()
                 });
         }
-    }
-
-    pageNext() {
-        this.setState({
-            page: this.state.page + 1
-        })
-    }
-
-    pagePrev() {
-        this.setState({
-            page: this.state.page - 1
-        })
     }
 
     getFiles() {

@@ -45,7 +45,8 @@ class Fun extends Component {
             );
         else {
             var tabs = {}
-            if (this.state.file !== null)
+            console.log(this.state)
+            if (this.state.fun !== null)
                 tabs = [
                     {
                         title: "Details",
@@ -53,7 +54,7 @@ class Fun extends Component {
                     },
                     {
                         title: "Metrics",
-                        content: <Table head={["Metrics", "Values"]} contents={this.state.fun.metrics.data} />
+                        content: <Table head={["Metrics", "Values"]} contents={!this.state.fun.data.metrics?[]:this.state.fun.metrics.data} />
                     },
                     {
                         title: "tes",

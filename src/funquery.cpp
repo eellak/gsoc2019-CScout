@@ -116,7 +116,6 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		match_type = *m;
 	}
 	mquery.set_match_type(match_type);
-
 	cfun = !!server.getBoolParam("cfun");
 	macro = !!server.getBoolParam("macro");
 	writable = !!server.getBoolParam("writable");
@@ -124,29 +123,42 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	pscope = !!server.getBoolParam("pscope");
 	fscope = !!server.getBoolParam("fscope");
 	defined = !!server.getBoolParam("defined");
+
 	// Identifier EC match
-	if (!(ncallers = server.getIntParam("ncallers"))) {
+	if (server.getBoolParam("ncallers") && !(ncallers = server.getIntParam("ncallers"))) {
 		ncallerop = ec_ignore;
 	} else {
-		if(!(ncallers = server.getIntParam("ncallerop")))
+		if((ncallerop = server.getIntParam("ncallerop")) == -1)
 			ncallerop = ec_ignore;
 	}
-
 
 	exclude_fnre = !!server.getBoolParam("xfnre");
 	exclude_fure = !!server.getBoolParam("xfure");
 	exclude_fdre = !!server.getBoolParam("xfdre");
 	exclude_fre = !!server.getBoolParam("xfre");
-	// delete m;
+	delete m;
+	
 	// Compile regular expression specs
-	if((error = compile_re("Function name", "fnre", fnre, match_fnre, str_fnre))==NULL)
-		return;
-	if((error = compile_re("Calling function name", "fure", fure, match_fure, str_fure))==NULL)
-		return;
-	if((error = compile_re("Called function name", "fdre", fdre, match_fdre, str_fdre))==NULL)
-		return;
-	if((error = compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0)))==NULL)
-		return;	
+	error = compile_re("Function name", "fnre", fnre, match_fnre, str_fnre);
+	if(error != NULL){ 
+		delete error;
+		return ;
+	}	
+	error = compile_re("Calling function name", "fure", fure, match_fure, str_fure);
+	if(error != NULL){ 
+		delete error;
+		return ;
+	}
+	error = compile_re("Called function name", "fdre", fdre, match_fdre, str_fdre);
+	if(error != NULL){ 
+		delete error;
+		return ;
+	}
+	error = compile_re("Filename", "fre", fre, match_fre, str_fre, (icase ? REG_ICASE : 0));
+	if(error != NULL){ 
+		delete error;
+		return ;
+	}		
 	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
 }
 
@@ -314,18 +326,14 @@ FunQuery::eval(Call *c)
 	}
 	if (!add)
 		return false;
-
 	if (ncallerop && !Query::apply(ncallerop, c->get_num_caller(), ncallers))
 		return false;
-
 	int retval = exclude_fnre ? 0 : REG_NOMATCH;
 	if (match_fnre && fnre.exec(c->get_name()) == retval)
 		return false;
-
 	retval = exclude_fre ? 0 : REG_NOMATCH;
 	if (match_fre && fre.exec(c->get_fileid().get_path()) == retval)
 			return false;
-
 	Call::const_fiterator_type c2;
 	if (match_fdre) {
 		for (c2 = c->call_begin(); c2 != c->call_end(); c2++)
