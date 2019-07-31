@@ -48,9 +48,8 @@ public:
 				op[i] = 0;
 			if(n[i] == -1)
 				n[i] = 0;
-		}
-		if (!(sort_order = server.getIntParam("order")))
-			sort_order = -1;
+		}		
+		sort_order = server.getIntParam("order");
 		reverse = !!server.getIntParam("reverse");
 	}
 

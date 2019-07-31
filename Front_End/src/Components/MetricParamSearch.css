@@ -1,0 +1,35 @@
+.selectM {
+    text-align: left;
+    margin-top: 5px;
+    width:100%;
+}
+
+.selectΜ select{
+    background:#63b1ff;
+    color: white;
+    border-radius:10px;
+}
+
+.selectM option{
+    background:white;
+    color:black;
+}
+
+.selectM option:hover{
+    border-top:10px;
+    background:#63b1ff;
+    color: white;
+}
+
+.selectedMetric {
+    border-radius: 10px;
+    background: #63b1ff;
+    color:white;
+}
+
+.selectedMetric a{
+    color:red;
+    float:right;
+    position: relative;
+    right: 5px;
+}

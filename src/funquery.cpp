@@ -72,6 +72,8 @@
 
 int FunQuery::specified_order::order;
 bool FunQuery::specified_order::reverse;
+bool FunQuery::specified_order::q_ncall;
+
 
 // Construct an object based on URL parameters
 FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
@@ -159,7 +161,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		delete error;
 		return ;
 	}		
-	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse());
+	specified_order::set_order(mquery.get_sort_order(), mquery.get_reverse(), server.getBoolParam("qncall"));
 }
 
 // Return the URL for re-executing this query

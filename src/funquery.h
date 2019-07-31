@@ -82,6 +82,7 @@ private:
 	Attributes::size_type current_project;	// Restrict evaluation to this project
 	// The query part for the metrics
 	MQuery<FunMetrics, Call &> mquery;
+	// Order by number of callers
 public:
 	// Construct object based on URL parameters
 	FunQuery(bool icase, Attributes::size_type current_project, bool e = true, bool r = true);
@@ -111,19 +112,28 @@ public:
 		 */
 		static int order;
 		static bool reverse;
+		static bool q_ncall;
 	public:
 		// Should be called exactly once before instantiating the set
-		static void set_order(int o, bool r) { order = o; reverse = r; }
+		static void set_order(int o, bool r, bool q) { order = o; reverse = r; q_ncall = q; }
 		bool operator()(const Call *a, const Call *b) const {
 			bool val;
-			if (order == -1)
-				// Order by name
-				val = Query::string_bi_compare(a->get_name(), b->get_name());
+			if (order == -1){
+				if(q_ncall)
+				// Order by number caller
+					val = a->get_num_caller() < b->get_num_caller();
+				else
+					// Order by name
+					val = Query::string_bi_compare(a->get_name(), b->get_name());
+			}
 			else
 				val = (a->const_metrics().get_metric(order) < b->const_metrics().get_metric(order));
 			return reverse ? !val : val;
 		}
 	};
+	
+
+	
 	int get_sort_order() const { return mquery.get_sort_order(); }
 	// Return true if the query's URL can be bookmarked across CScout invocations
 	bool bookmarkable() const { return id_ec == NULL; }

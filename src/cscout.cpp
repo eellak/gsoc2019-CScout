@@ -1339,22 +1339,15 @@ display_sorted_function_metrics(const FunQuery &query, const Sfuns &sorted_ids)
 	to_return["mname"] = json::value(Metrics::get_name<FunMetrics>(query.get_sort_order()));
 	Pager pager( Option::entries_per_page->get(), query.base_url() + "&qi=1", query.bookmarkable());
 	int no = 0;
-	char * s = new char[20];
 	for (Sfuns::const_iterator i = sorted_ids.begin(); i != sorted_ids.end(); i++) {
 		if (pager.show_next()) {
-			sprintf(s, "%p", &(**i));
-			to_return["address"][no] = json::value(s);
-			s[0] = 0;
-			to_return["metric"][no] = json::value((*i)->const_metrics().get_metric(query.get_sort_order()));
-			to_return["html"][no++] = json::value::string("<tr><td witdh='50%'>" +
-				html(**i) +
-				"</td><td witdh='50%%' align='right'>" +
-				to_string((*i)->const_metrics().get_metric(query.get_sort_order()))
-				+ "</td></tr>\n", true);
+			to_return["address"][no] = html_address(**i);
+			to_return["info"][no] = name(**i);
+			to_return["metric"][no++] = json::value((*i)->const_metrics().get_metric(query.get_sort_order()));
+			
 		}
 	}
 	to_return["end"] = json::value::string("</table>\n",true);
-	delete s;
 	return to_return;
 }
 
@@ -1700,6 +1693,15 @@ xfunquery_page(void *p)
 
 	bool q_id =!!server.getBoolParam("qi");
 	bool q_file = !!server.getBoolParam("qf");	// Show matching files
+	bool q_metr = !!server.getBoolParam("qmetr"); // Show metrics
+	list<int> metr;
+	if(q_metr){
+		for(int i = 0; i < FunMetrics::metric_max; i++){
+			//cout << "s"+i<<endl;
+			if(server.getBoolParam("s" + to_string(i)))
+				metr.push_back(i);
+		}
+	}
 	const char *qname = server.getCharPParam("n");
 	FunQuery query(Option::file_icase->get(), current_project);
 	
@@ -1719,14 +1721,14 @@ xfunquery_page(void *p)
 		progress(i, Call::functions());
 		if (!query.eval(i->second))
 			continue;
-		if (q_id){
-			sorted_funs.insert(i->second);
-			
+		if (q_id){		
+			sorted_funs.insert(i->second);		
 		}
 		if (q_file)
 			sorted_files.insert(i->second->get_fileid());
 	}
 	if (q_id) {
+		cout << "sort order" << query.get_sort_order() << endl;
 		if (query.get_sort_order() != -1)
 			to_return["funs"] = display_sorted_function_metrics(query, sorted_funs);
 		else {
@@ -1734,14 +1736,22 @@ xfunquery_page(void *p)
 		}
 		to_return["f"] = to_return["funs"]["address"];
 		to_return["funs"].erase("address");
+		to_return["max"] = json::value(sorted_funs.size());
+
 				
 		void *p;
 		for (int i = 0; i < to_return["f"].size(); i++){
 			sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
-			if(!query.bookmarkable()){	
-			to_return["funs"]["occ"][i] = query.appeared((Call *)p);
+			if (!query.bookmarkable()){	
+				to_return["funs"]["occ"][i] = query.appeared((Call *)p);
 			}
 			to_return["funs"]["ncallers"][i] = ((Call *)p)->get_num_caller();
+			if (q_metr){
+				int no = 0;
+				for (auto it = metr.begin(); it != metr.end(); it++) {
+					to_return["funs"]["metrics"][i][no++] = json::value(((Call *)p)->const_metrics().get_metric(*it));
+				}
+			}
 		}
 
 	}
