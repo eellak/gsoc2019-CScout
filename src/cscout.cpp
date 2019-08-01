@@ -85,7 +85,6 @@
 #include "fifstream.h"
 #include "ctag.h"
 #include "timer.h"
-#include "headers.h"
 
 #ifdef PICO_QL
 #include "pico_ql_search.h"
@@ -131,6 +130,7 @@ static Fileid input_file_id;
 
 // This uses many of the above, and is therefore included here
 #include "gdisplay.h"
+#include "headers.h"
 
 // Set to true when the user has specified the application to exit
 static bool must_exit = false;
@@ -1697,7 +1697,6 @@ xfunquery_page(void *p)
 	list<int> metr;
 	if(q_metr){
 		for(int i = 0; i < FunMetrics::metric_max; i++){
-			//cout << "s"+i<<endl;
 			if(server.getBoolParam("s" + to_string(i)))
 				metr.push_back(i);
 		}
@@ -1728,7 +1727,6 @@ xfunquery_page(void *p)
 			sorted_files.insert(i->second->get_fileid());
 	}
 	if (q_id) {
-		cout << "sort order" << query.get_sort_order() << endl;
 		if (query.get_sort_order() != -1)
 			to_return["funs"] = display_sorted_function_metrics(query, sorted_funs);
 		else {
@@ -3013,14 +3011,16 @@ end:
 // 	graph_fun(&gd);
 // }
 
-// // Graph: SVG via dot
-// static void
-// graph_svg_page(FILE *fo, void (*graph_fun)(GraphDisplay *))
-// {
-// 	prohibit_remote_access();
-// 	GDSvg gd(fo);
-// 	graph_fun(&gd);
-// }
+// Graph: SVG via dot
+static ostringstream *
+graph_svg_page(std::function<void (GraphDisplay *)> graph_fun)
+{
+	prohibit_remote_access();
+	ostringstream * fo = new ostringstream();
+	GDSvg gd(fo);
+	graph_fun(&gd);
+	return fo;
+}
 
 // // Graph: GIF via dot
 // static void
@@ -3134,10 +3134,10 @@ vector<string> split_by_delimiter(string &s, char delim)
 static void
 graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 {
-//	server.addHandler((name + ".html").c_str(), graph_html_page, graph_fun);
+	// server.addHandler((name + ".html").c_str(), graph_html_page, graph_fun);
 // 	swill_handle((name + ".txt").c_str(), graph_txt_page, graph_fun);
 // 	swill_handle((name + "_dot.txt").c_str(), graph_dot_page, graph_fun);
-// 	swill_handle((name + ".svg").c_str(), graph_svg_page, graph_fun);
+ 	// server.addGraphHandler((name + ".svg").c_str(), graph_svg_page, graph_fun);
 // 	swill_handle((name + ".gif").c_str(), graph_gif_page, graph_fun);
 // 	swill_handle((name + ".png").c_str(), graph_png_page, graph_fun);
 // 	swill_handle((name + ".pdf").c_str(), graph_pdf_page, graph_fun);
@@ -4400,6 +4400,8 @@ main(int argc, char *argv[])
 		server.addHandler("idmetrics.html", id_metrics_page, NULL);
 
 		graph_handle("cgraph", cgraph_page);
+		server.addGraphHandler("cgraph.svg", graph_svg_page, cgraph_page);
+
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
 		server.addHandler("browseTop.html",top_file, NULL);

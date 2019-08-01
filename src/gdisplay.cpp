@@ -154,7 +154,7 @@ GDDotImage::tail()
 	setmode(fileno(result), O_BINARY);
 	#endif
 	while ((c = getc(fimg)) != EOF)
-		putc(c, result);
+		(*result) << c;
 	fclose(fimg);
 	(void)unlink(dot);
 	(void)unlink(img);

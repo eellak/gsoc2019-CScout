@@ -165,9 +165,9 @@ private:
 	char dot[256];		// Absolute dot file path
 	char cmd[1024];		// dot command
 	const char *format;	// Output format
-	FILE *result;		// Resulting image
+	ostringstream *result;		// Resulting image
 public:
-	GDDotImage(FILE *f, const char *fmt) : GDDot(NULL), format(fmt), result(f) {}
+	GDDotImage(ostringstream *f, const char *fmt) : GDDot(NULL), format(fmt), result(f) {}
 	void head(const char *fname, const char *title, bool empty_node);
 	virtual void tail();
 	virtual ~GDDotImage() {}
@@ -176,7 +176,7 @@ public:
 // SVG via dot
 class GDSvg: public GDDotImage {
 public:
-	GDSvg(FILE *f) : GDDotImage(f, "svg") {}
+	GDSvg(ostringstream *f) : GDDotImage(f, "svg") {}
 	virtual bool isHyperlinked() { return (true); }
 	virtual ~GDSvg() {}
 };
@@ -184,21 +184,21 @@ public:
 // GIF via dot
 class GDGif: public GDDotImage {
 public:
-	GDGif(FILE *f) : GDDotImage(f, "gif") {}
+	GDGif(ostringstream *f) : GDDotImage(f, "gif") {}
 	virtual ~GDGif() {}
 };
 
 // PNG via dot
 class GDPng: public GDDotImage {
 public:
-	GDPng(FILE *f) : GDDotImage(f, "png") {}
+	GDPng(ostringstream *f) : GDDotImage(f, "png") {}
 	virtual ~GDPng() {}
 };
 
 // PDF via dot
 class GDPdf: public GDDotImage {
 public:
-	GDPdf(FILE *f) : GDDotImage(f, "pdf") {}
+	GDPdf(ostringstream *f) : GDDotImage(f, "pdf") {}
 	virtual bool isHyperlinked() { return (true); }
 	virtual ~GDPdf() {}
 };

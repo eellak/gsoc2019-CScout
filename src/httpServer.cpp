@@ -5,6 +5,8 @@ bool HttpServer::must_exit = false;
 // URI Path to func dictionary
 map<utility::string_t, Handler> handler_dictionary;
 map<utility::string_t, Handler> put_handler_dictionary;
+map<utility::string_t, Graph_Handler> graph_handler_dict;
+
 
 //Server constructor binds handlers to methods
 HttpServer::HttpServer(utility::string_t url, ofstream *log) : listener(url), log_file(log)
@@ -25,6 +27,19 @@ void HttpServer::addHandler(utility::string_t value, function<json::value(void *
     handler_dictionary[value] = funcHandler;
     if(DP())
         cerr << "HttpServer: addHandler " << value << " called \n";
+}
+
+
+//Adds functions to URI path Handlers
+void HttpServer::addGraphHandler(utility::string_t value, function<ostringstream *(function<void (GraphDisplay *)>)> handleFunction, function<void (GraphDisplay *)> attributes)
+{
+    Graph_Handler funcHandler;
+    funcHandler.value = value;
+    funcHandler.handleFunction = handleFunction;
+    funcHandler.attributes = attributes;
+    graph_handler_dict[value] = funcHandler;
+    if(DP())
+        cerr << "HttpServer: addGraphHandler " << value << " called \n";
 }
 
 void HttpServer::addPutHandler(utility::string_t value, function<json::value(void *)> handleFunction, void *attributes)
@@ -74,22 +89,46 @@ void HttpServer::handle_get(http_request request)
     cerr << "HttpServer: Handle get of " << path << endl;
     if(DP())
         cout <<"HttpServer: Get begin. Mapped functions\n";
-
+        
     // match path with dictionary
     auto it = handler_dictionary.find(path.substr(1));
     if (it == handler_dictionary.end())
     {
-        response = http_response(status_codes::NotFound);
-        body["error"] = json::value::string("Url Not Found");
-        response.set_body(body);
-        if(DP())
-            cout << "response:" << response.to_string() << endl;
-        request.reply(response);
-        if (this->log_file != NULL)
-        {
-            
-            cerr << "write to log" << endl;
-            *(this->log_file) << body.serialize();
+        auto it = graph_handler_dict.find(path.substr(1));
+        if (it == graph_handler_dict.end()){
+            response = http_response(status_codes::NotFound);
+            body["error"] = json::value::string("Url Not Found");
+            response.set_body(body);
+            if(DP())
+                cout << "response:" << response.to_string() << endl;
+            request.reply(response);
+            if (this->log_file != NULL)
+            {
+                
+                cerr << "write to log" << endl;
+                *(this->log_file) << body.serialize();
+            }
+        }
+        else {
+            cerr << "HttpServer:handle_get: handler:" << it->first << endl;
+            utility::string_t dec_query = web::uri::decode(request.request_uri().query());
+            cerr << "URI:" << dec_query << endl;
+            //Uri params to json value
+            std::map<utility::string_t, utility::string_t> attributes = web::uri::split_query(dec_query);
+
+            if(DP())
+                cout << "Attributes:" << endl;
+
+            for (std::map<utility::string_t, utility::string_t>::iterator it = attributes.begin(); it != attributes.end(); it++)
+            {           
+                server.params[it->first] = json::value::string(it->second);
+            }
+            if(DP())
+                cout << "JSON:"<< server.params.serialize().c_str() << endl;
+           ostringstream *f = it->second.handleFunction(it->second.attributes);
+            cout << "svg:" << endl << f->str() << endl;
+            response = http_response(status_codes::OK);
+             request.reply(response);
         }
     }
     else

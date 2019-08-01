@@ -50,7 +50,7 @@ public:
 				n[i] = 0;
 		}		
 		sort_order = server.getIntParam("order");
-		reverse = !!server.getIntParam("reverse");
+		reverse = !!server.getBoolParam("reverse");
 	}
 
 	// Accessor methods
