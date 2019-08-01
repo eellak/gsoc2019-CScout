@@ -217,55 +217,55 @@ class FileSearch extends Component {
                             <input type='radio' className="type" value='all'
                                 checked={this.state.selectedOption === 'all'} onChange={this.handleOptionChange} />
                             All<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='writable'
                                 checked={this.state.selectedOption === 'writable'} onChange={this.handleOptionChange} />
                             Writable<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='read-only'
                                 checked={this.state.selectedOption === 'read-only'} onChange={this.handleOptionChange} />
                             Read-Only<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='unused-proj-scoped-id'
                                 checked={this.state.selectedOption === 'unused-proj-scoped-id'} onChange={this.handleOptionChange} />
                             Files with unused project-scoped writable identifiers<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='unused-file-scoped-id'
                                 checked={this.state.selectedOption === 'unused-file-scoped-id'} onChange={this.handleOptionChange} />
                             Files with unused file-scoped writable identifiers<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='wr-no-statement'
                                 checked={this.state.selectedOption === 'wr-no-statement'} onChange={this.handleOptionChange} />
                             Writable Files without any statements<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='wr-unprocessed'
                                 checked={this.state.selectedOption === 'wr-unprocessed'} onChange={this.handleOptionChange} />
                             Writable Files with unprocessed lines<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='wr-strings'
                                 checked={this.state.selectedOption === 'wr-strings'} onChange={this.handleOptionChange} />
                             Writable Files with strings<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <label className='radioB'>
                             <input type='radio' className="type" value='wr-h-include'
                                 checked={this.state.selectedOption === 'wr-h-include'} onChange={this.handleOptionChange} />
                             Writable .h Files with #include directives<br />
-                            <span class='checkmark' />
+                            <span className='checkmark' />
                         </label>
                         <button className="formButton">Submit</button>
                     </form>

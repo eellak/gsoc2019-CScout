@@ -1,6 +1,10 @@
 import React,{Component} from 'react';
 import Axios from 'axios';
 import '../../global.js';
+import Uarr from '../asc.ico';
+import Pager from '../Pager/Pager';
+import MetricParamSearch from '../MetricParamSearch';
+
 
 class FunctionSearch extends Component {
     constructor(props) {
@@ -9,23 +13,29 @@ class FunctionSearch extends Component {
             loaded: false,
             size: 20,
             page: 0,
+            max: 0,
             orderby: "",
             orderField: 0,
             selectedOption: "all",
-            rev: false
+            rev: true
         }
         // this.objectComp = this.objectComp.bind(this);
         // this.handleOptionChange = this.handleOptionChange.bind(this);
-        // this.handleSubmit = this.handleSubmit.bind(this);
-        // this.handleInputChange = this.handleInputChange.bind(this);
-        // this.inputValue = '';
-        // this.maxShow = 20;
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.inputValue = '';
+        this.maxShow = 20;
+        this.selectedMetrics = [];
+        this.changeSelectedMetrics = this.changeSelectedMetrics.bind(this)
     }
 
     componentDidMount() {
         this.getFuns();
     }
 
+    changeSelectedMetrics(obj){
+        this.selectedMetrics = obj;
+    }
 
     changeOrder(e) {
         if (this.state.orderField !== e) {
@@ -50,12 +60,26 @@ class FunctionSearch extends Component {
         }
     }
 
+
+    handleInputChange(e) {
+        this.inputValue = e.target.value
+    }
+
+
     getFuns() {
         console.log(this.state)
+        console.log(this.selectedMetrics)
         var url = "";
+        url += (this.state.search) ?  "fnre="+ this.inputValue  :  ""
+
         url += this.state.writable?"&writable=1":"";
         url += this.state.ro?"&ro=1":"";
         url += this.state.cfun?"&cfun=1":"";
+        url += this.state.pscope?"&pscope=1":"";
+        url += this.state.fscope?"&fscope=1":"";
+        url += this.state.macro?"&macro=1":"";
+        url += this.state.defined?"&defined=1":"";
+
         if(url === "")
             url = "writable=1&ro=1&match=Y&ncallerop=0&n=All+Functions&qi=x";
         else {
@@ -67,7 +91,16 @@ class FunctionSearch extends Component {
         }
         url += "&skip=" + this.state.page*this.state.size;
         url += "&pages=" + this.state.size;
-        url += this.state.rev ? "&rev=1" : "";
+        url += this.state.rev ? "&reverse=1" : "";
+        if(this.state.orderField === 2) 
+            url += "&qncall=1" ;
+        else if(this.state.orderField > 2)
+            url += "&order=" + this.selectedMetrics[this.state.orderField - 3].val;
+        this.selectedMetrics.map((obj,i) =>
+            url += "&s" + obj.val + "=1"
+        )
+        if(this.selectedMetrics.length > 0)
+            url += "&qmetr=1"
         Axios.get(global.address + "xfunquery.html?" + url)
         .then((response) => {
             if (response.data.error) {
@@ -84,7 +117,8 @@ class FunctionSearch extends Component {
                         start: 0,
                         info: [],
                         max: response.data.max,
-                        ncallers: []
+                        ncallers: [],
+                        metrics: undefined
                     })
                 } else
                     this.setState({
@@ -95,12 +129,24 @@ class FunctionSearch extends Component {
                         start: 0,
                         max: response.data.max,
                         data: response.data,
-                        ncallers: response.data.funs.ncallers
+                        ncallers: response.data.funs.ncallers,
+                        metrics: response.data.funs.metrics
                     })
                 console.log(this.state)
             }
         });
     } 
+
+    showMetricVals(i){
+        if (this.state.metrics === undefined)
+            return [];
+        else
+            return this.state.metrics[i].map((obj,i) =>
+                            <td key={i}>
+                                {obj}
+                            </td>
+                    );
+    }
 
     showFs() {
         var toRender = [];
@@ -111,12 +157,14 @@ class FunctionSearch extends Component {
             }
             toRender.push(<tr key={i}>
                 <td onDoubleClick={(e) => {
-                    console.log(e.target.id)
                     this.props.changeType("fun", e.target.id)
 
                 }}
                     id={this.state.f[i]} style={{ cursor: 'pointer' }}>{this.state.info[i]}</td>
                     <td>{this.state.ncallers[i]}</td>
+                {
+                    this.showMetricVals(i)
+                }
             </tr>);
         }
         if(toRender.length === 0)
@@ -125,8 +173,58 @@ class FunctionSearch extends Component {
         return toRender;
     }
 
+    handleSubmit(e) {
+        e.preventDefault();
+
+        this.setState({
+            search: true,
+            orderField: 0
+        }, this.getFuns);
+    }
+
+    showMetricHeaders() {
+        if (this.state.metrics === undefined)
+            return [];
+        else 
+            return this.selectedMetrics.map((obj,i) =>
+                <td key={i} onClick={() => this.changeOrder(i+3)}>
+                    {obj.name}
+                    {
+                        (this.state.orderField === (i+3)) ?
+                            <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev) ?
+                                { transform: "scaleY(-1)" }
+                                : {}
+                            } />
+                            : ""
+                    }
+                </td>
+            )
+    }
+    
+
 
     render() {
+        var metrics = [
+            "Number of characters",
+            "Number of comment characters",
+            "Number of space characters",
+            "Number of line comments",
+            "Number of block comments",
+            "Number of lines",
+            "Maximum number of characters in a line",
+            "Number of character strings",
+            "Number of unprocessed lines",
+            "Number of C preprocessor directives",
+            "Number of processed C preprocessor conditionals (ifdef, if, elif)",
+            "Number of defined C preprocessor function-like macros",
+            "Number of defined C preprocessor object-like macros",
+            "Number of preprocessed tokens",
+            "Number of compiled tokens",
+            "Number of statements or declarations",
+            "Number of operatiors"
+        ]
+        if(this.state.metrics !== undefined)
+            this.selectedMetrics.sort();
         return (
             <div>
                 <h3>
@@ -144,7 +242,6 @@ class FunctionSearch extends Component {
                         this.setState({ 
                             loaded: false
                         });  
-                        console.log(e);
                         this.getFuns(); }}
                     >
                         <b>Type</b><br/>
@@ -172,40 +269,97 @@ class FunctionSearch extends Component {
                             C functon<br />
                             <span className='chk' />
                         </label>
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='pscope'
+                                checked={this.state.pscope} onChange={() => this.setState({pscope: !this.state.pscope})} 
+                                />
+                            Project Scope<br />
+                            <span className='chk' />
+                        </label>
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='fscope'
+                                checked={this.state.fscope} onChange={() => this.setState({fscope: !this.state.fscope})} 
+                                />
+                            File Scope<br />
+                            <span className='chk' />
+                        </label>
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='macro'
+                                checked={this.state.macro} onChange={() => this.setState({macro: !this.state.macro})} 
+                                />
+                            Function-like Macro<br />
+                            <span className='chk' />
+                        </label>
+                        <label className='chk'>
+                            <input type='checkbox' className="chk" value='defined'
+                                checked={this.state.defined} onChange={() => this.setState({defined: !this.state.defined})} 
+                                />
+                            Defined<br />
+                            <span className='chk' />
+                        </label>
+
+                        <MetricParamSearch metrics={metrics} changeMetrics={this.changeSelectedMetrics}/>
 
                         <button className="formButton" onClick={this.clearOptions}>Clear</button>
-                        <button className="formButton" onClick={() => this.setState({match:"L"}) }>Search All</button>
-                        <button className="formButton" onClick={() => this.setState({match:"Y"}) }>Search Any</button>
+                        <button className="formButton" onClick={() => this.setState({match:"L",orderField:0}) }>Search All</button>
+                        <button className="formButton" onClick={() => this.setState({match:"Y",orderField:0}) }>Search Any</button>
                     </form>
                     <form onSubmit={(e) => {
                         this.setState({
                             size: this.maxShow,
                             page: 0
-                        }, this.getIds);
+                        }, this.getFuns);
                         e.preventDefault()
                     }
                     }> Results per Page:
                         <input type='number' onChange={(e) => this.maxShow = e.target.value} min='1' max={this.state.loaded ? this.state.max : 200} /><br />
                     </form>
-                </div>   
+                </div> 
                 {this.state.loaded ? 
-                <table className="FileResults">
-                    <thead>
-                        <tr>
-                            <td>
-                                Function Name
-                            </td>
-                            <td>
-                                Number of Callers
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.showFs()}
-                    </tbody>
-                </table>
+                <div className="results" >
+                    <Pager setPage={(e) => {
+                            this.setState({ page: e, start: e * this.state.size }, this.getFuns);
+                            }}
+                        curPage={this.state.page} maxPage={this.state.max / this.state.size}
+                        size={this.state.size} totalObjs={this.state.max} />
+            
+                    <table className="FileResults">
+                        <thead>
+                            <tr>
+                                <td  onClick={() => { this.changeOrder(1); }} style={{minWidth:"20%"}}>
+                                    Function Name
+                                    {
+                                        (this.state.orderField === 1) ?
+                                            <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev) ?
+                                                { transform: "scaleY(-1)" }
+                                                : {}
+                                            } />
+                                            : ""
+                                    }
+                                </td>
+                                <td onClick={() => { this.changeOrder(2); }}>
+                                    Number of Callers
+                                    {
+                                            (this.state.orderField === 2) ?
+                                                <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev) ?
+                                                    { transform: "scaleY(-1)" }
+                                                    : {}
+                                                } />
+                                                : ""
+                                        }
+                                </td>
+                                {
+                                    this.showMetricHeaders()
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.showFs()}
+                        </tbody>
+                    </table>
+                </div>
                 :<div>Loading...</div>
-                }
+                    }
         </div>
         );
     }        

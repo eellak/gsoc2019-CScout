@@ -30,7 +30,7 @@ thead tr:first-child {
 }
   
 tbody td{
-    border: 1px solid #ddd;
+    border: 1px solid #bbb;
   padding: 5px;
   cursor:'default'
 }

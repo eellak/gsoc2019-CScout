@@ -10,7 +10,9 @@
     background:#63b1ff;
     color: white;
     border-radius:10px;
+    box-shadow: 0 0 6px 0 #63b1ff;
 }
+
 
 .selector option{
     background:white;

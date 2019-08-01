@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import './MetricParamSearch.css';
+import X from './x.ico';
 
 class MetricParamSearch extends Component{
     constructor(props){
@@ -59,30 +60,42 @@ class MetricParamSearch extends Component{
     render(){
         return(
             <div className="MetricParam">
+                    <b> Metrics</b>
                     {
                         this.state.selected.map((obj,i) =>
                             <div className="selectedMetric" key={i}>
-                                {obj.name}
-                                <a onClick={()=> this.removeSelected(obj,i)}>
-                                    x
+                                <div>
+                                    {obj.name}
+                                </div>
+                                <span className="helper"></span>
+                                <a onClick={()=> this.removeSelected(obj,i)} style={{cursor:"pointer"}}>
+                                    <img src={X} height={10} width={10} alt="x"/>
                                 </a>
+                                
                             </div>   
                     )}
                     <div className="selectM">
-                        <select value={this.state.optionsState} onChange={this.change.bind(this)}>
-                            {
-                                this.state.notSelected.map((obj,i) =>
-                                    <option value={i} key={i} 
-                                    className={(i===this.state.optionsState)?"selected":""}>
-                                        {obj.name}
-                                    </option>
-                                )
-                            }
-                        </select>
-                        
-                        <a onClick={()=> this.addSelected()}>
+                        {(this.state.notSelected.length > 0)?
+                        <div>
+                            <select value={this.state.optionsState} onChange={this.change.bind(this)} 
+                                className="selectEl" size="5">
+                                {
+                                    this.state.notSelected.map((obj,i) =>
+                                        <option value={i} key={i} 
+                                        className={((i + 3) === this.state.optionsState)?"selected":""}>
+                                            {obj.name}
+                                        </option>
+                                    )
+                                }
+                            </select>
+                            <a onClick={()=> this.addSelected()} style={{cursor: "pointer"}}>
                             +
-                        </a>
+                            </a>
+                         </div>:
+                        null
+                        }
+                        
+                        
                     </div>
             </div>
         )

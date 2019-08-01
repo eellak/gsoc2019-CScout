@@ -3,7 +3,7 @@ import Axios from 'axios';
 import '../../global.js';
 import IdDependancies from './IdDependancies';
 import Check from './check.ico';
-import X from './x.ico';
+import X from '../x.ico';
 import './Identifier.css';
 import Tabs from '../Tabs/Tabs';
 class Identifier extends Component {

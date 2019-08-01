@@ -83,12 +83,13 @@ class IdentifierSearch extends Component {
     getIds() {
         console.log(this.state);
         var url = "";
+        url += (this.state.search) ?  "ire="+ this.inputValue  :  ""
         for(let i = 2; i < 16; i++)
             url += this.state["a" + i]?("&a" + i + "=1"):"";
         url += this.state.xfile?"&xfile=1":"";
         url += this.state.writable?"&writable=1":"";
 
-        url += (this.state.search) ?  "ire="+ this.inputValue  :  ""
+       
         if(url === "")
             url = "writable=1&a2=1&match=Y&qi=1&n=All+Identifiers";
         else {
@@ -239,7 +240,12 @@ class IdentifierSearch extends Component {
                         }, this.getIds);
                         e.preventDefault()
                     }
-                    }> Results per Page:
+                    }> Results per Page:            (this.state.orderField === 1) ?
+                    <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev) ?
+                        { transform: "scaleY(-1)" }
+                        : {}
+                    } />
+    
                         <input type='number' onChange={(e) => this.maxShow = e.target.value} min='1' max={this.state.loaded ? this.state.max : 200} /><br />
                     </form>
                 </div>

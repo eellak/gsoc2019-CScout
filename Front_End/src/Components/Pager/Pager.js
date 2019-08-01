@@ -5,7 +5,6 @@ import './Pager.css'
 
 const pages = (cur, end, setPage) => {
     let pages = [];
-    console.log("cur:"+cur+"-end:"+end)
     if(end < 10){
         for (let i = 0; i < end; i++) {
             pages.push(
@@ -25,9 +24,7 @@ const pages = (cur, end, setPage) => {
         )
         if (cur > 3)
             pages.push(<div className="page" key={-1}>...</div>)  
-        console.log((3+cur)+"-"+Math.min((cur+3), Math.floor(end))) 
         for (let i = Math.max(cur-2,1); i < Math.min(cur+3,Math.floor(end)); i++){
-            console.log(i)
             pages.push(
             <div key={i} onClick={() => setPage(i)}
                 style={{ cursor: 'pointer' }} className={(cur === i) ? 'curPage' : 'page'}>

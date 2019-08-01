@@ -1,18 +1,22 @@
 .selectM {
     text-align: left;
-    margin-top: 5px;
+    margin: 5px;
     width:100%;
+    margin-bottom: 10px;            
 }
 
-.selectΜ select{
+.selectEl{
     background:#63b1ff;
     color: white;
     border-radius:10px;
+    width:90%;
+    box-shadow: 0 0 6px 0 #63b1ff;
 }
 
 .selectM option{
-    background:white;
-    color:black;
+    background:#63b1ff;
+    color: white;
+    border-radius:10px;
 }
 
 .selectM option:hover{
@@ -21,15 +25,49 @@
     color: white;
 }
 
+.selectM a {
+    color:#63b1ff;
+    text-shadow: 0 0 3px #63b1ff;
+    font-size: large;
+    font-weight: 800;
+    margin-left: 4px;
+}
+
 .selectedMetric {
     border-radius: 10px;
     background: #63b1ff;
     color:white;
+    margin: 2px;
+    font-size: smaller;
+    width: 80%;
+    margin-top: 7px;
+    box-shadow: 0 0 6px 0 #63b1ff;
+}
+
+.selectedMetric div{
+    vertical-align: middle;
+    height:100%;
+    display: inline-block;
+    width:85%;
+    padding-left: 6px;
+
 }
 
 .selectedMetric a{
-    color:red;
-    float:right;
-    position: relative;
-    right: 5px;
+    vertical-align: middle;
+    height:100%;
+    display: inline-block;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.helper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.MetricParam b {
+    margin-top: 10px;
+    display: block;
 }
