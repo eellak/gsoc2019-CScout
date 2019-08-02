@@ -128,6 +128,7 @@ void HttpServer::handle_get(http_request request)
            ostringstream *f = it->second.handleFunction(it->second.attributes);
             cout << "svg:" << endl << f->str() << endl;
             response = http_response(status_codes::OK);
+            response.set_body(f->str());
              request.reply(response);
         }
     }

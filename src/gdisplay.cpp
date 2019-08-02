@@ -112,7 +112,7 @@ GDDotImage::head(const char *fname, const char *title, bool empty_node)
 	#endif
 	strcat(dot_dir, "/CS-XXXXXX");
 	if (mkdtemp(dot_dir) == NULL) {
-		html_perror(fo, "Unable to create temporary directory " + string(dot), true);
+		*fo << "Unable to create temporary directory " << string(dot) << endl;
 		return;
 	}
 	strcpy(dot, dot_dir);
@@ -121,7 +121,7 @@ GDDotImage::head(const char *fname, const char *title, bool empty_node)
 	strcat(img, "/out.img");
 	fdot = fopen(dot, "w");
 	if (fdot == NULL) {
-		html_perror(fo, "Unable to open " + string(dot) + " for writing", true);
+		*fo << "Unable to open " + string(dot) + " for writing";
 		return;
 	}
 	GDDot::head(fname, title, empty_node);
@@ -136,25 +136,34 @@ GDDotImage::tail()
 	 * Changing to the tmp directory overcomes the problem of Cygwin
 	 * differences between CScout and dot file paths
 	 */
-	snprintf(cmd, sizeof(cmd), "cd %s && dot -T%s in.dot -oout.img",
+	cout << "here closed:" << cmd << endl;
+	snprintf(cmd, sizeof(cmd), "cd %s && dot -T%s in.dot -o out.img",
 			dot_dir, format);
+	cout << "here closed" << cmd << endl;
+	
 	if (DP())
 		cout << cmd << '\n';
+	cout << "cmd:" << cmd << endl;
 	if (system(cmd) != 0) {
-		html_perror(fo, "Unable to execute " + string(cmd) + ". Shell execution", true);
+		cout << "cmd failed-"<< errno<< endl;
+		*fo << "Unable to execute " << string(cmd) << ". Shell execution";
 		return;
 	}
+	cout << "cmd executed" << endl;
 	FILE *fimg = fopen(img, "rb");
 	if (fimg == NULL) {
-		html_perror(fo, "Unable to open " + string(img) + " for reading", true);
+		*fo << "Unable to open " << string(img) << " for reading";
 		return;
 	}
-	int c;
+	cout << "img opened" << endl;
+	char c;
+	cout << "About to write to out" << endl;
 	#ifdef WIN32
 	setmode(fileno(result), O_BINARY);
 	#endif
+
 	while ((c = getc(fimg)) != EOF)
-		(*result) << c;
+		(*result) << c ;
 	fclose(fimg);
 	(void)unlink(dot);
 	(void)unlink(img);

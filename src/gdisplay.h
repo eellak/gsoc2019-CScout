@@ -37,7 +37,7 @@ using namespace std;
 // Abstract base class, used for drawing
 class GraphDisplay {
 protected:
-	FILE *fo;		// HTTP output file
+	ostringstream *fo;		// HTTP output file
 	FILE *fdot;		// Dot output file
 public:
 	bool uses_swill = true;
@@ -46,7 +46,7 @@ public:
 	char *gtype = NULL;
 	char *ltype = NULL;
 
-	GraphDisplay(FILE *f) : fo(f), fdot(NULL) {}
+	GraphDisplay(ostringstream *f) : fo(f), fdot(NULL) {}
 	virtual void head(const char *fname, const char *title, bool empty_node) {};
 	virtual void subhead(const string &text) {};
 	virtual void node(Call *p) {};
@@ -61,37 +61,33 @@ public:
 // HTML output
 class GDHtml: public GraphDisplay {
 public:
-	GDHtml(FILE *f) : GraphDisplay(f) {}
+	GDHtml(ostringstream *f) : GraphDisplay(f) {}
 	virtual void head(const char *fname, const char *title, bool empty_node) {
-		html_head(fo, fname, title);
-		fprintf(fo, "<table border=\"0\">\n");
+		*fo << "<table>";
 	}
 
 	virtual void subhead(const string &text) {
-		fprintf(fo, "<h2>%s</h2>\n", text.c_str());
+		*fo << "<h2>" << text << "</h2>\n";
 	}
 
 	virtual void edge(Call *a, Call *b) {
-		fprintf(fo,
-		    "<tr><td align=\"right\">%s</td><td>&rarr;</td><td>%s</td></tr>\n",
-		    function_label(a, true).c_str(),
-		    function_label(b, true).c_str());
+		*fo << "<tr><td align=\"right\">" << function_label(a, true) 
+			<< "</td><td>&rarr;</td><td>" << function_label(b, true)
+			<< "</td></tr>\n";
 	}
 
 	virtual void edge(Fileid a, Fileid b) {
-		fprintf(fo,
-		    "<tr><td align=\"right\">%s</td><td>&rarr;</td><td>%s</td></tr>\n",
-		    file_label(b, true).c_str(),
-		    file_label(a, true).c_str());
+		*fo << "<tr><td align=\"right\">" << file_label(b, true)
+			<<"</td><td>&rarr;</td><td>" << file_label(a, true) 
+			<< "</td></tr>\n";
 	}
 
 	virtual void error(const char *msg) {
-		fprintf(fo, "<h2>%s</h2>", msg);
+		*fo << "<h2>"<< msg << "</h2>";
 	}
 
 	virtual void tail() {
-		fprintf(fo, "</table>\n");
-		html_tail(fo);
+		*fo << "</table>\n";
 	}
 	virtual ~GDHtml() {}
 };
@@ -99,21 +95,17 @@ public:
 // Raw text output
 class GDTxt: public GraphDisplay {
 public:
-	GDTxt(FILE *f) : GraphDisplay(f) {}
+	GDTxt(ostringstream*f) : GraphDisplay(f) {}
 	virtual void edge(Call *a, Call *b) {
-		fprintf(fo, "%s %s\n",
-		    function_label(a, false).c_str(),
-		    function_label(b, false).c_str());
+		*fo << function_label(a, false) << " " << function_label(b, false) << endl;
 	}
 
 	virtual void edge(Fileid a, Fileid b) {
-		fprintf(fo, "%s %s\n",
-		    file_label(b, false).c_str(),
-		    file_label(a, false).c_str());
+		*fo << file_label(b, false) << " " << file_label(a, false) << endl;
 	}
 
 	virtual void error(const char *msg) {
-		fprintf(fo, "%s", msg);
+		*fo << msg;
 	}
 
 	virtual ~GDTxt() {}
@@ -122,9 +114,10 @@ public:
 // AT&T GraphViz Dot output
 class GDDot: public GraphDisplay {
 public:
-	GDDot(FILE *f) : GraphDisplay(f) {}
+	GDDot(ostringstream*f) : GraphDisplay(f) {}
 	virtual void head(const char *fname, const char *title, bool empty_node);
 	virtual void node(Call *p) {
+		cout << "node:" << p->get_name() << endl;
 		fprintf(fdot, "\t_%p [label=\"%s\"", p, Option::cgraph_show->get() == 'e' ? "" : function_label(p, false).c_str());
 		if (isHyperlinked())
 			fprintf(fdot, ", URL=\"fun.html?f=%p\"", p);
