@@ -10,7 +10,7 @@ class Fun extends Component {
             loaded: false,
             fun: null
         }
-
+        this.returnHtml = this.returnHtml.bind(this);
     };
 
     componentDidMount() {
@@ -34,6 +34,14 @@ class Fun extends Component {
             })
     }
 
+    returnHtml(html){
+        return(
+            {
+                __html: html
+            }
+        )
+    }
+
     render() {
         if (this.state.loaded === false)
             return (
@@ -45,12 +53,21 @@ class Fun extends Component {
             );
         else {
             var tabs = {}
-            console.log(this.state)
+            console.log(this.state.fun.declared.html)
             if (this.state.fun !== null)
                 tabs = [
                     {
                         title: "Details",
-                        content: <div>det</div>
+                        content: <div>
+                            <ul>
+                                <div dangerouslySetInnerHTML={
+                                    this.returnHtml(this.state.fun.declared.html)
+                                    } />       
+                                <div dangerouslySetInnerHTML={
+                                    this.returnHtml(this.state.fun.defined.html)
+                                    } />  
+                            </ul> 
+                        </div>
                     },
                     {
                         title: "Metrics",
