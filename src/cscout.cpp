@@ -2775,7 +2775,6 @@ static void
 cgraph_page(GraphDisplay *gd)
 {
 	bool all, only_visited;
-	cout << "Swill:" << gd->uses_swill << endl;
 	if (gd->uses_swill) {
 		all = !!server.getBoolParam("all");
 		only_visited = (single_function_graph() || single_file_function_graph());
@@ -2791,20 +2790,15 @@ cgraph_page(GraphDisplay *gd)
 	Call::const_fmap_iterator_type fun;
 	Call::const_fiterator_type call;
 	for (fun = Call::fbegin(); fun != Call::fend(); fun++) {
-		cout << "fun:" << fun->second->get_name() << endl;
 		if (!all && fun->second->is_file_scoped())
 			continue;
 		if (only_visited && !fun->second->is_visited()){
-			cout << "outahere" << endl;
 			continue;
 		}
-		cout << "before node " << endl;
 		gd->node(fun->second);
-		cout << "node complete " << fun->second->get_name() << endl;
 		if (browse_only && count++ >= MAX_BROWSING_GRAPH_ELEMENTS)
 			goto end;
 	}
-	cout << "to edges" << endl;
 	// Now the edges
 	for (fun = Call::fbegin(); fun != Call::fend(); fun++) {
 		if (!all && fun->second->is_file_scoped())
