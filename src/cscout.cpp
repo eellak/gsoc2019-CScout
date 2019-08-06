@@ -1977,7 +1977,6 @@ identifier_page(void *p)
 //			declared: {
 //				tokid: declaration token id,
 //				tokpath: "declaration token path name",
-//				html: "html of file declarations",
 //				lnum: line number of declaration
 //			},
 //		)
@@ -2012,11 +2011,6 @@ identifier_page(void *p)
 //		end_list: "html end list of links",
 //		(,
 //			metrics: {
-//				start: "html of metrics table head",
-//				content: [
-//					"html of table rows"
-//				],
-//				end: "html of end table".
 //				data:[
 //					[metrics_name0, metrics_value0]
 //					[metrics_name1, metrics_value1]
@@ -2078,20 +2072,12 @@ function_page(void *p)
 	Tokid t = f->get_tokid();
 	
 	if (f->is_declared()) {
-		fs << "\n<li> Declared in file <a href=\"file.html?id=" << t.get_fileid().get_id()
-		<< "\">" << t.get_fileid().get_path() << "</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fs << " <a href=\"src.html?id=" << t.get_fileid().get_id() << "#" << lnum
-		 << "\">line " << lnum << "</a><br />(and possibly in other places)\n"
-		 << " &mdash; <a href=\"qsrc.html?qt=fun&id=" << t.get_fileid().get_id()
-		 << "&match=Y&call=" << f << "&n=Declaration+of+" << f->get_name() 
-		 << "\">marked source</a>";
 			if (modification_state != ms_subst && !browse_only)
 				fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id() <<
 				"&re=" << f->get_name() << "\">edit</a>";
 		to_return["declared"]["tokid"] = json::value(t.get_fileid().get_id());
 		to_return["declared"]["tokpath"] = json::value(t.get_fileid().get_path());
-		to_return["declared"]["html"] = json::value::string(fs.str());
 		to_return["declared"]["lnum"] = json::value(lnum);
 
 	}
@@ -2176,20 +2162,13 @@ function_page(void *p)
 				"  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)");
 		}
 	}
-	to_return["end_list"] = json::value::string("</ul>\n");
 	int no = 0;
 	if (f->is_defined()) {
-		to_return["metrics"]["start"] = json::value::string("<h2>Metrics</h2>\n<table class='metrics'>\n<tr><th>Metric</th>"
-		"<th>Value</th></tr>\n");
 		for (int j = 0; j < FunMetrics::metric_max; j++)
 			if (!Metrics::is_internal<FunMetrics>(j)) {
 				to_return["metrics"]["data"][no][0] = json::value(Metrics::get_name<FunMetrics>(j));
-				to_return["metrics"]["data"][no][1] = json::value(f->metrics().get_metric(j));
-				to_return["metrics"]["content"][no++] = json::value::string("<tr><td>" +
-				Metrics::get_name<FunMetrics>(j) + "</td><td align='right'>" +
-				to_string(f->metrics().get_metric(j)) + "</td></tr>");
+				to_return["metrics"]["data"][no++][1] = json::value(f->metrics().get_metric(j));
 			}
-		to_return["metrics"]["end"] = json::value::string("</table>\n");
 	}
 	to_return["end"] = json::value::string("</FORM>\n");
 	return to_return;
@@ -2241,7 +2220,7 @@ visit_functions(const char *call_path, Call *f,
 			char * p = new char[20];
 			sprintf(p, "%p", *i);
 			to_return[no]["fname"] = json::value((*i)->get_name());
-			to_return[no++]["f"] = json::value(s);
+			to_return[no++]["f"] = json::value(p);
 			delete p;
 			
 		}
@@ -2365,13 +2344,22 @@ explore_functions(Call *f,
 	json::value to_return = NULL;
 	int no = 0;
 	char * s = new char[20];
-	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {				
-		to_return[no]["fname"] = json::value((**i).get_name());
+	cout<< "explore" << endl;
+	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {		
+		cout << "strar" << endl;	
+				cout << "*i:"<<*i << endl;
+	
+		to_return[no]["fname"] = json::value((*i)->get_name());
+		cout << "*i:"<<*i << endl;
 		sprintf(s, "%p", *i);
+		cout<< "here:" << s << endl;
 		to_return[no]["f"] = json::value(s);
+		cout << "null char" << endl;
 		s[0] = 0;
 		to_return[no++]["html"] = json::value::string(html(**i));
+		cout<< "here" << endl;
 		if(recursive) {
+			cout << "recursion errror" <<endl;
 			to_return[no-1]["call"] = explore_functions(f, fbegin, fend, true);
 		}
 	} 
@@ -2389,8 +2377,8 @@ explore_functions(Call *f,
 // 		calltype: "calltype directly or all",
 //		graph_suffix: "suffix for graph()",
 //		title: "html title and link to graph",
-//		exfuns: { explore_function return JSON} or
-//		vfuns: { visit_function return JSON}	
+//		funs: { explore_function return JSON} or
+//		 	{ visit_function return JSON}	
 // }
 static json::value
 funlist_page(void *p)
@@ -2449,12 +2437,14 @@ funlist_page(void *p)
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix().c_str(), f);
 		break;
 	}
+	cout << "before recurse" << endl;
 	if (server.getBoolParam("e")) {
-		to_return["exfuns"] = explore_functions(f, fbegin, fend, false);
+		to_return["funs"] = explore_functions(f, fbegin, fend, false);
 	} else {
 		Call::clear_visit_flags();
-		to_return["vfuns"] = visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
+		to_return["funs"] = visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
 	}
+	cout << "after recursion" << endl;
 	return to_return;
 }
 

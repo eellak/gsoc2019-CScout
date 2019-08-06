@@ -1,0 +1,12 @@
+.funDet a{
+    color:blue
+}
+
+.lists ul {
+    list-style-type:none;
+}
+
+.lists {
+    text-align: left;
+    list-style-type:none;
+}

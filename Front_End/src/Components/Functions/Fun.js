@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import axios from 'axios';
 import Table from '../Table';
 import Tabs from '../Tabs/Tabs';
+import FunList from './FunList';
+import './Fun.css'
 
 class Fun extends Component {
     constructor(props) {
@@ -53,29 +55,42 @@ class Fun extends Component {
             );
         else {
             var tabs = {}
-            console.log(this.state.fun.declared.html)
+            console.log(this.state.fun)
             if (this.state.fun !== null)
                 tabs = [
                     {
                         title: "Details",
-                        content: <div>
-                            <ul>
-                                <div dangerouslySetInnerHTML={
-                                    this.returnHtml(this.state.fun.declared.html)
-                                    } />       
-                                <div dangerouslySetInnerHTML={
-                                    this.returnHtml(this.state.fun.defined.html)
-                                    } />  
-                            </ul> 
+                        content:
+                        <div className="funDet"> 
+                            { this.state.fun.declared?
+                            <div>
+                                {"Declared in "}
+                                <a onClick={() => 
+                                    this.props.changeType("filePage",this.state.fun.declared.tokid)}
+                                    style={{cursor:"pointer"}} >
+                                    {this.state.fun.declared.tokpath}
+                                </a>
+                             </div>
+                             : <div> Not declared </div>
+                            }
+                            { this.state.defined?
+                             <div>
+                                Defined in File
+                                {this.state.fun.defined.tokpath}
+                            </div> 
+                            :<div>
+                                Not defined
+                            </div>
+                            } 
                         </div>
                     },
                     {
                         title: "Metrics",
-                        content: <Table head={["Metrics", "Values"]} contents={!this.state.fun.data.metrics?[]:this.state.fun.metrics.data} />
+                        content: <Table head={["Metrics", "Values"]} contents={!this.state.fun.metrics?[]:this.state.fun.metrics.data} />
                     },
                     {
-                        title: "tes",
-                        content: <div>test</div>
+                        title: "Called Functions",
+                        content: <FunList f={this.props.f} n={"u"} className="lists" changeType={this.props.changeType}/>
                     }
                 ];
 
