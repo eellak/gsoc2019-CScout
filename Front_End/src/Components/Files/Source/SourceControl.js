@@ -28,7 +28,7 @@ class SourceControl extends Component{
                     <option value='3'>Project-global writable identifiers links</option>
                     <option value='4'>Function and macro links</option>
                 </select>
-                <Source id={this.props.id} type={this.state.optionsState} changeType={this.props.changeType}/>
+                <Source id={this.props.id} type={this.state.optionsState} changeType={this.props.changeType} scrollPos={this.props.scrollPos}/>
             </div>
         )
     }

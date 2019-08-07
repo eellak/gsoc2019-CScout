@@ -96,7 +96,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	// if(qname != NULL) delete qname;
 	// Match specific file
 	int flid = server.getIntParam("fid");
-	if (!flid) {
+	if (flid != -1) {
 		match_fid = true;
 		fid = Fileid(flid);
 	}
@@ -125,7 +125,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	pscope = !!server.getBoolParam("pscope");
 	fscope = !!server.getBoolParam("fscope");
 	defined = !!server.getBoolParam("defined");
-
+	cout << "bef ec match" << endl;
 	// Identifier EC match
 	if (server.getBoolParam("ncallers") && !(ncallers = server.getIntParam("ncallers"))) {
 		ncallerop = ec_ignore;
@@ -138,8 +138,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 	exclude_fure = !!server.getBoolParam("xfure");
 	exclude_fdre = !!server.getBoolParam("xfdre");
 	exclude_fre = !!server.getBoolParam("xfre");
-	delete m;
-	
+	cout << "bef regex" << endl;	
 	// Compile regular expression specs
 	error = compile_re("Function name", "fnre", fnre, match_fnre, str_fnre);
 	if(error != NULL){ 

@@ -642,6 +642,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 	}
 	delete in;
 	if(qtype != NULL) delete qtype;
+	to_return["max_line"] = json::value(line_number);
 	to_return["file"] = json::value(file.str());
 	return to_return;
 }
@@ -1702,8 +1703,9 @@ xfunquery_page(void *p)
 		}
 	}
 	const char *qname = server.getCharPParam("n");
+	cout << "bef query" <<endl;
 	FunQuery query(Option::file_icase->get(), current_project);
-	
+	cout << "check valid" << endl;
 	if (!query.is_valid()) {
 		to_return["error"] = json::value::string("Invalid Query");
 		if(qname != NULL) 
@@ -1716,6 +1718,7 @@ xfunquery_page(void *p)
 		to_return["qname"] = json::value::string(qname);
 	if(DP())
 		std::cerr << "Evaluating function query" << endl;
+	cout << "query done" <<endl;
 	for (Call::const_fmap_iterator_type i = Call::fbegin(); i != Call::fend(); i++) {
 		progress(i, Call::functions());
 		if (!query.eval(i->second))
@@ -1726,17 +1729,18 @@ xfunquery_page(void *p)
 		if (q_file)
 			sorted_files.insert(i->second->get_fileid());
 	}
+	cout << "insert" << endl;
 	if (q_id) {
 		if (query.get_sort_order() != -1)
 			to_return["funs"] = display_sorted_function_metrics(query, sorted_funs);
 		else {
 			to_return["funs"] = display_sorted(query, sorted_funs);
 		}
+		cout << "display sort" << endl;
 		to_return["f"] = to_return["funs"]["address"];
 		to_return["funs"].erase("address");
 		to_return["max"] = json::value(sorted_funs.size());
 
-				
 		void *p;
 		for (int i = 0; i < to_return["f"].size(); i++){
 			sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
@@ -2347,7 +2351,7 @@ explore_functions(Call *f,
 	cout<< "explore" << endl;
 	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {		
 		cout << "strar" << endl;	
-				cout << "*i:"<<*i << endl;
+				cout << "*i:"<<(*i) << endl;
 	
 		to_return[no]["fname"] = json::value((*i)->get_name());
 		cout << "*i:"<<*i << endl;

@@ -9,13 +9,20 @@ class Source extends  Component{
         this.state = {
             html:"Loading...",
             loaded: false
-
         }
+        this.myRef = React.createRef();
     }
 
     componentDidMount(){
         this.getSourceCode();
         console.log(this.state);
+        this.myRef.current.addEventListener('DOMSubtreeModified', () => {
+            var fontSize = parseFloat(window.getComputedStyle(this.myRef.current,null).getPropertyValue('font-size'));
+            console.log("scroll pos:" + this.props.scrollPos + "-fonts:" + fontSize + "-offset:" + this.myRef.current.getBoundingClientRect().top)
+            var scroll = (this.props.scrollPos - 2)* (this.myRef.current.clientHeight / (this.state.max_line-1));
+            console.log(scroll)
+            window.scrollTo(0, (Math.floor(scroll) + this.myRef.current.getBoundingClientRect().top));
+        });
     }
    
     componentDidUpdate(prevProps) {
@@ -23,6 +30,7 @@ class Source extends  Component{
         {
             this.getSourceCode();
         }
+
     }
 
     getSourceCode(){
@@ -57,6 +65,7 @@ class Source extends  Component{
                 this.setState({
                     source: response.data.source,
                     html: response.data.html.file,
+                    max_line: response.data.html.max_line,
                     loaded: true
                 })
             }
@@ -84,10 +93,11 @@ class Source extends  Component{
     render(){
         return(
             <div className='source'>
-                <div>
+                <div ref={this.myRef}>
                     {(this.state.loaded)? 
                         <div onClick={this.contentClickHandler} 
-                            dangerouslySetInnerHTML={this.returnHtml(this.state.html)}/>              
+                            dangerouslySetInnerHTML={this.returnHtml(this.state.html)}
+                             />              
                         :this.state.html
                     }
                 </div>

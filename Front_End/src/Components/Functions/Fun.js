@@ -65,18 +65,38 @@ class Fun extends Component {
                             { this.state.fun.declared?
                             <div>
                                 {"Declared in "}
-                                <a onClick={() => 
-                                    this.props.changeType("filePage",this.state.fun.declared.tokid)}
+                                <a onClick={() => {
+                                    this.props.changeType("filePage",this.state.fun.declared.tokid);
+                                    }}
                                     style={{cursor:"pointer"}} >
-                                    {this.state.fun.declared.tokpath}
+                                {this.state.fun.declared.tokpath}
+                                </a>
+                               
+                                <a onClick={() => {
+                                    this.props.setScrollPos(this.state.fun.declared.lnum);
+                                    this.props.changeType("source",this.state.fun.declared.tokid);
+                                    }}
+                                    style={{cursor:"pointer"}} >
+                                    {" Source"}
                                 </a>
                              </div>
                              : <div> Not declared </div>
                             }
-                            { this.state.defined?
+                            { this.state.fun.defined?
                              <div>
-                                Defined in File
+                                {"Defined in File "}
+                                <a onClick={() => {
+                                    this.props.changeType("filePage",this.state.fun.defined.tokid);
+                                    }}
+                                    style={{cursor:"pointer"}} >
                                 {this.state.fun.defined.tokpath}
+                                </a>
+                                <a onClick={() => {
+                                    this.props.setScrollPos(this.state.fun.defined.lnum);
+                                    this.props.changeType("source",this.state.fun.defined.tokid);
+                                }}
+                                style={{cursor:"pointer"}} >
+                                {" Source"}</a>
                             </div> 
                             :<div>
                                 Not defined
@@ -89,8 +109,12 @@ class Fun extends Component {
                         content: <Table head={["Metrics", "Values"]} contents={!this.state.fun.metrics?[]:this.state.fun.metrics.data} />
                     },
                     {
-                        title: "Called Functions",
+                        title: "Called by Functions",
                         content: <FunList f={this.props.f} n={"u"} className="lists" changeType={this.props.changeType}/>
+                    },
+                    {
+                        title: "Calls Functions",
+                        content: <FunList f={this.props.f} n={"d"} className="lists" changeType={this.props.changeType}/>
                     }
                 ];
 
