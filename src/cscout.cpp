@@ -261,7 +261,7 @@ static string
 html(const Call &c)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"fun.html?f=" << &c << "\" type=\"fun\" identifier=\""<< &c << "\">"
+	to_ret << "<a href=\"fun.html?f=" << &c << "\" class=\"funLink\" type=\"fun\" identifier=\""<< &c << "\">"
 	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
 }

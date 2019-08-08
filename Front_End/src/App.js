@@ -7,6 +7,7 @@ import SideDrawer from './Components/Toolbar/SideDrawer';
 import Backdrop from './Components/Toolbar/Backdrop';
 import FBrowse from './Components/Files/FileBrowser/FBrowse';
 import SourceControl from './Components/Files/Source/SourceControl';
+import Source from './Components/Files/Source/Source';
 import FileSearch from './Components/Files/FileSearch/FileSearch';
 import FilePage from './Components/Files/FilePage/FilePage';
 import Identifier from './Components/Identifiers/Identifier';
@@ -38,9 +39,9 @@ class App extends Component {
     })
   }
 
-  setScrollPos = (pos) => {
+  setCall= (pos) => {
     this.setState({
-      scrollPos: pos
+      call: pos
     })
   }
 
@@ -82,8 +83,8 @@ class App extends Component {
       case ("browse"):
         to_render = <FBrowse type='top' changeType={this.setTypeId} />
         break;
-      case ("source"):
-        to_render = <SourceControl id={this.state.id} changeType={this.setTypeId} scrollPos={this.state.scrollPos}/>
+      case ("qsource"):
+        to_render = <Source id={this.state.id} f={this.state.call} type={'5'} changeType={this.setTypeId} />
         break;
       case ("filePage"):
         to_render = <FilePage id={this.state.id} changeType={this.setTypeId} />
@@ -98,7 +99,7 @@ class App extends Component {
         to_render = <IdentifierSearch changeType={this.setTypeId} />
         break;
       case ("fun"):
-        to_render = <Fun f={this.state.id} changeType={this.setTypeId} setScrollPos={this.setScrollPos}/>
+        to_render = <Fun f={this.state.id} changeType={this.setTypeId} setCall={this.setCall}/>
         break;
       case("searchfun"):
         to_render = <FunctionSearch changeType={this.setTypeId} />

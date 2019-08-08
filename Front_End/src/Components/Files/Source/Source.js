@@ -17,13 +17,9 @@ class Source extends  Component{
         this.getSourceCode();
         console.log(this.state);
         this.myRef.current.addEventListener('DOMSubtreeModified', () => {
-            var fontSize = parseFloat(window.getComputedStyle(this.myRef.current,null).getPropertyValue('font-size'));
-            console.log("scroll pos:" + this.props.scrollPos + "-fonts:" + fontSize + "-offset:" + this.myRef.current.getBoundingClientRect().top)
-            var scroll = (this.props.scrollPos - 2)* (this.myRef.current.clientHeight / (this.state.max_line-1));
-            console.log(scroll)
-            window.scrollTo(0, (Math.floor(scroll) + this.myRef.current.getBoundingClientRect().top));
+            window.scrollTo(0, this.myRef.current.getElementsByClassName("funLink")[0].offsetTop);
         });
-    }
+}
    
     componentDidUpdate(prevProps) {
         if(this.props.id !== prevProps.id || this.props.type !== prevProps.type)      
@@ -51,6 +47,9 @@ class Source extends  Component{
                 break;
             case('4'):
                 url = "qsrc.html?id=" + this.props.id + "&qt=fun&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations"
+                break;
+            case('5'):
+                url = "qsrc.html?qt=fun&id=" + this.props.id +"&match=Y&call=" + this.props.f + "&n=Definition";
                 break;
             default:
                 return;

@@ -73,14 +73,14 @@ class Fun extends Component {
                                 </a>
                                
                                 <a onClick={() => {
-                                    this.props.setScrollPos(this.state.fun.declared.lnum);
-                                    this.props.changeType("source",this.state.fun.declared.tokid);
+                                    this.props.setCall(this.props.f);
+                                    this.props.changeType("qsource",this.state.fun.declared.tokid);
                                     }}
                                     style={{cursor:"pointer"}} >
                                     {" Source"}
                                 </a>
                              </div>
-                             : <div> Not declared </div>
+                             : <div> Not declarations found </div>
                             }
                             { this.state.fun.defined?
                              <div>
@@ -92,14 +92,14 @@ class Fun extends Component {
                                 {this.state.fun.defined.tokpath}
                                 </a>
                                 <a onClick={() => {
-                                    this.props.setScrollPos(this.state.fun.defined.lnum);
-                                    this.props.changeType("source",this.state.fun.defined.tokid);
+                                    this.props.setCall(this.props.f);
+                                    this.props.changeType("qsource",this.state.fun.defined.tokid);
                                 }}
                                 style={{cursor:"pointer"}} >
                                 {" Source"}</a>
                             </div> 
                             :<div>
-                                Not defined
+                                No definitions found
                             </div>
                             } 
                         </div>
@@ -123,7 +123,7 @@ class Fun extends Component {
                     {(this.state.fun === null) ? <p>No file selected</p>
                         : <div>
                             <h2>
-                                {this.state.fun.fname}
+                                Function:{this.state.fun.fname}
                             </h2>
 
                             <Tabs children={tabs} />
