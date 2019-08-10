@@ -3,7 +3,9 @@ import axios from 'axios';
 import Table from '../Table';
 import Tabs from '../Tabs/Tabs';
 import FunList from './FunList';
-import './Fun.css'
+import './Fun.css';
+import ReactSVG from 'react-svg';
+
 
 class Fun extends Component {
     constructor(props) {
@@ -115,6 +117,9 @@ class Fun extends Component {
                     {
                         title: "Calls Functions",
                         content: <FunList f={this.props.f} n={"d"} className="lists" changeType={this.props.changeType}/>
+                    },
+                    {   title: "Graph",
+                        content: <ReactSVG src={global.address + "cgraph.svg?all=1&n=U&f=" + this.props.f} />
                     }
                 ];
 

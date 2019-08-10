@@ -17,6 +17,7 @@ class Source extends  Component{
         this.getSourceCode();
         console.log(this.state);
         this.myRef.current.addEventListener('DOMSubtreeModified', () => {
+            console.log(this.myRef.current.getElementsByClassName("funLink")[0])
             window.scrollTo(0, this.myRef.current.getElementsByClassName("funLink")[0].offsetTop);
         });
 }

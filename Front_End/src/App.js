@@ -14,6 +14,7 @@ import Identifier from './Components/Identifiers/Identifier';
 import IdentifierSearch from './Components/Identifiers/IdentifierSearch';
 import Fun from './Components/Functions/Fun';
 import FunctionSearch from './Components/Functions/FunctionSearch';
+import ReactSVG from 'react-svg';
 
 class App extends Component {
   constructor() {
@@ -39,7 +40,7 @@ class App extends Component {
     })
   }
 
-  setCall= (pos) => {
+  setCall = (pos) => {
     this.setState({
       call: pos
     })
@@ -104,6 +105,14 @@ class App extends Component {
       case("searchfun"):
         to_render = <FunctionSearch changeType={this.setTypeId} />
         break;
+      case("graph"):
+        to_render = <ReactSVG src={global.address + "cgraph.svg?all=1"}  
+        // beforeInjection={svg => {
+        //   svg.classList.add('svg-class-name')
+        //   svg.setAttribute('style', 'width: 200px')
+        // }}
+        />
+        break;
       default:
         to_render = <h1>{this.state.type}</h1>
     }
@@ -113,7 +122,8 @@ class App extends Component {
           drawerClickHandler={this.drawerToggleClickHandler} />
         {backdrop}
         <Toolbar changeType={this.setType} style={{ zIndex: '20' }}
-          drawerClickHandler={this.drawerToggleClickHandler} />
+          drawerClickHandler={this.drawerToggleClickHandler}   loading={() => <span>Loading</span>}
+          />
         {to_render}
       </div>
     );
