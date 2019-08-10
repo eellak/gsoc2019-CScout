@@ -120,7 +120,7 @@ public:
 		cout << "node:" << p->get_name() << endl;
 		fprintf(fdot, "\t_%p [label=\"%s\"", p, Option::cgraph_show->get() == 'e' ? "" : function_label(p, false).c_str());
 		if (isHyperlinked())
-			fprintf(fdot, ", URL=\"fun.html?f=%p\"", p);
+			fprintf(fdot, ", URL=\"%p\"", p);
 		fprintf(fdot, "];\n");
 	}
 

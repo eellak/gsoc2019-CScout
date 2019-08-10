@@ -16,6 +16,12 @@ class Tabs extends Component {
         })
     }
 
+    componentDidUpdate(prevProps){
+        if (prevProps.children !== this.props.children) {
+            this.setActive(0);
+        }
+    }
+
     render() {
         return (
             <nav className='tab-navigation'>

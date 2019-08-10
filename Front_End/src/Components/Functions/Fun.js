@@ -46,6 +46,16 @@ class Fun extends Component {
         )
     }
 
+    contentClickHandler = (e) => {
+        const targetLink = e.target.closest('a');
+        if(!targetLink) return;
+        console.log(targetLink.getAttribute("xlink:href"));
+        this.props.changeType("fun",targetLink.getAttribute("xlink:href"));
+        e.preventDefault();
+        
+      };
+
+
     render() {
         if (this.state.loaded === false)
             return (
@@ -119,7 +129,8 @@ class Fun extends Component {
                         content: <FunList f={this.props.f} n={"d"} className="lists" changeType={this.props.changeType}/>
                     },
                     {   title: "Graph",
-                        content: <ReactSVG src={global.address + "cgraph.svg?all=1&n=U&f=" + this.props.f} />
+                        content: <ReactSVG src={global.address + "cgraph.svg?all=1&n=U&f=" + this.props.f} 
+                        onClick={this.contentClickHandler}  className="svgCont"/>
                     }
                 ];
 
