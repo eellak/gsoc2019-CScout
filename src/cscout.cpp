@@ -580,7 +580,7 @@ file_hypertext( Fileid * fi,bool eval_query)
 		if ((val = in->get()) == EOF)
 			break;
 		if (at_bol) {
-			file << ("<a name=\"" + to_string(line_number) + "\"></a>\n");
+			file << ("<a id=\"" + to_string(line_number) + "\"></a>\n");
 			if (mark_unprocessed && !(*fi).is_processed(line_number))
 				file << "<span class=\"unused\">";
 			if (Option::show_line_number->get()) {
@@ -2083,25 +2083,18 @@ function_page(void *p)
 		to_return["declared"]["tokid"] = json::value(t.get_fileid().get_id());
 		to_return["declared"]["tokpath"] = json::value(t.get_fileid().get_path());
 		to_return["declared"]["lnum"] = json::value(lnum);
-
 	}
 	fs.flush();
 	if (f->is_defined()) {
 		t = f->get_definition();
-		fs << "<li> Defined in file <a href=\"file.html?id="
-		<< t.get_fileid().get_id() << "\">" << t.get_fileid().get_path() << "</a>";
 		int lnum = t.get_fileid().line_number(t.get_streampos());
-		fs << " <a href=\"src.html?id=" <<	t.get_fileid().get_id()
-		<< "#" << lnum << "\">line " << lnum << "</a>\n";
 		if (modification_state != ms_subst && !browse_only)
 			fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id()
 			<< "&re=" << f->get_name() << "\">edit</a>";
 		to_return["defined"]["tokid"] = json::value(t.get_fileid().get_id());
 		to_return["defined"]["tokpath"] = json::value(t.get_fileid().get_path());
 		to_return["defined"]["lnum"] = json::value(lnum);
-	} else
-		fs << "<li> No definition found\n";
-	to_return["defined"]["html"] = json::value::string(fs.str());
+	} 
 	fs.flush();
 	fs << f;
 	// Functions that are Down from us in the call graph
@@ -2752,7 +2745,7 @@ static bool
 single_file_function_graph()
 {
 	int id;
-	if (!(id = server.getIntParam("id")))
+	if ((id = server.getIntParam("id")) == -1)
 		return false;
 	Fileid fileid(id);
 
@@ -2776,9 +2769,9 @@ cgraph_page(GraphDisplay *gd)
 	else {
 		all = gd->all;
 		only_visited = gd->only_visited;
+
 	}
 	gd->head("cgraph", "Call Graph", Option::cgraph_show->get() == 'e');
-	cout << "head complete-" << "αλλ:" << all << " - visit:" << only_visited << endl;
 	int count = 0;
 	// First generate the node labels
 	Call::const_fmap_iterator_type fun;
@@ -2789,6 +2782,7 @@ cgraph_page(GraphDisplay *gd)
 		if (only_visited && !fun->second->is_visited()){
 			continue;
 		}
+		cout << "call node" << endl;
 		gd->node(fun->second);
 		if (browse_only && count++ >= MAX_BROWSING_GRAPH_ELEMENTS)
 			goto end;
@@ -2813,9 +2807,7 @@ cgraph_page(GraphDisplay *gd)
 		}
 	}
 end:
-	cout << "tail dat" << endl;
 	gd->tail();
-	cout << "tail done" << endl;
 }
 
 // File dependency graph

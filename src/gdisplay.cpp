@@ -137,27 +137,43 @@ GDDotImage::tail()
 	 * differences between CScout and dot file paths
 	 */
 	cout << "here closed:" << cmd << endl;
-	snprintf(cmd, sizeof(cmd), "cd %s && dot -T%s in.dot -o out.img",
+	snprintf(cmd, sizeof(cmd), "cd %s && dot -T%s in.dot -o out.img ",
 			dot_dir, format);
 	cout << "here closed" << cmd << endl;
 	
 	if (DP())
 		cout << cmd << '\n';
 	cout << "cmd:" << cmd << endl;
-	if (system(cmd) != 0) {
-		cout << "cmd failed-"<< errno<< endl;
-		*fo << "Unable to execute " << string(cmd) << ". Shell execution";
-		return;
+	pid_t p = fork();
+	
+	switch(p){
+		case(-1):
+			cerr << "Fork Failed- Errno:" << errno <<endl;
+			break;
+		case(0):
+			if (execl("/bin/sh","/bin/sh","-c",cmd,NULL) != 0) {
+				cout << "cmd failed-"<< errno << endl;
+				cout << "Unable to execute " << string(cmd) << ". Shell execution";
+				raise(SIGKILL);
+			}
+			break;
+		default:
+			int stat;
+			cout << "wait: " << waitpid(p, &stat, NULL) << endl;
+			cout << "exited:" << WTERMSIG(stat) << endl;
+			if(!WIFEXITED(stat)) {
+				cout << "ex stat:" << WEXITSTATUS(stat);}
+				cerr << "Shell didn't terminate peacefully" << endl;
+			//	return;
+		//	}
 	}
-	cout << "cmd executed" << endl;
+
 	FILE *fimg = fopen(img, "rb");
 	if (fimg == NULL) {
 		*fo << "Unable to open " << string(img) << " for reading";
 		return;
 	}
-	cout << "img opened" << endl;
 	char c;
-	cout << "About to write to out" << endl;
 	#ifdef WIN32
 	setmode(fileno(result), O_BINARY);
 	#endif
