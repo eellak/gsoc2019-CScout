@@ -2,6 +2,19 @@
     color:blue
 }
 
+.funDet a:hover{
+    color:blue;
+    text-decoration: underline;
+}
+.funDet div {
+    margin-top: 5px;
+}
+.funDet {
+    text-align: left;
+    padding-top: 5px;
+    padding-left: 5px;
+}
+
 .lists ul {
     list-style-type:none;
 }
@@ -13,5 +26,4 @@
 
 .svgCont svg{
     height:100%;
-    width: 100%
 }

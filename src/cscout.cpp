@@ -298,7 +298,9 @@ html_string(const string &s, Tokid t)
 		Eclass *ec = t.get_ec();
 		Identifier id(ec, s.substr(pos, ec->get_len()));
 		const IdPropElem ip(ec, id);
-		to_return["identifiers"][no]["id"] = json::value(ip.first);
+		char s[20];
+		sprintf(s,"%p",ip.first);
+		to_return["identifiers"][no]["id"] = json::value(s);
 		to_return["identifiers"][no]["name"] = json::value((ip.second).get_id());
 		to_ret.append(html(ip));
 		pos += ec->get_len();

@@ -5,6 +5,7 @@ import Tabs from '../Tabs/Tabs';
 import FunList from './FunList';
 import './Fun.css';
 import ReactSVG from 'react-svg';
+import GraphControl from './GraphSelector';
 
 
 class Fun extends Component {
@@ -15,11 +16,14 @@ class Fun extends Component {
             fun: null
         }
         this.returnHtml = this.returnHtml.bind(this);
+        this.optionsState = 'B';
     };
 
     componentDidMount() {
         this.getFunInfo();
     }
+
+    
 
     componentDidUpdate(prevProps){
         if (prevProps.f !== this.props.f) {
@@ -46,14 +50,6 @@ class Fun extends Component {
         )
     }
 
-    contentClickHandler = (e) => {
-        const targetLink = e.target.closest('a');
-        if(!targetLink) return;
-        console.log(targetLink.getAttribute("xlink:href"));
-        this.props.changeType("fun",targetLink.getAttribute("xlink:href"));
-        e.preventDefault();
-        
-      };
 
 
     render() {
@@ -74,6 +70,14 @@ class Fun extends Component {
                         title: "Details",
                         content:
                         <div className="funDet"> 
+                        Associated identifiers:
+                            {this.state.fun.data.map((obj,i)=>
+                                <div key={i} style={{display:"inline"}}>
+                                    {obj.identifiers.map((id,j) =>
+                                         <a onClick={() => this.props.changeType("id", id.id)} key={j} style={{cursor:"pointer"}}>{id.name}</a> 
+                                    )}
+                                </div>  
+                                )}
                             { this.state.fun.declared?
                             <div>
                                 {"Declared in "}
@@ -114,6 +118,9 @@ class Fun extends Component {
                                 No definitions found
                             </div>
                             } 
+                            <div>
+                                {"This function calls directly " + this.state.fun.no_call + " functions and is called by " + this.state.fun.no_called + " functions."}
+                            </div>
                         </div>
                     },
                     {
@@ -129,8 +136,7 @@ class Fun extends Component {
                         content: <FunList f={this.props.f} n={"d"} className="lists" changeType={this.props.changeType}/>
                     },
                     {   title: "Graph",
-                        content: <ReactSVG src={global.address + "cgraph.svg?all=1&n=U&f=" + this.props.f} 
-                        onClick={this.contentClickHandler}  className="svgCont"/>
+                        content: <GraphControl f={this.props.f} changeType={this.props.changeType}/>
                     }
                 ];
 

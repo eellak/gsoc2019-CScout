@@ -86,15 +86,14 @@ class FunItem extends Component{
 
     render(){
         return(
-            <li>
-                <a onClick={() => this.setState({expand:!this.state.expand}) }> {"\u21B3"}</a>
+            <li className="flist">
+                <a onClick={() => this.setState({expand:!this.state.expand}) }> {this.state.expand?"\u25BE":"\u25B8"}</a>
                 <a onClick={() => {
                     console.log(this.props.x);this.props.changeType("fun",this.props.x.f)
                 }}> {this.props.x.fname} </a>
+                <hr/>
                 {(this.props.x.call && this.state.expand)?
-                <ul >
-                    {this.props.recurse(this.props.x.call)}
-                </ul>
+                    <ul>{this.props.recurse(this.props.x.call)}</ul>
                 :null}
             </li>
         )
