@@ -17,6 +17,9 @@ class Fun extends Component {
         }
         this.returnHtml = this.returnHtml.bind(this);
         this.optionsState = 'B';
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.inputValue = '';
     };
 
     componentDidMount() {
@@ -50,6 +53,21 @@ class Fun extends Component {
         )
     }
 
+
+    handleSubmit(e) {
+        e.preventDefault();
+        axios.get(global.address + "fun.html?f=" + this.props.f)
+        .then((resp) => {
+            this.setState({refactor: resp.data})
+            console.log(resp)
+        }
+        )
+        
+    }
+
+    handleInputChange(e) {
+        this.inputValue = e.target.value
+    }
 
 
     render() {
@@ -121,6 +139,14 @@ class Fun extends Component {
                             <div>
                                 {"This function calls directly " + this.state.fun.no_call + " functions and is called by " + this.state.fun.no_called + " functions."}
                             </div>
+                            <div>
+                            <form onSubmit={this.handleSubmit}>
+                                <div className='textSearch'>
+                                    Refactor:<input type='text' value={this.state.value} onChange={this.handleInputChange}
+                                    placeholder="Refactor Arguments..." /><br />
+                                </div>
+                            </form>
+                               </div>
                         </div>
                     },
                     {

@@ -24,7 +24,7 @@ class GraphControl extends Component{
         console.log(targetLink.getAttribute("xlink:href"));
         this.props.changeType("fun",targetLink.getAttribute("xlink:href"));
         e.preventDefault();
-        
+    };
 
     render(){
         return(
