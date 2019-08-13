@@ -40,14 +40,15 @@ class FBrowse extends Component {
     }
 
     render() {
-        if (this.state.loaded === false)
+        if (this.state.loaded === false){
             return (
-                <div>
+                <div style={{cursor:"wait"}}>
                     <h2>
                         Loading...
                     </h2>
                 </div>
             );
+        }
         else {
             return (
                 <div style={{ display: 'flex' }}>

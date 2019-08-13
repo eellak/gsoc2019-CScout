@@ -5,6 +5,8 @@ import SourceControl from '../Source/SourceControl';
 import Table from '../../Table';
 import axios from 'axios';
 import './FilePage';
+import FunctionSearch from '../../Functions/FunctionSearch';
+import ReactSVG from 'react-svg';
 
 class Files extends Component {
     constructor(props) {
@@ -37,10 +39,18 @@ class Files extends Component {
             })
     }
 
+    contentClickHandler = (e) => {
+        const targetLink = e.target.closest('a');
+        if(!targetLink) return;
+        console.log(targetLink.getAttribute("xlink:href"));
+        this.props.changeType("fun",targetLink.getAttribute("xlink:href"));
+        e.preventDefault();
+    };
+
     render() {
         if (this.state.loaded === false)
             return (
-                <div>
+                <div style={{cursor:"wait"}}>
                     <h2>
                         Loading...
                 </h2>
@@ -61,9 +71,30 @@ class Files extends Component {
                     {
                         title: "Source",
                         content: <SourceControl id={this.state.file.queries.id} changeType={this.props.changeType} />
+                    },
+                    {
+                        title: "Functions",
+                        content: <FunctionSearch url={"fid=" + this.props.id} changeType={this.props.changeType} />
+                    },
+                    {
+                        title: "Function Macro Graph",
+                        content: <ReactSVG src={global.address + "cgraph.svg?all=1&fid=" + this.props.id} 
+                                    onClick={this.contentClickHandler}  className="svgCont" 
+                                    loading={() => {
+                                        document.body.style.cursor="wait";
+                                        return<div>Loading...</div>;
+                                        }} 
+                                    afterInjection={(err, svg) => {
+                                        if (err) {
+                                            console.error(err)
+                                            return
+                                        } 
+                                            document.body.style.cursor="default";
+                                        }}
+                                    />
                     }
                 ];
-
+            console.log(tabs)
             return (
                 <div className="FileInfo">
                     {(this.state.file === null) ? <p>No file selected</p>

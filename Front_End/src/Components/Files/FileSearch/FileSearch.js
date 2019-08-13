@@ -19,9 +19,7 @@ class FileSearch extends Component {
         }
         this.objectComp = this.objectComp.bind(this);
         this.handleOptionChange = this.handleOptionChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.inputValue = '';
+       
         this.maxShow = 20;
     }
 

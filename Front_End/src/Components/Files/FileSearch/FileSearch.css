@@ -33,6 +33,10 @@
     border-top-right-radius: 5px;
 }
 
+.results table {
+  width:70%;
+}
+
 .FileResults img{
     margin:5px;
     color :white
