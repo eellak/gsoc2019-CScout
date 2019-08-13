@@ -75,11 +75,10 @@ class FunctionSearch extends Component {
         url += this.state.writable?"&writable=1":"";
         url += this.state.ro?"&ro=1":"";
         url += this.state.cfun?"&cfun=1":"";
-        url += this.state.pscope?"&pscope=1":"";
-        url += this.state.fscope?"&fscope=1":"";
         url += this.state.macro?"&macro=1":"";
         url += this.state.defined?"&defined=1":"";
 
+        if(this.props.url) url = this.props.url;
         if(url === "")
             url = "writable=1&ro=1&match=Y&ncallerop=0&n=All+Functions&qi=x";
         else {
@@ -89,6 +88,9 @@ class FunctionSearch extends Component {
                 url += "&match=" + this.state.match;
             url += "&n=Custom+Functions&ncallerop=0&qi=x"
         }
+
+        url += this.state.pscope?"&pscope=1":"";
+        url += this.state.fscope?"&fscope=1":"";
         url += "&skip=" + this.state.page*this.state.size;
         url += "&pages=" + this.state.size;
         url += this.state.rev ? "&reverse=1" : "";
@@ -246,6 +248,7 @@ class FunctionSearch extends Component {
                     >
                         <b>Type</b><br/>
 
+                        {(!this.props.url)?<div>
                         <label className='chk'>
                             <input type='checkbox' className="chk" value='writable'
                                 checked={this.state.writable} onChange={() => this.setState({writable: !this.state.writable})} 
@@ -269,6 +272,7 @@ class FunctionSearch extends Component {
                             C functon<br />
                             <span className='chk' />
                         </label>
+                       
                         <label className='chk'>
                             <input type='checkbox' className="chk" value='pscope'
                                 checked={this.state.pscope} onChange={() => this.setState({pscope: !this.state.pscope})} 
@@ -297,6 +301,23 @@ class FunctionSearch extends Component {
                             Defined<br />
                             <span className='chk' />
                         </label>
+                        </div>
+                        :<div>
+                            <label className='chk'>
+                                <input type='checkbox' className="chk" value='pscope'
+                                    checked={this.state.pscope} onChange={() => this.setState({pscope: !this.state.pscope})} 
+                                    />
+                                Project Scope<br />
+                                <span className='chk' />
+                            </label>
+                            <label className='chk'>
+                                <input type='checkbox' className="chk" value='fscope'
+                                    checked={this.state.fscope} onChange={() => this.setState({fscope: !this.state.fscope})} 
+                                    />
+                                File Scope<br />
+                                <span className='chk' />
+                            </label>
+                        </div>}
 
                         <MetricParamSearch metrics={metrics} changeMetrics={this.changeSelectedMetrics}/>
 

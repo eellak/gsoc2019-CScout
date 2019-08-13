@@ -35,16 +35,22 @@ class GraphControl extends Component{
                     <option value='D'>All called</option>
                 </select>
                 <ReactSVG src={global.address + "cgraph.svg?all=1&n=" + this.state.optionsState + "&f=" + this.props.f} 
-                    onClick={this.contentClickHandler}  className="svgCont"/>
+                    onClick={this.contentClickHandler}  className="svgCont"
+                    loading={() => {
+                        document.body.style.cursor="wait";
+                        return<div>Loading...</div>;
+                        }} 
+                    afterInjection={(err, svg) => {
+                        if (err) {
+                            console.error(err)
+                            return
+                        } 
+                            document.body.style.cursor="default";
+                        }}
+                    />
             </div>               
         )
     }
 }
 
 export default GraphControl;        
-        
-        
-        
-        
-        
-      

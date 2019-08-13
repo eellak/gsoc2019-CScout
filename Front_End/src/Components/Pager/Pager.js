@@ -55,7 +55,7 @@ class Pager extends Component{
     render(){
         return(
         <div className='pager'>
-            <div style={{ display: 'inline', left: '0px', position: 'absolute' }}>{this.props.size * this.props.curPage + 1}-
+            <div style={{ display: 'inline', left: '0px', position: 'absolute' }}>{Math.min(this.props.totalObjs,(this.props.size * this.props.curPage + 1))}-
                 {Math.min(this.props.size * (this.props.curPage + 1), this.props.totalObjs)} from {this.props.totalObjs}</div>
             {
                 (this.props.curPage > 0) ?

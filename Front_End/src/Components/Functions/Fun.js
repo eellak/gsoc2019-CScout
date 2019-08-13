@@ -88,14 +88,16 @@ class Fun extends Component {
                         title: "Details",
                         content:
                         <div className="funDet"> 
-                        Associated identifiers:
-                            {this.state.fun.data.map((obj,i)=>
-                                <div key={i} style={{display:"inline"}}>
-                                    {obj.identifiers.map((id,j) =>
-                                         <a onClick={() => this.props.changeType("id", id.id)} key={j} style={{cursor:"pointer"}}>{id.name}</a> 
-                                    )}
-                                </div>  
+                            <div>Function type: {this.state.fun.etype}</div>
+                            <div> Associated identifiers:
+                                {this.state.fun.data.map((obj,i)=>
+                                    <div key={i} style={{display:"inline"}}>
+                                        {obj.identifiers.map((id,j) =>
+                                             <a onClick={() => this.props.changeType("id", id.id)} key={j} style={{cursor:"pointer"}}>{id.name}</a> 
+                                     )}
+                                    </div>  
                                 )}
+                           </div>
                             { this.state.fun.declared?
                             <div>
                                 {"Declared in "}
@@ -161,7 +163,7 @@ class Fun extends Component {
                         title: "Calls Functions",
                         content: <FunList f={this.props.f} n={"d"} className="lists" changeType={this.props.changeType}/>
                     },
-                    {   title: "Graph",
+                    {   title: "Graphs",
                         content: <GraphControl f={this.props.f} changeType={this.props.changeType}/>
                     }
                 ];
