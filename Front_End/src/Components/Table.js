@@ -24,7 +24,7 @@ class Table extends Component {
                     {this.props.contents.map((a, i) =>
                         <tr key={i}>
                             {a.map((b, j) =>
-                                <td key={j} style={(j === 0) ? { textAlign: 'left' } : { textAlign: 'right' }}>
+                                <td key={j} >
                                     {b}
                                 </td>
                             )

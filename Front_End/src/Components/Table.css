@@ -32,7 +32,13 @@ thead tr:first-child {
 tbody td{
     border: 1px solid #bbb;
   padding: 5px;
-  cursor:'default'
+  cursor:'default';
+  text-align: right;
+
+}
+
+tbody td:first-child {
+  text-align: left;
 }
 
 tbody tr:nth-child(even){background-color: #f2f2f2;}

@@ -1,0 +1,14 @@
+.refactors td:first-child{
+    text-align: left;
+}
+
+.refactors td {
+    text-align: left;
+}
+
+.refactors a{
+    color:black;
+    top: 0px;
+    bottom: 0px;
+    text-shadow: none;
+}
