@@ -43,6 +43,8 @@ public:
     void handle_get(http_request request);
     // HTTP Put handler
     void handle_put(http_request request);
+    // HTTP Options handler
+    void handle_options(http_request request);
     // adds a function to a map based on the path of the request
     void addHandler(utility::string_t value,function <json::value(void*)> handleFunction,void* attributes);
     // adds a graph function to a map based on the path of the request
@@ -65,5 +67,7 @@ public:
     void log(string msg);
     // listener sturct 
     http_listener listener;
+    // JSON Put data 
+    json::value putData;
 };
 #endif

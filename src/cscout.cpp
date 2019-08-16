@@ -2037,7 +2037,7 @@ function_page(void *p)
 	const char *subst;
 	string sust;
 	if (!server.getStrParam("ncall").empty()) {
-		
+		cout << "here" <<endl;
 		sust = server.getStrParam("ncall");
 		subst = sust.c_str();
 		string ssubst(subst);
@@ -2063,8 +2063,13 @@ function_page(void *p)
 			to_return["error"] = json::value::string(fs.str());
 			return to_return;
 		}
+		cout << "insert" <<endl;
 		RefFunCall::store.insert(RefFunCall::store_type::value_type(ec, RefFunCall(f, subst)));
 		modification_state = ms_subst;
+		cout << "change:" <<endl;
+		for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
+			cout << "ref : " << i->second.get_function()->get_name() << endl;
+		}
 	}
 	std::ostringstream fs;
 	to_return["fname"] = json::value(f->get_name());
@@ -2072,9 +2077,7 @@ function_page(void *p)
 	to_return["fun_name"] = json::value::string(html(f->get_name()) + " (" + f->entity_type_name() + ')');
 	json::value temp = html_json(f);
 	to_return["data"] = temp["data"];
-	to_return["form"] = json::value::string("<FORM ACTION=\"fun.html\" METHOD=\"GET\">\n"
-	"<ul>\n <li> Associated identifier(s): " + temp["string"].as_string());
-
+	
 	Tokid t = f->get_tokid();
 	
 	if (f->is_declared()) {
@@ -2099,24 +2102,7 @@ function_page(void *p)
 	} 
 	fs.flush();
 	fs << f;
-	// Functions that are Down from us in the call graph
-	to_return["list"][0] = json::value::string("<li> Calls directly " +
-	to_string(f->get_num_call()) + " functions" );
-	to_return["list"][1] = json::value::string("<li> <a href=\"funlist.html?f=" + fs.str() + "&n=d&e=1\">Explore directly called functions</a>\n");
-	to_return["list"][2] = json::value::string("<li> <a href=\"funlist.html?f=" +
-	fs.str() + "&n=D\">List of all called functions</a>\n");
-	to_return["list"][3] = json::value::string("<li> <a href=\"cgraph" +
-	graph_suffix() + "?all=1&f=" + fs.str() + "&n=D\">Call graph of all called functions</a>");
-	// Functions that are Up from us in the call graph
-	to_return["list"][4] = json::value::string("<li> Called directly by " + to_string(f->get_num_caller()) + " functions");
-	to_return["list"][5] = json::value::string("<li> <a href=\"funlist.html?f=" +
-	fs.str() + "&n=u&e=1\">Explore direct callers</a>\n");
-	to_return["list"][6] = json::value::string("<li> <a href=\"funlist.html?f=" +
-	fs.str() + "&n=U\">List of all callers</a>\n");
-	to_return["list"][7] = json::value::string("<li> <a href=\"cgraph"
-	+ graph_suffix() + "?all=1&f=" + fs.str() + "&n=U\">Call graph of all callers</a>");
-	to_return["list"][8] = json::value::string("<li> <a href=\"cgraph"
-	+ graph_suffix() + "?all=1&f=" + fs.str() + "&n=B\">Call graph of all calling and called functions</a> (function in context)");
+	
 	to_return["f"] = json::value::string(fs.str());
 	to_return["graph_suffix"] = json::value::string(graph_suffix());
 	to_return["no_call"] = json::value(f->get_num_call());
@@ -2155,7 +2141,9 @@ function_page(void *p)
 			fs << ec;
 			to_return["refractor"]["hidden"][1] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
 			+ fs.str() + "\">\n");
-			to_return["ec"] = json::value::string(fs.str());
+			char ecp[20];
+			sprintf(ecp,"%p",ec);
+			to_return["ec"] = json::value::string(ecp);
 			if (rfc != RefFunCall::store.end() && !rfc->second.is_active())
 				to_return["refractor"]["inactive"] = json::value::string("<br>(This refactoring is inactive."
 				"  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)");
@@ -2169,7 +2157,6 @@ function_page(void *p)
 				to_return["metrics"]["data"][no++][1] = json::value(f->metrics().get_metric(j));
 			}
 	}
-	to_return["end"] = json::value::string("</FORM>\n");
 	return to_return;
 }
 
@@ -3763,10 +3750,11 @@ funargrefs_page( void *p)
 	to_return["table"]["start"] = json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
 
 	int no = 0;
-
+	// to_return["data"] = json::value::array();
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		fs.flush();
 		fs << i->first;
+		to_return["data"][no]["ec"] = json::value(fs.str());
 		to_return["table"]["contents"][no] = json::value::string("<tr><td>" + html(*(i->second.get_function()))
 		+ "</td><td><input type=\"text\" name=\"r" + fs.str() + "\" value=\"" + i->second.get_replacement() +
 		"\" size=\"10\" maxlength=\"256\"></td>""<td><input type=\"checkbox\" name=\"a" + fs.str() +
@@ -3797,18 +3785,18 @@ xfunargrefs_page(void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-
+	cout << "put body:" << server.putData.to_string() << endl;
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		char varname[128];
-		snprintf(varname, sizeof(varname), "r%p", i->first);
+		snprintf(varname, sizeof(varname), "%p", i->first);
 		const char *subst;
-		if ((subst = server.getStrParam(varname).c_str()) != NULL) {
+		if (!server.putData[varname].is_null() && server.putData[varname]["repl"].is_string()) {
+			subst = server.putData[varname]["repl"].as_string().c_str();
 			string ssubst(subst);
 			i->second.set_replacement(ssubst);
 		}
 
-		snprintf(varname, sizeof(varname), "a%p", i->first);
-		i->second.set_active(!!server.getBoolParam(varname));
+		i->second.set_active(!!server.putData[varname]["active"].as_bool());
 	}
 	
 	to_return["ok"] = json::value(true);
@@ -4311,7 +4299,7 @@ main(int argc, char *argv[])
 		server.addHandler("replacements.html", replacements_page, 0);
 		server.addPutHandler("xreplacements.html", xreplacements_page, NULL);
 		server.addHandler("funargrefs.html", funargrefs_page, 0);
-		server.addHandler("xfunargrefs.html", xfunargrefs_page, NULL);
+		server.addPutHandler("xfunargrefs.html", xfunargrefs_page, NULL);
 		server.addHandler("options.html", options_page, 0);
 		server.addPutHandler("soptions.html", set_options_page, 0);
 		server.addPutHandler("save_options.html", save_options_page, 0);
