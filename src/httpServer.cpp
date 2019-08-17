@@ -12,15 +12,12 @@ map<utility::string_t, Graph_Handler> graph_handler_dict;
 HttpServer::HttpServer(utility::string_t url, ofstream *log) : listener(url), log_file(log)
 {
     
-    cout <<"log" <<  log << endl;
     listener.support(methods::GET, std::bind(&HttpServer::handle_get, this, std::placeholders::_1));
     listener.support(methods::PUT, std::bind(&HttpServer::handle_put, this, std::placeholders::_1));
     listener.support(methods::OPTIONS, std::bind(&HttpServer::handle_options, this, std::placeholders::_1));
 
     if(DP())
         cerr << "HttpServer: constructor called listen at " << url << endl;
-
-     cout << NULL <<"log" <<  (log_file == NULL) << endl;
 }
 
 void HttpServer::handle_options(http_request request)
@@ -81,9 +78,9 @@ void HttpServer::serve()
         this->listener.open()
             .then([&list]() { cerr << "\n Http Rest Server starts listening \n"; })
             .wait();
-
-        while (!must_exit)
-            wait(NULL);
+        while (!must_exit){
+            waitpid(-1, NULL, WUNTRACED || WCONTINUED);
+        }
         this->listener.close().wait();
     }
     catch (exception const &e)
@@ -95,8 +92,6 @@ void HttpServer::serve()
 // HTTP GET handler
 void HttpServer::handle_get(http_request request)
 {
-
-    cout <<"gets: " <<  this->log_file << endl;
     utility::string_t path = request.relative_uri().path();
     if(DP())
         cout << "URI:" << request.absolute_uri().to_string() << endl
@@ -123,7 +118,7 @@ void HttpServer::handle_get(http_request request)
             if (server.log_file != NULL)
             {
                 
-                cerr << "write to log2" << endl;
+                cerr << "write to log" << endl;
                 *(server.log_file) << body.serialize();
             }
         }
@@ -144,13 +139,11 @@ void HttpServer::handle_get(http_request request)
             if(DP())
                 cout << "JSON:"<< server.params.serialize().c_str() << endl;
            ostringstream *f = it->second.handleFunction(it->second.attributes);
-     //       cout << "svg:" << endl << f->str() << endl;
             response = http_response(status_codes::OK);
             response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
 
             response.set_body(f->str());
              request.reply(response);
-             //cout << response.to_string() << endl;
         }
     }
     else
@@ -200,7 +193,6 @@ void HttpServer::handle_put(http_request request)
     if (it == put_handler_dictionary.end())
     {
         body["error"] = json::value::string("Url Not Found");
-        cout << "here" << endl;
         response = http_response(status_codes::NotFound);
         response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
 
@@ -210,7 +202,7 @@ void HttpServer::handle_put(http_request request)
         request.reply(response);
         if (server.log_file != NULL)
         {
-            cerr << "write to log4" << endl;
+            cerr << "write to log" << endl;
             *(server.log_file) << body.serialize();
         }
     }
@@ -250,7 +242,7 @@ void HttpServer::handle_put(http_request request)
  
         if (server.log_file != NULL)
         {
-            cerr << "write to log5" << endl;
+            cerr << "write to log" << endl;
             *(server.log_file) << body.serialize();
         }
     }
@@ -364,7 +356,7 @@ void HttpServer::log(string msg)
 {
     if (server.log_file != NULL)
     {
-        cerr << "write to log7" << endl;
+        cerr << "write to log" << endl;
         *(server.log_file) << msg << endl;
     }
 }

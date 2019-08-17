@@ -2331,21 +2331,15 @@ explore_functions(Call *f,
 	int no = 0;
 	char * s = new char[20];
 	cout<< "explore" << endl;
-	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {		
-		cout << "strar" << endl;	
-				cout << "*i:"<<(*i) << endl;
-	
+	for (i = (f->*fbegin)(); i != (f->*fend)(); i++) {			
 		to_return[no]["fname"] = json::value((*i)->get_name());
-		cout << "*i:"<<*i << endl;
 		sprintf(s, "%p", *i);
 		cout<< "here:" << s << endl;
 		to_return[no]["f"] = json::value(s);
-		cout << "null char" << endl;
 		s[0] = 0;
 		to_return[no++]["html"] = json::value::string(html(**i));
 		cout<< "here" << endl;
 		if(recursive) {
-			cout << "recursion errror" <<endl;
 			to_return[no-1]["call"] = explore_functions(f, fbegin, fend, true);
 		}
 	} 
@@ -2423,14 +2417,12 @@ funlist_page(void *p)
 		sprintf(buff, " &mdash; <a href=\"cpath%s?from=%p&to=%%p\">call path to function</a>", graph_suffix().c_str(), f);
 		break;
 	}
-	cout << "before recurse" << endl;
 	if (server.getBoolParam("e")) {
 		to_return["funs"] = explore_functions(f, fbegin, fend, false);
 	} else {
 		Call::clear_visit_flags();
 		to_return["funs"] = visit_functions(buff, f, fbegin, fend, recurse, true, Option::cgraph_depth->get());
 	}
-	cout << "after recursion" << endl;
 	return to_return;
 }
 
@@ -2771,7 +2763,6 @@ cgraph_page(GraphDisplay *gd)
 		if (only_visited && !fun->second->is_visited()){
 			continue;
 		}
-		cout << "call node" << endl;
 		gd->node(fun->second);
 		if (browse_only && count++ >= MAX_BROWSING_GRAPH_ELEMENTS)
 			goto end;
@@ -3156,7 +3147,6 @@ set_project_page(void *p)
 		return to_return;
 	}
 	to_return["ok"] = json::value(true); 
-	//index_page(fo, p);
 	return to_return;
 }
 
@@ -3516,7 +3506,6 @@ query_source_page(void *)
 
 	to_return["html"] = file_hypertext(&i, true);
 	if(qname != NULL) delete qname;
-	cout << "query sent" << endl;
 	return to_return;
 }
 
@@ -3785,7 +3774,6 @@ xfunargrefs_page(void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	cout << "put body:" << server.putData.to_string() << endl;
 	for (RefFunCall::store_type::iterator i = RefFunCall::store.begin(); i != RefFunCall::store.end(); i++) {
 		char varname[128];
 		snprintf(varname, sizeof(varname), "%p", i->first);
@@ -3832,6 +3820,8 @@ write_quit_page(void *exit)
 	if (exit) {
 		to_return["exit"] = json::value(true);
 		must_exit=true;
+		server.must_exit = true;
+
 	}
 	else {
 		if (Option::sfile_re_string->get().length() == 0) {
@@ -3900,8 +3890,9 @@ write_quit_page(void *exit)
 	if (exit) {
 		to_return["exit"] = json::value(true);
 		must_exit = true;
-	} 
+		server.must_exit = true;
 
+	} 
 	return to_return;
 }
 
@@ -3921,6 +3912,8 @@ quit_page(void *p)
 
 	to_return["exit"] = json::value(true);
 	must_exit = true;
+	server.must_exit = true;
+
 	return to_return;
 }
 
@@ -4228,7 +4221,7 @@ main(int argc, char *argv[])
 					break;
 				case(0):
 					if(execvp("../src/runtest",NULL) == -1){
-						cout << "execve failed:" << strerror(errno)<< endl;			
+						cerr << "execve failed:" << strerror(errno)<< endl;			
 						return -1;
 					}
 			}
@@ -4445,6 +4438,7 @@ main(int argc, char *argv[])
 		if (p != NULL)
 			kill(*p, SIGUSR1);
 		server.serve();	
+		cout<< "after serve" << endl;
 	}
 
 #ifdef NODE_USE_PROFILE

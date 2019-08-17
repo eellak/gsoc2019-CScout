@@ -34,8 +34,9 @@ class HttpServer{
 private : 
     json::value params;
     ofstream *log_file;
-    static bool must_exit;
+    
 public:
+    static bool must_exit;
     HttpServer() {}
     // Constructor for HttpServer on a url
     HttpServer(utility::string_t url, ofstream * log);
