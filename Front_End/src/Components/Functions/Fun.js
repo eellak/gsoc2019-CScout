@@ -4,7 +4,6 @@ import Table from '../Table';
 import Tabs from '../Tabs/Tabs';
 import FunList from './FunList';
 import './Fun.css';
-import ReactSVG from 'react-svg';
 import GraphControl from './GraphSelector';
 
 

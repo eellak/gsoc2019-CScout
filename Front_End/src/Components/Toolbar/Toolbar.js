@@ -1,37 +1,84 @@
-import React from 'react';
+import React,{Component} from 'react';
 import './Toolbar.css';
 import logo from '../../../public/logo.png';
 import DrawerToggleButton from './DrawerToggleButton';
 import Popup from 'reactjs-popup';
 import Refactorings from '../Refactorings';
+import SelectProj from '../SelectProj';
+import Axios from 'axios';
 
-const Toolbar = props => (
-    <header className="toolbar">
-        <nav className="toolbar_navigation">
-            <div className="toolbar_toggle-button"><DrawerToggleButton click={props.drawerClickHandler} /></div>
-            <div className="toolbar_logo" onClick={() => props.changeType("homepage")} style={{ cursor: 'pointer' }}>
-                <a ><img src={logo} alt="C" /></a>
-                <h1>Scout</h1>
-            </div>
-            <div className="spacer"></div>
-            <div className="toolbar_navigation-items">
-                <ul>
+class Toolbar extends Component{ 
+    constructor(props) {
+        super(props);
+        this.state = { open: false, popUp: null };
+        this.openModal = this.openModal.bind(this);
+        this.closeModal = this.closeModal.bind(this);
+      }
 
-                    <li>
-                        <Popup
-                        trigger={<a>Function refactorings</a>} modal closeOnDocumentClick closeOnEscape>
-                            <Refactorings changeType={props.changeType}/>
-                        </Popup>
-                    </li>
+      openModal(toRender) {
+        this.setState({ open: true, popUp: toRender });
+      }
 
-                    <li onClick={() => (props.changeType("files"))} style={{ cursor: 'pointer' }}><a >Select project</a></li>
-                    <li onClick={() => (props.changeType("identifiers"))} style={{ cursor: 'pointer' }}><a >Identifiers</a></li>
-                    <li onClick={() => (props.changeType("funcs"))} style={{ cursor: 'pointer' }}><a style={{ top: '8px', bottom: '8px' }}>Functions<br />and Macros</a></li>
-                    <li onClick={() => (props.changeType("graph"))} style={{ cursor: 'pointer' }}><a>Operations</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-);
+      closeModal() {
+        this.setState({ open: false });
+      }
+
+      render(){
+        return( 
+        <header className="toolbar">
+            <nav className="toolbar_navigation">
+                <div className="toolbar_toggle-button"><DrawerToggleButton click={this.props.drawerClickHandler} /></div>
+                <div className="toolbar_logo" onClick={() => this.props.changeType("homepage")} style={{ cursor: 'pointer' }}>
+                    <a ><img src={logo} alt="C" /></a>
+                    <h1>Scout</h1>
+                </div>
+                <div className="spacer"></div>
+                <div className="toolbar_navigation-items">
+                    <ul>
+
+                        <li>
+                            <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
+                                <Refactorings changeType={this.props.changeType}/>
+                            )}>
+                                Function<br />refactorings</a>
+                        </li>
+
+                        <li>
+                           <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
+                             <SelectProj/>
+                           )}>Select<br />project</a>                          
+                        </li>
+                        
+                        <li>
+                            <a onClick={() => this.openModal(<div id="exit">
+                                    <div>Do you want to save changes?</div>
+                                    <div>
+                                        <button onClick={() => {
+                                            Axios.put(global.address + "sexit.html")
+                                            .then((response) =>  this.openModal(
+                                                response.data.exit?<div> Saved and Exited<br/>{response.data.statistics.msg}</div>
+                                                :<div>Save and Exit Failed:{response.data.error}</div>)
+                                            ) 
+                                        }}
+                                        className="formButton" >Yes</button><div style={{display:"inline"}}>{"   "}</div>
+                                        <button onClick={() => Axios.get(global.address + "qexit.html")} className="formButton">No</button><div style={{display:"inline"}}>{"   "}</div>
+                                        <button onClick={this.closeModal} className="formButton">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>)}>
+                                   Exit</a>
+                          
+                        </li>
+                    </ul>
+                    <Popup open={this.state.open} modal closeOnDocumentClick closeOnEscape onClose={this.closeModal}>
+                                       <div> {this.state.popUp}</div>
+                    </Popup>
+                </div>
+            </nav>
+        </header>
+        )
+    }
+}
 
 export default Toolbar;

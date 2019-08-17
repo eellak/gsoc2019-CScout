@@ -44,8 +44,6 @@ class SideDrawer extends Component {
 
                         <li className='title'><b onClick={() => this.props.changeType("identifiers")} className='title'>
                             Identifiers</b></li>
-                        <li onClick={() => this.props.changeType("brIdentifiers")} className='menuOpt'>
-                            <a>Browse identifiers</a></li>
                         <li onClick={() => this.props.changeType("searchId")} className='menuOpt'>
                             <a>Search Identifier</a></li>
                         <li onClick={() => this.props.changeType("idmetrics")} className='menuOpt'>
@@ -53,8 +51,6 @@ class SideDrawer extends Component {
 
                         <li className='title'><b onClick={() => console.log("funcAndMac")} className='title'>
                             Functions and Macros</b></li>
-                        <li onClick={() => this.props.changeType("brFunctions")} className='menuOpt'>
-                            <a>Browse Functions</a></li>
                         <li onClick={() => this.props.changeType("searchfun")} className='menuOpt'>
                             <a>Search Functions</a></li>
                         <li onClick={() => this.props.changeType("funmetrics")} className='menuOpt'>

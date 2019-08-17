@@ -25,8 +25,8 @@ class Refactorings extends Component{
             this.setState({
                 data: response.data,
                 loaded:true,
-                ref: response.data.data.map((obj,i) => obj.active),
-                repl: response.data.data.map((obj,i) => obj.replacement)
+                ref: Array.isArray(response.data.data)?response.data.data.map((obj,i) => obj.active):[],
+                repl: Array.isArray(response.data.data)?response.data.data.map((obj,i) => obj.replacement):[]
             },()=> console.log(this.state))
         )
     }
@@ -42,7 +42,7 @@ class Refactorings extends Component{
 
     handleSubmit(){
         var g={};  
-        this.state.data.data.map((obj,i) => 
+        this.state.data.data.forEach((obj,i) => 
             {
                 g[obj.ec] = {
                     repl: this.state.repl[i],
@@ -69,7 +69,9 @@ class Refactorings extends Component{
                 {!this.state.loaded?
                     <div>Loading...</div>
                 :<div className="refactors">
-                   <Table head={["Function","Arguments","Active"]} contents={this.state.data.data.map((obj, i) =>
+                   {Array.isArray(this.state.data.data)?
+                    <div>
+                        <Table head={["Function","Arguments","Active"]} contents={this.state.data.data.map((obj, i) =>
                                [<a onClick={() => this.props.changeType("fun",obj.f)}>{obj.name}</a>,
                                 <input type="text" value={this.state.repl[i]} key={i} onChange={(e) => this.handleChange(e,i)}/>,
                                <input type="checkbox" checked={this.state.ref[i]} onChange={() => {
@@ -79,8 +81,9 @@ class Refactorings extends Component{
                                 } />
                             ] 
                             )}/>
-                    <button onClick={this.handleSubmit}>OK</button>
-
+                        <button onClick={this.handleSubmit}>OK</button>
+                    </div>
+                    :<div>No Refactorings</div>}
                 </div>
                 
                 }

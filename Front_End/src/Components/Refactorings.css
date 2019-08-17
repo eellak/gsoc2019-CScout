@@ -12,3 +12,7 @@
     bottom: 0px;
     text-shadow: none;
 }
+
+.refactors div {
+    color:black;
+}
