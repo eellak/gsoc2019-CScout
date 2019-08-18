@@ -1,0 +1,9 @@
+.sproj div {
+    color:rgb(0, 98, 211);
+}
+.sproj div div:hover {
+    text-decoration: underline;
+    color:rgb(48, 130, 224);
+
+
+}

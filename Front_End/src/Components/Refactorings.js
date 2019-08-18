@@ -81,7 +81,7 @@ class Refactorings extends Component{
                                 } />
                             ] 
                             )}/>
-                        <button onClick={this.handleSubmit}>OK</button>
+                        <button onClick={this.handleSubmit} className="formButton">OK</button>
                     </div>
                     :<div>No Refactorings</div>}
                 </div>
