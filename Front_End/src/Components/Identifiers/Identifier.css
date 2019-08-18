@@ -12,11 +12,43 @@
 }
 
 .IdDetails div {
-    display: inline-block;
-    margin:10px;
+    display: inline-table;
+    margin:20px;
     width: 35%;
 }
 
 .textIdDetails {
-    transform: translateY(15rem) 
+    text-align: left;
+    margin:20px;
+}
+
+.textIdDetails form div{
+    text-align: left;
+    margin:0px;
+    width:100%
+}
+
+.textIdDetails form input[type='text']{
+    width:150px;
+    margin-left:5px;
+}
+
+.textInput input[type='text']{
+    border-radius: 10px;
+    border:2px solid #63b1ff;
+    box-shadow: 0 0 3px 0px #63b1ff;
+    background-color: white;
+    background-color: white;
+    background-position: 5px 3px; 
+    background-repeat: no-repeat;
+    height:20px;
+    padding-left:5px;
+    margin-right: 5px;
+    width:87%;
+    transition: box-shadow 0.2s
+}
+
+.textInput input[type='text']:focus{
+  box-shadow: 0 0 8px 0px #63b1ff;
+  outline: none;
 }

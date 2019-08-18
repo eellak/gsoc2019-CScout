@@ -13,6 +13,10 @@ class Identifier extends Component {
             loaded: false
         }
 
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.inputValue = '';
+
     }
 
     componentDidMount() {
@@ -55,6 +59,22 @@ class Identifier extends Component {
         )
     }
 
+
+    handleSubmit(e) {
+        e.preventDefault();
+        Axios.get(global.address + "id.html?id=" + this.props.id + "&sname=" + this.inputValue + "&repl=Save")
+        .then((resp) => {
+            this.setState({refactor: resp.data})
+            console.log(resp)
+        }
+        )
+        
+    }
+
+    handleInputChange(e) {
+        this.inputValue = e.target.value
+    }
+
     render() {
         var tabs = {}
         if (this.state.loaded)
@@ -68,6 +88,7 @@ class Identifier extends Component {
                     }
                     <div className="textIdDetails">
                         <a>This identifier was matched {this.state.data.occurences} occurences<br />
+                            <br/>
                             This identifier appears in the following projects:
                         </a>
                         <ul>
@@ -75,6 +96,13 @@ class Identifier extends Component {
                                 <li style={{ listStyle: 'none' }} key={i}>{obj}</li>
                             )}
                         </ul>
+                        <form onSubmit={this.handleSubmit}>
+                            <div className='textInput'>
+                                <a>Substitute with:</a><input type='text' value={this.state.value} onChange={this.handleInputChange}
+                                placeholder="Identifier Name..." />
+                                <button className="formButton">Substitute</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 },

@@ -4,6 +4,7 @@ import logo from '../../../public/logo.png';
 import DrawerToggleButton from './DrawerToggleButton';
 import Popup from 'reactjs-popup';
 import Refactorings from '../Refactorings';
+import Replacements from '../Replacements';
 import SelectProj from '../SelectProj';
 import Axios from 'axios';
 
@@ -35,7 +36,13 @@ class Toolbar extends Component{
                 <div className="spacer"></div>
                 <div className="toolbar_navigation-items">
                     <ul>
-
+                        <li>
+                            <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
+                                <Replacements changeType={this.props.changeType}/>
+                            )}>
+                                Identifier<br />replacements</a>
+                        </li>
+                        
                         <li>
                             <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
                                 <Refactorings changeType={this.props.changeType}/>

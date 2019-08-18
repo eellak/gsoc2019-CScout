@@ -1870,7 +1870,7 @@ identifier_page(void *p)
 		string ssubst(subst);
 		id.set_newid(ssubst);
 		modification_state = ms_subst;
-		delete subst;
+		cout << "subst:" << subst << endl;
 	}
 
 	
@@ -3642,7 +3642,7 @@ replacements_page(void *p)
 		if (i->second.get_replaced()) {
 			fs.flush();
 			to_return["content"][no]["start"] = json::value::string("<tr><td>");
-			to_return["content"][no]["name"] = json::value::string(html(*i));
+			to_return["content"][no]["name"] = json::value::string((i->second).get_id());
 			fs << "</td><td><input type=\"text\" name=\"r" << &(i->second)
 			<< "\" value=\"" << i->second.get_newid() << "\" size=\"10\" maxlength=\"256\"></td>";
 			to_return["content"][no]["text"] = json::value::string(fs.str());
@@ -3680,23 +3680,20 @@ xreplacements_page(void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	cerr << "Creating identifier list" << endl;
 
 	for (IdProp::iterator i = ids.begin(); i != ids.end(); i++) {
 		progress(i, ids);
 		if (i->second.get_replaced()) {
 			char varname[128];
-			snprintf(varname, sizeof(varname), "r%p", &(i->second));
+			snprintf(varname, sizeof(varname), "%p", &(i->second));
 			const char *subst;
-			
-			if ((subst = server.getCharPParam(varname)) != NULL) {
+
+			if (!server.putData[varname].is_null() && server.putData[varname]["repl"].is_string()) {
+				subst = server.putData[varname]["repl"].as_string().c_str();
 				string ssubst(subst);
 				i->second.set_newid(ssubst);
 				delete subst;
 			}
-
-			snprintf(varname, sizeof(varname), "a%p", &(i->second));
-			i->second.set_active(!!server.getBoolParam(varname));
 		}
 	}
 
