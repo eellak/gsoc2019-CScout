@@ -25,7 +25,7 @@ HSQLDB_URL=http://downloads.sourceforge.net/project/hsqldb/hsqldb/hsqldb_2_4/hsq
 DEFAULT_HSQLDB_DIR=$(CSCOUT_DIR)/hsqldb-$(HSQLDB_VERSION)/hsqldb
 export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
-.PHONY: src/build/cscout cpprest btyacc/btyacc
+.PHONY: src/build/cscout cpprest btyacc/btyacc build/server
 
 src/build/cscout: casablanca/build.debug btyacc/btyacc
 	cd src && $(MAKE)
@@ -67,11 +67,21 @@ testServ:
 clean:
 	cd src && $(MAKE) clean
 
+build/server:
+	cd Front_End && $(MAKE)
+
+all:
+	$(MAKE) src/build/cscout
+	$(MAKE) build/server
+
 install: src/build/cscout
 	cd src && $(MAKE) install
+	cd Front_End && $(MAKE) install
 
 uninstall:
 	cd src && $(MAKE) uninstall
+	cd Front_End && $(MAKE) uninstall
 
-example: src/build/cscout
+example: src/build/cscout build/server
 	cd src && $(MAKE) example
+	cd Front_End && $(MAKE) install
