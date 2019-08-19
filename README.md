@@ -42,10 +42,9 @@ user experience. On every step there will be adjustments based on the recieved
 user feedback
 
 ## Building, Testing, Installing, Using
-CScout has been compiled and tested on GNU/Linux (Debian jessie),
-Apple OS X (El Capitan), FreeBSD (11.0), and Cygwin. In order to
+CScout has been compiled and tested on GNU/Linux (Debian jessie). In order to
 build and use CScout you need a Unix (like) system
-with a modern C++ compiler, GNU make, and Perl.
+with a modern C++ compiler, GNU make, Perl and npm.
 Building installs [Microsoft's C++ Rest SDK](https://github.com/microsoft/cpprestsdk). 
 To test CScout you also need to be able to run Java from the command line,
 in order to use the HSQLDB database.
