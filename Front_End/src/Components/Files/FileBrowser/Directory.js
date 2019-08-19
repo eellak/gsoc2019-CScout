@@ -31,10 +31,10 @@ class Directory extends Component {
         axios.get(global.address + this.props.addr)
             .then((response) => {
                 if (response.data.error) {
-                    this.state = {
+                    this.setState ({
                         error: response.data.error,
                         loaded: false
-                    }
+                    })
                 } else {
                     console.log(response.data);
                     this.setState({

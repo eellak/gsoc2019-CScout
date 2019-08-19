@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import './Toolbar.css';
-import logo from '../../../public/logo.png';
+import logo from '../../logo.png';
 import DrawerToggleButton from './DrawerToggleButton';
 import Popup from 'reactjs-popup';
 import Refactorings from '../Refactorings';
@@ -30,7 +30,7 @@ class Toolbar extends Component{
             <nav className="toolbar_navigation">
                 <div className="toolbar_toggle-button"><DrawerToggleButton click={this.props.drawerClickHandler} /></div>
                 <div className="toolbar_logo" onClick={() => this.props.changeType("homepage")} style={{ cursor: 'pointer' }}>
-                    <a ><img src={logo} alt="C" /></a>
+                    <a href="home"><img src={logo} alt="C" /></a>
                     <h1>Scout</h1>
                 </div>
                 <div className="spacer"></div>
@@ -51,7 +51,7 @@ class Toolbar extends Component{
                         </li>
 
                         <li>
-                           <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
+                           <a  style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
                              <SelectProj/>
                            )}>Select<br />project</a>                          
                         </li>
