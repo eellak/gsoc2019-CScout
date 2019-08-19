@@ -57,8 +57,10 @@ class Replacements extends Component{
                 "Access-Control-Allow-Headers": "Content-Type, Accept, Access-Control-Allow-Origin"
             }
         })
-        .then((response) => 
-            console.log(response)
+        .then((response) => {
+            console.log(response);
+            this.props.openModal(<div>{response.data.ok?"Identifier Replacements OK":"Error in identifier Replacement:" + response.data.error}</div>)
+            }
         )
     }
 
@@ -68,6 +70,8 @@ class Replacements extends Component{
                 {!this.state.loaded?
                     <div>Loading...</div>
                 :<div className="refactors">
+                    <h3>Identifier Replacements</h3>
+
                    {Array.isArray(this.state.data.content)?
                     <div>
                         <Table head={["Identifier","Replacement","Active"]} contents={this.state.data.content.map((obj, i) =>

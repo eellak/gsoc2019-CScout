@@ -69,6 +69,7 @@ class Refactorings extends Component{
                 {!this.state.loaded?
                     <div>Loading...</div>
                 :<div className="refactors">
+                   <h3>Function Refactorings</h3>
                    {Array.isArray(this.state.data.data)?
                     <div>
                         <Table head={["Function","Arguments","Active"]} contents={this.state.data.data.map((obj, i) =>

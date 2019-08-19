@@ -15,4 +15,18 @@
 
 .refactors div {
     color:black;
+    padding: 10px;
+}
+
+.refactors table {
+    margin:0px;
+    width:100%
+}
+
+.refactors button{
+    margin-top:10px;
+}
+
+.refactors h3 {
+    margin-top:0px;
 }

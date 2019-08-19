@@ -38,14 +38,14 @@ class Toolbar extends Component{
                     <ul>
                         <li>
                             <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
-                                <Replacements changeType={this.props.changeType}/>
+                                <Replacements changeType={this.props.changeType} closeModal={this.closeModal} openModal={this.openModal}/>
                             )}>
                                 Identifier<br />replacements</a>
                         </li>
                         
                         <li>
                             <a style={{ top: '8px', bottom: '8px' }} onClick={() => this.openModal(
-                                <Refactorings changeType={this.props.changeType}/>
+                                <Refactorings changeType={this.props.changeType} closeModal={this.closeModal} openModal={this.openModal}/>
                             )}>
                                 Function<br />refactorings</a>
                         </li>
