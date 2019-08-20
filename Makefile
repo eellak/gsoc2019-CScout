@@ -68,7 +68,7 @@ clean:
 	cd src && $(MAKE) clean
 
 build/server:
-	cd Front_End && $(MAKE)
+	cd cscout_front && $(MAKE)
 
 all:
 	$(MAKE) src/build/cscout
@@ -76,12 +76,11 @@ all:
 
 install: src/build/cscout
 	cd src && $(MAKE) install
-	cd Front_End && $(MAKE) install
+	cd cscoutFront && $(MAKE) install
 
 uninstall:
 	cd src && $(MAKE) uninstall
-	cd Front_End && $(MAKE) uninstall
+	cd cscoutFront && $(MAKE) uninstall
 
-example: src/build/cscout build/server
+example: src/build/cscout
 	cd src && $(MAKE) example
-	cd Front_End && $(MAKE) install

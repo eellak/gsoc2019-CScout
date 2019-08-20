@@ -20,7 +20,7 @@ class Refactorings extends Component{
     }
 
     getRefacts() {
-        axios.get(global.address + "funargrefs.html")
+        axios.get("/funargrefs.html")
         .then((response) =>
             this.setState({
                 data: response.data,

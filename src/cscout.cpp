@@ -96,7 +96,7 @@ using namespace picoQL;
 #include "obfuscate.h"
 using namespace web;
 #define ids Identifier::ids
-
+#define bport 13780
 #define prohibit_remote_access(fs)
 #define prohibit_browsers(fs) \
 	do { \
@@ -116,7 +116,7 @@ static enum e_process {
 	pm_obfuscation,
 	pm_r_option
 } process_mode;
-static int portno = 8081;		// Port number (-p n)
+static int portno = 5000;		// Port number (-p n)
 static char *db_engine;			// Create SQL output for a specific db_iface
 
 // Workspace modification state
@@ -3191,14 +3191,6 @@ version_info(bool html)
 	return v.str();
 }
 
-// Display information about CScout
-// void
-// about_page(FILE *fo, void *p)
-// {
-// 	html_head(fo, "about", "About CScout");
-// 	fputs(version_info(true).c_str(), fo);
-// 	html_tail(fo);
-// }
 
 // Return top directory JSON
 json::value top_file(void *p) 
@@ -3220,105 +3212,7 @@ json::value file_search(void *p)
 	return to_return;
 }
 
-// Index
-// void
-// index_page(FILE *of, void *data)
-// {
-	
-// 	html_head(of, "index", "CScout Main Page", "<img src=\"logo.png\">Scout Main Page");
-// 	fputs(
-// 		"<table><tr><td valign=\"top\">\n"
-// 		"<div class=\"mainblock\">\n"
-// 		"<h2>Files</h2>\n"
-// 		"<ul>\n"
-// 		"<li> <a href=\"filemetrics.html\">File metrics</a>\n"
-// 		"<li>\n", of);
-// 	dir_top("Browse file tree");
-// 	fprintf(of,
-// 		"<li> <a href=\"xfilequery.html?ro=1&writable=1&match=Y&n=All+Files\">All files</a>\n"
-// 		"<li> <a href=\"xfilequery.html?ro=1&match=Y&n=Read-only+Files\">Read-only files</a>\n"
-// 		"<li> <a href=\"xfilequery.html?writable=1&match=Y&n=Writable+Files\">Writable files</a>\n");
-	// fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+Project-scoped+Writable+Identifiers\">Files containing unused project-scoped writable identifiers</a>\n", is_lscope);
-	// fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qf=1&n=Files+Containing+Unused+File-scoped+Writable+Identifiers\">Files containing unused file-scoped writable identifiers</a>\n", is_cscope);
-	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BcC%%5D%%24&n=Writable+.c+Files+Without+Any+Statements\">Writable .c files without any statements</a>\n", FileMetrics::em_nstatement, Query::ec_eq, FileMetrics::em_nstatement);
-	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&order=%d&c%d=%d&n%d=0&reverse=0&match=L&n=Writable+Files+Containing+Unprocessed+Lines\">Writable files containing unprocessed lines</a>\n", Metrics::em_nuline, Metrics::em_nuline, Query::ec_gt, Metrics::em_nuline);
-	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&n=Writable+Files+Containing+Strings\">Writable files containing strings</a>\n", Metrics::em_nstring, Query::ec_gt, Metrics::em_nstring);
-	// fprintf(of, "<li> <a href=\"xfilequery.html?writable=1&c%d=%d&n%d=0&match=L&fre=%%5C.%%5BhH%%5D%%24&n=Writable+.h+Files+With+%%23include+directives\">Writable .h files with #include directives</a>\n", FileMetrics::em_nincfile, Query::ec_gt, FileMetrics::em_nincfile);
-	// fprintf(of, "<li> <a href=\"filequery.html\">Specify new file query</a>\n"
-// 		"</ul></div>\n");
 
-// 	fputs(
-// 		"<div class=\"mainblock\">\n"
-// 		"<h2>File Dependencies</h2>"
-// 		"<ul>\n", of);
-// 	fprintf(of, "<li> File include graph: <a href=\"fgraph%s?gtype=I\">writable files</a>, ", graph_suffix().c_str());
-// 	fprintf(of, "<a href=\"fgraph%s?gtype=I&all=1\">all files</a>", graph_suffix().c_str());
-// 	fprintf(of, "<li> Compile-time dependency graph: <a href=\"fgraph%s?gtype=C\">writable files</a>, ", graph_suffix().c_str());
-// 	fprintf(of, "<a href=\"fgraph%s?gtype=C&all=1\">all files</a>", graph_suffix().c_str());
-// 	fprintf(of, "<li> Control dependency graph (through function calls): <a href=\"fgraph%s?gtype=F&n=D\">writable files</a>, ", graph_suffix().c_str());
-// 	fprintf(of, "<a href=\"fgraph%s?gtype=F&n=D&all=1\">all files</a>", graph_suffix().c_str());
-// 	fprintf(of, "<li> Data dependency graph (through global variables): <a href=\"fgraph%s?gtype=G\">writable files</a>, ", graph_suffix().c_str());
-// 	fprintf(of, "<a href=\"fgraph%s?gtype=G&all=1\">all files</a>", graph_suffix().c_str());
-// 	fputs("</ul></div>", of);
-
-// 	fputs(
-// 		"<div class=\"mainblock\">\n"
-// 		"<h2>Functions and Macros</h2>\n"
-// 		"<ul>\n"
-// 		"<li> <a href=\"funmetrics.html\">Function metrics</a>\n"
-// 		"<li> <a href=\"xfunquery.html?writable=1&ro=1&match=Y&ncallerop=0&ncallers=&n=All+Functions&qi=x\">All functions</a>\n"
-// 		"<li> <a href=\"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x\">Project-scoped writable functions</a>\n"
-// 		"<li> <a href=\"xfunquery.html?writable=1&fscope=1&match=L&ncallerop=0&ncallers=&n=File-scoped+Writable+Functions&qi=x\">File-scoped writable functions</a>\n"
-// 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=0&n=Writable+Functions+that+Are+Not+Directly+Called&qi=x\">Writable functions that are not directly called</a>\n"
-// 		"<li> <a href=\"xfunquery.html?writable=1&match=Y&ncallerop=1&ncallers=1&n=Writable+Functions+that+Are++Called+Exactly+Once&qi=x\">Writable functions that are called exactly once</a>\n", of);
-// 	fprintf(of, "<li> <a href=\"cgraph%s\">Non-static function call graph</a>", graph_suffix().c_str());
-// 	fprintf(of, "<li> <a href=\"cgraph%s?all=1\">Function and macro call graph</a>", graph_suffix().c_str());
-// 	fputs("<li> <a href=\"funquery.html\">Specify new function query</a>\n"
-// 		"</ul></div>\n", of);
-
-// 	fprintf(of, "</td><td valign=\"top\">\n");
-
-// 	fputs(
-// 		"<div class=\"mainblock\">\n"
-// 		"<h2>Identifiers</h2>\n"
-// 		"<ul>\n"
-// 		"<li> <a href=\"idmetrics.html\">Identifier metrics</a>\n",
-// 		of);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&match=Y&qi=1&n=All+Identifiers\">All identifiers</a>\n", is_readonly);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?a%d=1&match=Y&qi=1&n=Read-only+Identifiers\">Read-only identifiers</a>\n", is_readonly);
-// 	fputs("<li> <a href=\"xiquery.html?writable=1&match=Y&qi=1&n=Writable+Identifiers\">Writable identifiers</a>\n"
-// 		"<li> <a href=\"xiquery.html?writable=1&xfile=1&match=L&qi=1&n=File-spanning+Writable+Identifiers\">File-spanning writable identifiers</a>\n", of);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Project-scoped+Writable+Identifiers\">Unused project-scoped writable identifiers</a>\n", is_lscope);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+File-scoped+Writable+Identifiers\">Unused file-scoped writable identifiers</a>\n", is_cscope);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&unused=1&match=L&qi=1&n=Unused+Writable+Macros\">Unused writable macros</a>\n", is_macro);
-// 	// xfile is implicitly 0
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable variable identifiers that should be made static</a>\n", is_ordinary, is_lscope);
-// 	fprintf(of, "<li> <a href=\"xiquery.html?writable=1&a%d=1&a%d=1&a%d=1&match=T&ire=&fre=&n=Writable+identifiers+that+should+be+made+static&qi=1\">Writable function identifiers that should be made static</a>\n", is_ordinary, is_lscope, is_cfunction);
-// 	fprintf(of,
-// 		"<li> <a href=\"iquery.html\">Specify new identifier query</a>\n"
-// 		"</ul></div>"
-// 	);
-
-
-// 	if (!browse_only)
-// 		fputs(
-// 			"<div class=\"mainblock\">\n"
-// 			"<h2>Operations</h2>"
-// 			"<ul>\n"
-// 			"<li> <a href=\"options.html\">Global options</a>\n"
-// 			" &mdash; <a href=\"save_options.html\">save global options</a>\n"
-// 			"<li> <a href=\"replacements.html\">Identifier replacements</a>\n"
-// 			"<li> <a href=\"funargrefs.html\">Function argument refactorings</a>\n"
-// 			"<li> <a href=\"sproject.html\">Select active project</a>\n"
-// 			"<li> <a href=\"about.html\">About CScout</a>\n"
-// 			"<li> <a href=\"save.html\">Save changes and continue</a>\n"
-// 			"<li> <a href=\"sexit.html\">Exit &mdash; saving changes</a>\n"
-// 			"<li> <a href=\"qexit.html\">Exit &mdash; ignore changes</a>\n"
-// 			"</ul></div>", of);
-// 	fputs("</td></tr></table>\n", of);
-// 	html_tail(of);
-
-// }
 
 // Return file information as JSON
 // {
@@ -4085,7 +3979,7 @@ usage(char *fname)
 		"\t-l file\tSpecify access log file\n"
 		"\t-m spec\tSpecify identifiers to monitor (unsound)\n"
 		"\t-o\tCreate obfuscated versions of the processed files\n"
-		"\t-p port\tSpecify TCP port for serving the CScout web pages\n"
+		"\t-p port\tSpecify TCP port for serving the CScout front end\n"
 		"\t\t(the port number must be in the range 1024-32767)\n"
 		"\t-t run in test mode\n"
 #ifdef PICO_QL
@@ -4098,6 +3992,8 @@ usage(char *fname)
 		;
 	exit(1);
 }
+
+void startServer();
 
 int
 main(int argc, char *argv[])
@@ -4214,7 +4110,7 @@ main(int argc, char *argv[])
 			*p = fork();
 			switch(*p){ 
 				case(-1):
-					cerr <<  "Fork Failed";
+					cerr <<  "Fork Failed:" << strerror(errno) ;
 					break;
 				case(0):
 					if(execvp("../src/runtest",NULL) == -1){
@@ -4233,7 +4129,7 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 
 	utility::string_t address = U("http://localhost:");
-	address.append(U(to_string(portno)));
+	address.append(U(to_string(bport)));
 	
 	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
@@ -4376,11 +4272,9 @@ main(int argc, char *argv[])
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
 		server.addHandler("browseTop.html",top_file, NULL);
-	//	server.addHandler("about.html", about_page, NULL);
 		server.addHandler("setproj.html", set_project_page, NULL);
 		server.addHandler("filesearch", file_search,NULL);
-		// server.addHandler("logo.png", logo_page, NULL);
-		//server.addHandler("index.html", (void (*)(FILE *, void *))((char *)index_page), 0);
+	
 	}
 
 	if (file_msum.get_writable(Metrics::em_nuline)) {
@@ -4430,18 +4324,56 @@ main(int argc, char *argv[])
 		cerr << "CScout is now ready to serve you at http://localhost:" << portno << endl;
 		
 	}
-
+	pid_t ps;
 	if (!must_exit) {
 		if (p != NULL)
 			kill(*p, SIGUSR1);
-		server.serve();	
-		cout<< "after serve" << endl;
-	}
+		else {
+			ps = fork();
+			switch(ps){
+				case(-1):
+					cerr << "Fork for front end server failed:" << strerror(errno) << endl
+						<< "Backend server will continue running in port " << bport << "try serve command on front end built server" << endl;
+					break;
+				case(0):
+					startServer();
+					break;
+				default:
+					server.serve();	
+				}
+			}
+		}
 
 #ifdef NODE_USE_PROFILE
 	cout << "Type node count = " << Type_node::get_count() << endl;
 #endif
 	return (0);
+}
+
+void startServer(){
+	char buff[PATH_MAX];
+	ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+	if (len != -1) {
+		buff[len] = '\0';
+	}
+	string path = string(buff);
+	if(path.compare("/usr/local/bin/cscout") == 0)
+		path = "/usr/local/cscoutFront";
+	else {	
+		path = path.substr(0, path.find_last_of("/"));
+		path = path.substr(0, path.find_last_of("/"));
+		path = path.substr(0, path.find_last_of("/"));
+		path.append("/cscoutFront/build");
+	}
+	char cmd[1024];	
+	snprintf(cmd, sizeof(cmd), "serve -s %s -l %d",
+			path.c_str(), portno);
+	cout << cmd << endl;
+	if (execl("/bin/sh","sh","-c",cmd,NULL) != 0) {
+		cout << "cmd failed-"<< errno << endl;
+		cout << "Unable to execute serve command for front end  Shell execution" << endl;
+		cout << "Try starting cscout_front manually" << endl;
+	}
 }
 
 

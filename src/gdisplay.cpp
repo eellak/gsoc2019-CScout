@@ -148,7 +148,7 @@ GDDotImage::tail()
 	
 	switch(p){
 		case(-1):
-			cerr << "Fork Failed- Errno:" << errno <<endl;
+			cerr << "Fork Failed- Error:" << strerror(errno) <<endl;
 			break;
 		case(0):
 			if (execl("/bin/sh","/bin/sh","-c",cmd,NULL) != 0) {
@@ -159,13 +159,11 @@ GDDotImage::tail()
 			break;
 		default:
 			int stat;
-			cout << "wait: " << waitpid(p, &stat, NULL) << endl;
-			cout << "exited:" << WTERMSIG(stat) << endl;
 			if(!WIFEXITED(stat)) {
-				cout << "ex stat:" << WEXITSTATUS(stat);}
+				cout << "ex stat:" << WEXITSTATUS(stat);
 				cerr << "Shell didn't terminate peacefully" << endl;
-			//	return;
-		//	}
+			}
+			
 	}
 
 	FILE *fimg = fopen(img, "rb");
