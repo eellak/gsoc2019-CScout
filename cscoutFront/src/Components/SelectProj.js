@@ -18,7 +18,7 @@ class SelectProj extends Component{
     }
 
     getProjs() {
-        axios.get(global.address + "sproject.html")
+        axios.get(global.address + "sproject")
         .then((response) =>
             this.setState({
                 data: response.data,
@@ -28,7 +28,7 @@ class SelectProj extends Component{
     }
 
     setProj(p){
-        axios.get(global.address + "setproj.html?projid=" + p).
+        axios.get(global.address + "setproj?projid=" + p).
         then( (r) =>
             this.setState({changed: r})
         )

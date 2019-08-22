@@ -188,7 +188,7 @@ IdQuery::IdQuery(const string &s) :
 string
 IdQuery::base_url() const
 {
-	return string("xiquery.html?") + param_url();
+	return string("xiquery?") + param_url();
 }
 
 

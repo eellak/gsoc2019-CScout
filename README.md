@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/dspinellis/cscout.svg?branch=master)](https://travis-ci.org/dspinellis/cscout)
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/8463/badge.svg)](https://scan.coverity.com/projects/dspinellis-cscout)
 
 ## Introduction
 CScout is a source code analyzer and refactoring browser for collections

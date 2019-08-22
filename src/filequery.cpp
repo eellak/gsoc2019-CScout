@@ -101,7 +101,7 @@ FileQuery::FileQuery(std::ostringstream *of, bool icase, Attributes::size_type c
 string
 FileQuery::base_url() const
 {
-	return string("xfilequery.html?") + param_url();
+	return string("xfilequery?") + param_url();
 }
 
 // Return the query's parameters as a URL

@@ -34,7 +34,7 @@ class Fun extends Component {
     }
 
     getFunInfo = () => {
-        axios.get(global.address + "fun.html?f=" + this.props.f)
+        axios.get(global.address + "fun?f=" + this.props.f)
             .then((response) => {
                 this.setState({
                     fun: response.data,
@@ -55,7 +55,7 @@ class Fun extends Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        axios.get(global.address + "fun.html?f=" + this.props.f + "&ncall=" + this.inputValue + "&repl=Save&id=" + this.state.fun.ec)
+        axios.get(global.address + "fun?f=" + this.props.f + "&ncall=" + this.inputValue + "&repl=Save&id=" + this.state.fun.ec)
         .then((resp) => {
             this.setState({refactor: resp.data})
             console.log(resp)

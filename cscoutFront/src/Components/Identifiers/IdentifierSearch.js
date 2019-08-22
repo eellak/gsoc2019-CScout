@@ -104,7 +104,7 @@ class IdentifierSearch extends Component {
         url += this.state.rev ? "&rev=1" : "";
         url += (this.state.orderField === 2) ? "&qocc=1" : "";
         console.log(url);
-        Axios.get(global.address + "xiquery.html?" + url)
+        Axios.get(global.address + "xiquery?" + url)
             .then((response) => {
                 if (response.data.error) {
                     this.setState({

@@ -25,8 +25,8 @@ class FunList extends Component{
     getFunList(){
         console.log(this.props)
         var query = this.state.all?this.props.n.toUpperCase():(this.props.n + "&e=1");
-        console.log(global.address + "funlist.html?f=" + this.props.f + "&n=" + query)
-        Axios.get(global.address + "funlist.html?f=" + this.props.f + "&n=" + query)
+        console.log(global.address + "funlist?f=" + this.props.f + "&n=" + query)
+        Axios.get(global.address + "funlist?f=" + this.props.f + "&n=" + query)
         .then((response) => {
             if(response.data.error){
                 console.log(response.data.error)

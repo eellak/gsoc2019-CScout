@@ -230,7 +230,7 @@ file_label(Fileid f, bool hyperlink)
 
 	if (hyperlink)
 	{
-		snprintf(buff, sizeof(buff), "<a href=\"file.html?id=%d\">", f.get_id());
+		snprintf(buff, sizeof(buff), "<a href=\"file?id=%d\">", f.get_id());
 		result = buff;
 	}
 	switch (Option::fgraph_show->get())
@@ -259,7 +259,7 @@ function_label(Call *f, bool hyperlink)
 
 	if (hyperlink)
 	{
-		snprintf(buff, sizeof(buff), "<a href=\"fun.html?f=%p\">", f);
+		snprintf(buff, sizeof(buff), "<a href=\"fun?f=%p\">", f);
 		result = buff;
 	}
 	if (Option::cgraph_show->get() == 'f') // Show files

@@ -29,7 +29,7 @@ class Files extends Component {
     }
 
     getFileInfo = () => {
-        axios.get(global.address + "file.html?id=" + this.props.id)
+        axios.get(global.address + "file?id=" + this.props.id)
             .then((response) => {
                 this.setState({
                     file: response.data,

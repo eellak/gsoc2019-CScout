@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import Table from './Table';
+import '../global.js'
 
 class Metrics extends Component {
     constructor() {
@@ -15,7 +16,7 @@ class Metrics extends Component {
     }
 
     getFileMetrics = () => {
-        axios.get("http://localhost:8081/" + this.props.type + "metrics.html")
+        axios.get(global.address + this.props.type + "metrics")
             .then((response) => {
                 if (response.data.errorMsg) {
                     return response.data.errorMsg;
@@ -39,6 +40,14 @@ class Metrics extends Component {
             });
     }
 
+    title(){
+        switch(this.props.type){
+            case("fun"):
+                return "Function";
+            case("id")
+        }
+    }
+
     render() {
         console.log(this.state);
         if (this.state.loaded === false)
@@ -52,6 +61,7 @@ class Metrics extends Component {
         else
             return (
                 <div>
+                    <h3>{switch(this.props.type</h3>
                     {
                         (this.props.type === "fun") ? <Table head={this.state.head} contents={this.state.metrics} /> :
                             <Table head={this.state.writable.head} contents={this.state.writable.metrics} />

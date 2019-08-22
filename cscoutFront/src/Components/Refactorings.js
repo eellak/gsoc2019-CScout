@@ -20,7 +20,7 @@ class Refactorings extends Component{
     }
 
     getRefacts() {
-        axios.get("/funargrefs.html")
+        axios.get("/funargrefs")
         .then((response) =>
             this.setState({
                 data: response.data,
@@ -50,7 +50,7 @@ class Refactorings extends Component{
                 }
             }
             )
-        axios.put(global.address + "xfunargrefs.html", g, {
+        axios.put(global.address + "xfunargrefs", g, {
             headers: {
                 "Accept": "application/json",
                 "Content-type": "application/json",

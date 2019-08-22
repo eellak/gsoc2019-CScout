@@ -61,14 +61,14 @@ class Toolbar extends Component{
                                     <div>Do you want to save changes?</div>
                                     <div>
                                         <button onClick={() => {
-                                            Axios.put(global.address + "sexit.html")
+                                            Axios.put(global.address + "sexit")
                                             .then((response) =>  this.openModal(
                                                 response.data.exit?<div> Saved and Exited<br/>{response.data.statistics.msg}</div>
                                                 :<div>Save and Exit Failed:{response.data.error}</div>)
                                             ) 
                                         }}
                                         className="formButton" >Yes</button><div style={{display:"inline"}}>{"   "}</div>
-                                        <button onClick={() => Axios.get(global.address + "qexit.html")} className="formButton">No</button><div style={{display:"inline"}}>{"   "}</div>
+                                        <button onClick={() => Axios.get(global.address + "qexit")} className="formButton">No</button><div style={{display:"inline"}}>{"   "}</div>
                                         <button onClick={this.closeModal} className="formButton">
                                             Cancel
                                         </button>

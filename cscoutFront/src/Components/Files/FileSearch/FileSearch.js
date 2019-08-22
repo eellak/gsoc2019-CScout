@@ -141,7 +141,7 @@ class FileSearch extends Component {
                 break;
         }
 
-        Axios.get(global.address + "xfilequery.html?" + url)
+        Axios.get(global.address + "xfilequery?" + url)
             .then((response) => {
                 if (response.data.error) {
                     this.setState({

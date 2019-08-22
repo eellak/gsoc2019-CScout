@@ -228,7 +228,7 @@ static string
 html(const IdPropElem &i)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"id.html?id=" << i.first << "\" type=\"id\" identifier=\""<< i.first << "\">" 
+	to_ret << "<a href=\"id?id=" << i.first << "\" type=\"id\" identifier=\""<< i.first << "\">" 
 		<< html_string((i.second).get_id()) + "</a>";
 	return to_ret.str();
 }
@@ -261,7 +261,7 @@ static string
 html(const Call &c)
 {
 	ostringstream to_ret;
-	to_ret << "<a href=\"fun.html?f=" << &c << "\" class=\"funLink\" type=\"fun\" identifier=\""<< &c << "\">"
+	to_ret << "<a href=\"fun?f=" << &c << "\" class=\"funLink\" type=\"fun\" identifier=\""<< &c << "\">"
 	<< html_string(c.get_name()) << "</a>";
 	return to_ret.str();
 }
@@ -1111,7 +1111,7 @@ static string
 html_file(Fileid fi)
 {
 	if (!Option::fname_in_context->get()) {
-		return("\n<tr><td></td><td><a href=\"file.html?id=" + to_string(fi.get_id()) + "\">"
+		return("\n<tr><td></td><td><a href=\"file?id=" + to_string(fi.get_id()) + "\">"
 		+ fi.get_path() + "</a></td>");
 	}
 
@@ -1126,7 +1126,7 @@ html_file(Fileid fi)
 	string fname(s, k);
 
 	return "<tr><td align=\"right\">" + dir + "\n</td>\n"
-		"<td><a href=\"file.html?id=" + to_string(fi.get_id()) + "\">"
+		"<td><a href=\"file?id=" + to_string(fi.get_id()) + "\">"
 		+ fname.c_str() + "</a></td>";
 }
 
@@ -1141,7 +1141,7 @@ static json::value
 filequery_page(void *p)
 {
 	json::value to_return;
-	to_return["FileQuery"] = json::value::string("<FORM ACTION=\"xfilequery.html\" METHOD=\"GET\">\n"
+	to_return["FileQuery"] = json::value::string("<FORM ACTION=\"xfilequery\" METHOD=\"GET\">\n"
 	"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n"
 	"<input type=\"checkbox\" name=\"ro\" value=\"1\">Read-only<br>\n",true);
 	to_return["mquery"] = MQuery<FileMetrics, Fileid &>::metrics_query_form();
@@ -1240,7 +1240,7 @@ xfilequery_page(void *p)
 			to_return["file"][no]["name"] = json::value::string((i->get_path()).substr(t+1));
 			to_return["file"][no]["path"] = json::value::string((i->get_path()).substr(0,t));
 			if (modification_state != ms_subst && !browse_only)
-				fs << "<td><a href=\"fedit.html?id=" << to_string(i->get_id()) << "\">edit</a></td>";
+				fs << "<td><a href=\"fedit?id=" << to_string(i->get_id()) << "\">edit</a></td>";
 			if (query.get_sort_order() != -1) {
 			
 				to_return["file"][no]["metric"] = json::value(i->const_metrics().get_metric(query.get_sort_order()));
@@ -1372,7 +1372,7 @@ static json::value
 iquery_page(void *p)
 {
 	json::value to_return;
-	to_return["form"] = json::value::string("<FORM ACTION=\"xiquery.html\""
+	to_return["form"] = json::value::string("<FORM ACTION=\"xiquery\""
 		" METHOD=\"GET\">\n"
 		"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable<br>\n", true);
 	int i;
@@ -1435,7 +1435,7 @@ static json::value
 funquery_page(void *p)
 {
 	json::value to_return;
-	to_return["form"] = json::value::string("<FORM ACTION=\"xfunquery.html\" METHOD=\"GET\">\n"
+	to_return["form"] = json::value::string("<FORM ACTION=\"xfunquery\" METHOD=\"GET\">\n"
 		"<input type=\"checkbox\" name=\"cfun\" value=\"1\">C function<br>\n"
 		"<input type=\"checkbox\" name=\"macro\" value=\"1\">Function-like macro<br>\n"
 		"<input type=\"checkbox\" name=\"writable\" value=\"1\">Writable declaration<br>\n"
@@ -1539,10 +1539,10 @@ display_files(const Query &query, const IFSet &sorted_files)
 			to_return["files"][no]["name"] = json::value::string((f.get_path()).substr(t+1));
 			to_return["files"][no++]["path"] = json::value::string((f.get_path()).substr(0,t));
 			fs << html_file(*i);
-			fs << "<td><a href=\"qsrc.html?id=" << f.get_id() << "&"
+			fs << "<td><a href=\"qsrc?id=" << f.get_id() << "&"
 			<< query_url << "\">marked source</a></td>";
 			if (modification_state != ms_subst && !browse_only)
-				fs << "<td><a href=\"fedit.html?id=" << f.get_id() << "\">edit</a></td>";
+				fs << "<td><a href=\"fedit?id=" << f.get_id() << "\">edit</a></td>";
 			fs << html_file_record_end();
 		}
 	}
@@ -1874,7 +1874,7 @@ identifier_page(void *p)
 	}
 
 	
-	to_return["form"] = json::value::string("<FORM ACTION=\"id.html\" METHOD=\"GET\">\n<ul>\n");
+	to_return["form"] = json::value::string("<FORM ACTION=\"id\" METHOD=\"GET\">\n<ul>\n");
 	string s;
 	for (int i = attr_begin; i < attr_end; i++) {		
 		s = show_id_prop(Attributes::name(i), e->get_attribute(i));		
@@ -1916,10 +1916,10 @@ identifier_page(void *p)
 	}
 	ostringstream fs;
 	fs << e;
-	to_return["endAttr"][0] = json::value::string("<li><a href=\"xiquery.html?ec="
+	to_return["endAttr"][0] = json::value::string("<li><a href=\"xiquery?ec="
 		+ fs.str() + "&n=Dependent+Files+for+Identifier+" +
 		id.get_id() + "&qf=1\">Dependent files</a>");
-	to_return["endAttr"][1] = json::value::string("<li><a href=\"xfunquery.html?ec=" +
+	to_return["endAttr"][1] = json::value::string("<li><a href=\"xfunquery?ec=" +
 	fs.str() + "&qi=1&n=Functions+Containing+Identifier+"
 	+ id.get_id() + "\">Associated functions</a>");
 	to_return["ec"] = json::value(fs.str());
@@ -1940,7 +1940,7 @@ identifier_page(void *p)
 				to_return["functions"]["content"][no]["f"] = json::value(fs.str());
 
 				to_return["functions"]["content"][no++]["html"] = json::value::string("\n<li>" + html_string(i->second)
-				+ " &mdash; <a href=\"fun.html?f=" + fs.str() + "\">function page</a>");
+				+ " &mdash; <a href=\"fun?f=" + fs.str() + "\">function page</a>");
 
 			}
 		}
@@ -1960,7 +1960,7 @@ identifier_page(void *p)
 		to_return["substitute"]["content"][2] = json::value::string("<INPUT TYPE=\"hidden\" NAME=\"id\" VALUE=\""
 		+ fs.str() + "\">\n");
 		if (!id.get_active())
-			to_return["inactive"] = json::value::string("<a href='replacements.html'>replacements page</a> ");
+			to_return["inactive"] = json::value::string("<a href='replacements'>replacements page</a> ");
 	}
 	to_return["end"] = json::value::string("</ul>\n</FORM>\n");
 	return to_return;
@@ -2083,7 +2083,7 @@ function_page(void *p)
 	if (f->is_declared()) {
 		int lnum = t.get_fileid().line_number(t.get_streampos());
 			if (modification_state != ms_subst && !browse_only)
-				fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id() <<
+				fs << " &mdash; <a href=\"fedit?id=" << t.get_fileid().get_id() <<
 				"&re=" << f->get_name() << "\">edit</a>";
 		to_return["declared"]["tokid"] = json::value(t.get_fileid().get_id());
 		to_return["declared"]["tokpath"] = json::value(t.get_fileid().get_path());
@@ -2094,7 +2094,7 @@ function_page(void *p)
 		t = f->get_definition();
 		int lnum = t.get_fileid().line_number(t.get_streampos());
 		if (modification_state != ms_subst && !browse_only)
-			fs << " &mdash; <a href=\"fedit.html?id=" << t.get_fileid().get_id()
+			fs << " &mdash; <a href=\"fedit?id=" << t.get_fileid().get_id()
 			<< "&re=" << f->get_name() << "\">edit</a>";
 		to_return["defined"]["tokid"] = json::value(t.get_fileid().get_id());
 		to_return["defined"]["tokpath"] = json::value(t.get_fileid().get_path());
@@ -2146,7 +2146,7 @@ function_page(void *p)
 			to_return["ec"] = json::value::string(ecp);
 			if (rfc != RefFunCall::store.end() && !rfc->second.is_active())
 				to_return["refractor"]["inactive"] = json::value::string("<br>(This refactoring is inactive."
-				"  Visit the <a href='funargrefs.html'>refactorings page</a> to activate it again.)");
+				"  Visit the <a href='funargrefs'>refactorings page</a> to activate it again.)");
 		}
 	}
 	int no = 0;
@@ -2504,7 +2504,7 @@ json::value
 options_page(void *p)
 {
 	json::value to_return;
-	to_return["form"] = json::value("<FORM ACTION=\"soptions.html\" METHOD=\"PUT\">\n");
+	to_return["form"] = json::value("<FORM ACTION=\"soptions\" METHOD=\"PUT\">\n");
 	to_return["main"] = Option::display_all();
 	to_return["end"] = json::value("<p><p><INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"OK\">\n"
 		"<INPUT TYPE=\"submit\" NAME=\"set\" VALUE=\"Cancel\">\n"
@@ -3105,7 +3105,7 @@ vector<string> split_by_delimiter(string &s, char delim)
 static void
 graph_handle(string name, void (*graph_fun)(GraphDisplay *))
 {
-	// server.addHandler((name + ".html").c_str(), graph_html_page, graph_fun);
+	// server.addHandler((name + "").c_str(), graph_html_page, graph_fun);
 // 	swill_handle((name + ".txt").c_str(), graph_txt_page, graph_fun);
 // 	swill_handle((name + "_dot.txt").c_str(), graph_dot_page, graph_fun);
  	// server.addGraphHandler((name + ".svg").c_str(), graph_svg_page, graph_fun);
@@ -3473,7 +3473,7 @@ query_include_page(void *p)
 				const set <int> &lines = id.include_line_numbers();
 				int m = 0;
 				for (set <int>::const_iterator j = lines.begin(); j != lines.end(); j++) {
-					fs << " <a href=\"src.html?id=" << (includes ? f : f2).get_id() << "#" << *j << "\">" << *j << "</a> ";
+					fs << " <a href=\"src?id=" << (includes ? f : f2).get_id() << "#" << *j << "\">" << *j << "</a> ";
 					to_return["data"][no]["includes"][m]["id"] = json::value((includes ? f : f2).get_id());
 					to_return["data"][no]["includes"][m++]["name"] = json::value(*j);
 				}
@@ -3525,7 +3525,7 @@ replacements_page(void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	to_return["form"] = json::value::string("<form action=\"xreplacements.html\" method=\"put\">\n"
+	to_return["form"] = json::value::string("<form action=\"xreplacements\" method=\"put\">\n"
 		"<table><tr><th>Identifier</th><th>Replacement</th><th>Active</th></tr>\n");
 	
 	int no = 0;
@@ -3626,7 +3626,7 @@ funargrefs_page( void *p)
 		to_return["error"] = json::value::string(fs.str());
 		return to_return;
 	}
-	to_return["form"] = json::value::string("<form action=\"xfunargrefs.html\" method=\"get\">\n");
+	to_return["form"] = json::value::string("<form action=\"xfunargrefs\" method=\"get\">\n");
 	to_return["table"]["start"] = json::value::string("<table><tr><th>Function</th><th>Arguments</th><th>Active</th></tr>\n");
 
 	int no = 0;
@@ -3982,6 +3982,8 @@ usage(char *fname)
 		"\t-p port\tSpecify TCP port for serving the CScout front end\n"
 		"\t\t(the port number must be in the range 1024-32767)\n"
 		"\t-t run in test mode\n"
+		"\t-T run only back end and do not launch front end\n"
+
 #ifdef PICO_QL
 		"\t-q\tProvide a PiCO_QL query interface\n"
 #endif
@@ -3998,6 +4000,7 @@ void startServer();
 int
 main(int argc, char *argv[])
 {
+	bool front = true;
 	Pdtoken t;
 	int c;
 	CompiledRE pre;
@@ -4009,7 +4012,7 @@ main(int argc, char *argv[])
 	Debug::db_read();
 	ofstream *logfile = NULL;
 	pid_t * p = NULL;
-	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:t" PICO_QL_OPTIONS)) != EOF)
+	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:tT" PICO_QL_OPTIONS)) != EOF)
 		switch (c) {
 		case '3':
 			Fchar::enable_trigraphs();
@@ -4118,7 +4121,10 @@ main(int argc, char *argv[])
 						return -1;
 					}
 			}
-			break;		
+			break;
+		case 'T':
+			front = false;
+			break;
 		case '?':
 			usage(argv[0]);
 		}
@@ -4180,19 +4186,19 @@ main(int argc, char *argv[])
 	
 
 	if (process_mode != pm_compile) {
-		server.addHandler("sproject.html",select_project_page, 0);
+		server.addHandler("sproject",select_project_page, 0);
 		/*change these functions*/
-		server.addHandler("replacements.html", replacements_page, 0);
-		server.addPutHandler("xreplacements.html", xreplacements_page, NULL);
-		server.addHandler("funargrefs.html", funargrefs_page, 0);
-		server.addPutHandler("xfunargrefs.html", xfunargrefs_page, NULL);
-		server.addHandler("options.html", options_page, 0);
-		server.addPutHandler("soptions.html", set_options_page, 0);
-		server.addPutHandler("save_options.html", save_options_page, 0);
+		server.addHandler("replacements", replacements_page, 0);
+		server.addPutHandler("xreplacements", xreplacements_page, NULL);
+		server.addHandler("funargrefs", funargrefs_page, 0);
+		server.addPutHandler("xfunargrefs", xfunargrefs_page, NULL);
+		server.addHandler("options", options_page, 0);
+		server.addPutHandler("soptions", set_options_page, 0);
+		server.addPutHandler("save_options", save_options_page, 0);
 		json::value arg = json::value::string("exit");
-		server.addPutHandler("sexit.html", write_quit_page, &arg);
-		server.addHandler("save.html", write_quit_page, 0);
-		server.addPutHandler("qexit.html", quit_page, 0);
+		server.addPutHandler("sexit", write_quit_page, &arg);
+		server.addHandler("save", write_quit_page, 0);
+		server.addPutHandler("qexit", quit_page, 0);
 
 	}
 
@@ -4240,39 +4246,39 @@ main(int argc, char *argv[])
 	}
 
 	if (process_mode != pm_compile) {
-		server.addHandler("src.html", source_page, NULL);
-		server.addHandler("qsrc.html", query_source_page, NULL);
-		server.addPutHandler("fedit.html", fedit_page, NULL);
-		server.addHandler("file.html", file_page, NULL);
-		server.addHandler("dir.html", dir_page, NULL);
+		server.addHandler("src", source_page, NULL);
+		server.addHandler("qsrc", query_source_page, NULL);
+		server.addPutHandler("fedit", fedit_page, NULL);
+		server.addHandler("file", file_page, NULL);
+		server.addHandler("dir", dir_page, NULL);
 
 		// Identifier query and execution
-		server.addHandler("iquery.html", iquery_page, NULL);
+		server.addHandler("iquery", iquery_page, NULL);
 		
-		server.addHandler("xiquery.html", xiquery_page, NULL);
+		server.addHandler("xiquery", xiquery_page, NULL);
 		// File query and execution
-		server.addHandler("filequery.html", filequery_page, NULL);
-		server.addHandler("xfilequery.html", xfilequery_page, NULL);
-		server.addHandler("qinc.html", query_include_page, NULL);
+		server.addHandler("filequery", filequery_page, NULL);
+		server.addHandler("xfilequery", xfilequery_page, NULL);
+		server.addHandler("qinc", query_include_page, NULL);
 
 		// Function query and execution
-		server.addHandler("funquery.html", funquery_page, NULL);
-		server.addHandler("xfunquery.html", xfunquery_page, NULL);
+		server.addHandler("funquery", funquery_page, NULL);
+		server.addHandler("xfunquery", xfunquery_page, NULL);
 
-		server.addHandler("id.html", identifier_page, NULL);
-		server.addHandler("fun.html", function_page, NULL);
-		server.addHandler("funlist.html", funlist_page, NULL);
-		server.addHandler("funmetrics.html", function_metrics_page, NULL);
-		server.addHandler("filemetrics.html", file_metrics_page, NULL);
-		server.addHandler("idmetrics.html", id_metrics_page, NULL);
+		server.addHandler("id", identifier_page, NULL);
+		server.addHandler("fun", function_page, NULL);
+		server.addHandler("funlist", funlist_page, NULL);
+		server.addHandler("funmetrics", function_metrics_page, NULL);
+		server.addHandler("filemetrics", file_metrics_page, NULL);
+		server.addHandler("idmetrics", id_metrics_page, NULL);
 
 		graph_handle("cgraph", cgraph_page);
 		server.addGraphHandler("cgraph.svg", graph_svg_page, cgraph_page);
 
 		graph_handle("fgraph", fgraph_page);
 		graph_handle("cpath", cpath_page);
-		server.addHandler("browseTop.html",top_file, NULL);
-		server.addHandler("setproj.html", set_project_page, NULL);
+		server.addHandler("browseTop",top_file, NULL);
+		server.addHandler("setproj", set_project_page, NULL);
 		server.addHandler("filesearch", file_search,NULL);
 	
 	}
@@ -4328,7 +4334,7 @@ main(int argc, char *argv[])
 	if (!must_exit) {
 		if (p != NULL)
 			kill(*p, SIGUSR1);
-		else {
+		else if(front){
 			ps = fork();
 			switch(ps){
 				case(-1):
@@ -4342,6 +4348,8 @@ main(int argc, char *argv[])
 					server.serve();	
 				}
 			}
+			else
+				server.serve();
 		}
 
 #ifdef NODE_USE_PROFILE

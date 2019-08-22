@@ -22,7 +22,7 @@ class FBrowse extends Component {
 
     getTopDir = () => {
         if (this.props.type === "top") {
-            axios.get(global.address + "browseTop.html")
+            axios.get(global.address + "browseTop")
                 .then((response) => {
                     this.setState({
                         loaded: true,

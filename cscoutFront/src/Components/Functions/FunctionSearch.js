@@ -103,7 +103,7 @@ class FunctionSearch extends Component {
         )
         if(this.selectedMetrics.length > 0)
             url += "&qmetr=1"
-        Axios.get(global.address + "xfunquery.html?" + url)
+        Axios.get(global.address + "xfunquery?" + url)
         .then((response) => {
             if (response.data.error) {
                 this.setState({

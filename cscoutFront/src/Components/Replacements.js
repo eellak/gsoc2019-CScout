@@ -19,7 +19,7 @@ class Replacements extends Component{
     }
 
     getRefacts() {
-        axios.get(global.address + "replacements.html")
+        axios.get(global.address + "replacements")
         .then((response) =>
             this.setState({
                 data: response.data,
@@ -49,7 +49,7 @@ class Replacements extends Component{
                 }
             }
             )
-        axios.put(global.address + "xreplacements.html", g, {
+        axios.put(global.address + "xreplacements", g, {
             headers: {
                 "Accept": "application/json",
                 "Content-type": "application/json",

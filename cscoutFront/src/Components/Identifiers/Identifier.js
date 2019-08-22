@@ -24,7 +24,7 @@ class Identifier extends Component {
     }
 
     getIdentifier() {
-        Axios.get(global.address + 'id.html?id=' + this.props.id)
+        Axios.get(global.address + 'id?id=' + this.props.id)
             .then((response) => {
                 this.setState({
                     loaded: true,
@@ -62,7 +62,7 @@ class Identifier extends Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        Axios.get(global.address + "id.html?id=" + this.props.id + "&sname=" + this.inputValue + "&repl=Save")
+        Axios.get(global.address + "id?id=" + this.props.id + "&sname=" + this.inputValue + "&repl=Save")
         .then((resp) => {
             this.setState({refactor: resp.data})
             console.log(resp)
@@ -108,11 +108,11 @@ class Identifier extends Component {
                 },
                 {
                     title: "Dependant Files",
-                    content: <IdDependancies search={"xiquery.html?ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                    content: <IdDependancies search={"xiquery?ec=" + this.state.data.ec + "&qf=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
                 },
                 {
                     title: "Associated Functions",
-                    content: <IdDependancies search={"xfunquery.html?ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
+                    content: <IdDependancies search={"xfunquery?ec=" + this.state.data.ec + "&qi=1&n=Dep+F+for+ID"} changeType={this.props.changeType} />
                 }
             ];
         

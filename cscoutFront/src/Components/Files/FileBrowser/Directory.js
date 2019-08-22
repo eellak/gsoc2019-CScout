@@ -78,7 +78,7 @@ class Directory extends Component {
                                         <div key={i}>
                                             {
                                                 (child.info.type === "dir")
-                                                    ? <Directory addr={"dir.html?dir=" + child.addr}
+                                                    ? <Directory addr={"dir?dir=" + child.addr}
                                                         expand={false} onClick={console.log(child)}
                                                         name={child.info.name} fileSelect={this.props.fileSelect} />
                                                     : <ul style={{ listStyleType: "none", listStylePosition: "inside" }}>

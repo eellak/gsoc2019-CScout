@@ -84,7 +84,7 @@ public:
 	// Display a link to the files's contents as HTML on of
 	virtual string html() const
 	{
-		return "<a href=\"file.html?id=" + to_string(id.get_id()) + "\">" +
+		return "<a href=\"file?id=" + to_string(id.get_id()) + "\">" +
 			   id.get_fname() + "</a><br />";
 	}
 	virtual ~DirFile() {}
@@ -160,7 +160,7 @@ public:
 	{
 		char *s = new char[20];
 		sprintf(s, "%p", this);
-		return "<a href=\"dir.html?dir=" + string(s) + "\">" + n + "</a><br />";
+		return "<a href=\"dir?dir=" + string(s) + "\">" + n + "</a><br />";
 	}
 
 	// Display a link to the directory's contents as HTML on of
@@ -261,7 +261,7 @@ dir_page(void *p)
 // 	Response JSON object in form
 // 	{
 // 		html: "html code here",
-// 		addr: "dir.html?dir=Memory address" //resource link for the top directory
+// 		addr: "dir?dir=Memory address" //resource link for the top directory
 // 	}
 json::value
 dir_top(const char *name)
@@ -271,6 +271,6 @@ dir_top(const char *name)
 	char *s = new char[20];
 	sprintf(s, "%p", DirDir::top());
 	to_return["info"] = DirDir::top()->get_file();
-	to_return["addr"] = json::value::string("dir.html?dir=" + string(s));
+	to_return["addr"] = json::value::string("dir?dir=" + string(s));
 	return to_return;
 }

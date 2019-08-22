@@ -172,7 +172,7 @@ save requests in ./test/requests.json in format
       "query name 2": "query value 2" 
       } 
    ("put": true ,),                    // exists if testing put method
-   "dependant" : "browseTop.html",     // declare dependancy from another request
+   "dependant" : "browseTop",     // declare dependancy from another request
    "dependantQuery":[                  // define which responses will be used as query from dependant
       "query name 1",
       "query name 2"                   // e.g "id","f"

@@ -167,7 +167,7 @@ FunQuery::FunQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 string
 FunQuery::base_url() const
 {
-	return string("xfunquery.html?") + param_url();
+	return string("xfunquery?") + param_url();
 }
 
 // Return the query's parameters as a URL

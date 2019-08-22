@@ -35,22 +35,22 @@ class Source extends  Component{
         console.log(this.props.type)
         switch(this.props.type){
             case('0'):
-                url = "src.html?id=" + this.props.id;
+                url = "src?id=" + this.props.id;
                 break;
             case('1'):
-                url = "src.html?id=" + this.props.id + "&marku=1";
+                url = "src?id=" + this.props.id + "&marku=1";
                 break;
             case('2'):
-                url = "qsrc.html?id=" + this.props.id + "&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks"
+                url = "qsrc?id=" + this.props.id + "&qt=id&match=Y&writable=1&a2=1&n=Source+Code+With+Identifier+Hyperlinks"
                 break;
             case('3'):
-                url = "qsrc.html?id=" + this.props.id + "&qt=id&match=L&writable=1&a11=1&n=Source+Code+With+Hyperlinks+to+Project-global+Writable+Identifiers"
+                url = "qsrc?id=" + this.props.id + "&qt=id&match=L&writable=1&a11=1&n=Source+Code+With+Hyperlinks+to+Project-global+Writable+Identifiers"
                 break;
             case('4'):
-                url = "qsrc.html?id=" + this.props.id + "&qt=fun&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations"
+                url = "qsrc?id=" + this.props.id + "&qt=fun&match=Y&writable=1&ro=1&n=Source+Code+With+Hyperlinks+to+Function+and+Macro+Declarations"
                 break;
             case('5'):
-                url = "qsrc.html?qt=fun&id=" + this.props.id +"&match=Y&call=" + this.props.f + "&n=Definition";
+                url = "qsrc?qt=fun&id=" + this.props.id +"&match=Y&call=" + this.props.f + "&n=Definition";
                 break;
             default:
                 return;
