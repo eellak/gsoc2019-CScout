@@ -1,14 +1,14 @@
 [
     {
-        "path":"sproject.html",
+        "path":"sproject",
         "query":{}        
     },
     {
-        "path":"filemetrics.html",
+        "path":"filemetrics",
         "query":{}
     } ,
     {
-        "path":"xfilequery.html",
+        "path":"xfilequery",
         "query":{
             "ro":"1",
             "writable":"1",
@@ -17,15 +17,15 @@
         }
     },
     {
-        "path":"idmetrics.html",
+        "path":"idmetrics",
         "query":{}
     },
     {
-        "path":"funmetrics.html",
+        "path":"funmetrics",
         "query":{}
     }, 
     {
-        "path":"xfunquery.html",
+        "path":"xfunquery",
         "query":{
             "ro":"1",
             "writable":"1",
@@ -37,40 +37,34 @@
         }
     } ,
     {
-        "path":"browseTop.html",
+        "path":"browseTop",
         "query":{}
  
     },
     {
-        "path":"dir.html",
+        "path":"dir",
         "query":{},
-        "dependant":"browseTop.html",
+        "dependant":"browseTop",
         "dependantQuery":[]
     },
     {
-        "path":"file.html",
+        "path":"file",
         "query":{},
-        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependant":"xfilequery?match=Y&writable=1&ro=1&n=All+Files&skip=0",
         "dependantQuery":[
             {"file":"id"}
         ]
     },
     {
-        "path":"fedit.html",
-        "query":{},
-        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
-        "dependantQuery":["id"]
-    },
-    {
-        "path":"src.html",
+        "path":"src",
         "query":{
             "qt":"id"
         },
-        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependant":"xfilequery?match=Y&writable=1&ro=1&n=All+Files&skip=0",
         "dependantQuery":["id"]
     },
     {
-        "path":"qsrc.html",
+        "path":"qsrc",
         "query":{
             "qt":"id",
             "match":"Y",
@@ -78,50 +72,50 @@
             "a2":"1",
             "n":"Source+Code+With+Identifier+Hyperlinks"
         },
-        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependant":"xfilequery?match=Y&writable=1&ro=1&n=All+Files&skip=0",
         "dependantQuery":["id"]
     },
     {
-        "path":"qinc.html",
+        "path":"qinc",
         "query":{
             "direct":"&",
             "writable":"1",
             "includes":"1",
             "n":"Directly+Included+Writable+Files"
         },
-        "dependant":"xfilequery.html?match=Y&writable=1&ro=1&n=All+Files&skip=0",
+        "dependant":"xfilequery?match=Y&writable=1&ro=1&n=All+Files&skip=0",
         "dependantQuery":["id"]
     },
     {
-        "path":"fun.html",
+        "path":"fun",
         "query":{},
-        "dependant":"xfunquery.html?match=Y&writable=1&ro=1&ncallerop=0&ncallers=&n=All+Functions&qi=x",
+        "dependant":"xfunquery?match=Y&writable=1&ro=1&ncallerop=0&ncallers=&n=All+Functions&qi=x",
         "dependantQuery":["f"]
     },
     {
-        "path":"funlist.html",
+        "path":"funlist",
         "query":{
             "n":"D"
         },
-        "dependant":"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
+        "dependant":"xfunquery?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
         "dependantQuery":["f"]
     },
     {
-        "path":"funlist.html",
+        "path":"funlist",
         "query":{
             "n":"U"
         },
-        "dependant":"xfunquery.html?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
+        "dependant":"xfunquery?writable=1&pscope=1&match=L&ncallerop=0&ncallers=&n=Project-scoped+Writable+Functions&qi=x",
         "dependantQuery":["f"]
     },
     {
-        "path":"id.html",
+        "path":"id",
         "query":{},
-        "dependant":"xiquery.html?writable=1&a2=1&match=Y&qi=1&n=All+Identifiers",
+        "dependant":"xiquery?writable=1&a2=1&match=Y&qi=1&n=All+Identifiers",
         "dependantQuery":["id"]
     },
       {
-        "path":"qexit.html",
+        "path":"qexit",
         "query":{},
         "put":true
     } 

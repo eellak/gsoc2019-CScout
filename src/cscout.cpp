@@ -96,7 +96,7 @@ using namespace picoQL;
 #include "obfuscate.h"
 using namespace web;
 #define ids Identifier::ids
-#define bport 13780
+
 #define prohibit_remote_access(fs)
 #define prohibit_browsers(fs) \
 	do { \
@@ -117,6 +117,7 @@ static enum e_process {
 	pm_r_option
 } process_mode;
 static int portno = 5000;		// Port number (-p n)
+static int bport = 13780;      	// Backend port		
 static char *db_engine;			// Create SQL output for a specific db_iface
 
 // Workspace modification state
@@ -3955,7 +3956,7 @@ usage(char *fname)
 		"-b|"	// browse-only
 #endif
 		"-C|-c|-R|-d D|-d H|-E RE|-o|"
-		"-r|-s db|-v] "
+		"-r|-s db|-v|-t|-T] "
 		"[-l file] "
 
 #ifdef PICO_QL
@@ -3965,7 +3966,7 @@ usage(char *fname)
 #define PICO_QL_OPTIONS ""
 #endif
 
-		"[-p port] [-m spec] file\n"
+		"[-p port] [-P port] [-m spec] file\n"
 #ifndef WIN32
 		"\t-b\tRun in multiuser browse-only mode\n"
 #endif
@@ -3980,6 +3981,7 @@ usage(char *fname)
 		"\t-m spec\tSpecify identifiers to monitor (unsound)\n"
 		"\t-o\tCreate obfuscated versions of the processed files\n"
 		"\t-p port\tSpecify TCP port for serving the CScout front end\n"
+		"\t-P port\tSpecify TCP port for serving the CScout back end\n"
 		"\t\t(the port number must be in the range 1024-32767)\n"
 		"\t-t run in test mode\n"
 		"\t-T run only back end and do not launch front end\n"
@@ -4007,12 +4009,11 @@ main(int argc, char *argv[])
 #ifdef PICO_QL
 	bool pico_ql = false;
 #endif
-
 	vector<string> call_graphs;
 	Debug::db_read();
-	ofstream *logfile = NULL;
+	ofstream *logfile;
 	pid_t * p = NULL;
-	while ((c = getopt(argc, argv, "3bCcd:rvE:p:m:l:os:R:tT" PICO_QL_OPTIONS)) != EOF)
+	while ((c = getopt(argc, argv, "3bCcd:rvE:p:P:m:l:os:R:tT" PICO_QL_OPTIONS)) != EOF)
 		switch (c) {
 		case '3':
 			Fchar::enable_trigraphs();
@@ -4064,6 +4065,13 @@ main(int argc, char *argv[])
 			if (portno < 1024 || portno > 32767)
 				usage(argv[0]);
 			break;
+		case 'P':
+			if (!optarg)
+				usage(argv[0]);
+			bport = atoi(optarg);
+			if (bport < 1024 || bport > 32767)
+				usage(argv[0]);
+			break;
 		case 'm':
 			if (!optarg)
 				usage(argv[0]);
@@ -4110,6 +4118,7 @@ main(int argc, char *argv[])
 			call_graphs.push_back(string(optarg));
 			break;
 		case 't':
+			p = new pid_t();
 			*p = fork();
 			switch(*p){ 
 				case(-1):
@@ -4332,8 +4341,11 @@ main(int argc, char *argv[])
 	}
 	pid_t ps;
 	if (!must_exit) {
-		if (p != NULL)
+		if (p != NULL){
+			cout << "Backend serves at http://localhost:" << bport << endl;
 			kill(*p, SIGUSR1);
+			server.serve();
+		}
 		else if(front){
 			ps = fork();
 			switch(ps){
@@ -4348,8 +4360,10 @@ main(int argc, char *argv[])
 					server.serve();	
 				}
 			}
-			else
+			else {
+				cout << "Backend serves at http://localhost:" << bport << endl;
 				server.serve();
+			}
 		}
 
 #ifdef NODE_USE_PROFILE

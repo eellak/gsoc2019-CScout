@@ -43,7 +43,7 @@ web::json::value dir_page(void *p);
 // 	Response JSON object in form
 // 	{
 // 		html: "html code here",
-// 		addr: "dir.html?dir=Memory address" //resource link for the top directory
+// 		addr: "dir?dir=Memory address" //resource link for the top directory
 // 	}
 json::value dir_top(const char *name);
 

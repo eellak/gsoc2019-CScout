@@ -1,6 +1,7 @@
 #include <cpprest/http_client.h>
 #include <cpprest/json.h>
 #include <csignal>
+#include <unistd.h>
 
 using namespace web;
 using namespace web::http;
@@ -16,8 +17,10 @@ pplx::task<http_response> make_task_request(http_client &client, method mtd, con
 
 void sigHandler(int signum)
 {
-   if(signum == SIGUSR1)
+   if(signum == SIGUSR1){
       cout << "Begin Sending requests" << endl;
+      usleep(100000);
+   }
 }
 
 
@@ -27,7 +30,13 @@ void to_query(json::value jvalue, uri_builder *builder)
    json::object query = jvalue.as_object();
    for (auto i = query.cbegin(); i != query.cend(); i++)
    {
-      builder->append_query(i->first, i->second.as_string());
+      if(i->second.is_string())
+         builder->append_query(i->first, i->second.as_string());
+      else
+      {
+         builder->append_query(i->first, i->second.serialize()); 
+      }
+      
    }
 }
 bool check_valid(json::value response, const char *path)
@@ -103,8 +112,12 @@ bool make_request(
                         {
                           if (returned[j->first][k].is_string())
                               jvalue[(j->second).as_string()] = returned[j->first][k];
-                           else
+                           else if((j->second).is_string())
                               jvalue[(j->second).as_string()] = json::value(returned[j->first][k][(j->second).as_string()].serialize());
+                           else
+                              jvalue[(j->second).serialize()] = json::value(returned[j->first][k][(j->second).serialize()].serialize());
+
+                           cout << jvalue.serialize() << endl;
                            if (!make_request(client, mtd, path, jvalue, json::value(), no++)){
                               cout<< "req failed" << endl;
                               return false;
@@ -124,7 +137,7 @@ bool make_request(
           .wait();
    }
    uri_builder builder(path);
-
+   cout << "path:" << path << endl;
    if (!jvalue.as_object().empty())
    {
       to_query(jvalue, &builder);
@@ -146,6 +159,7 @@ bool make_request(
        .then([&path, &valid, &no](pplx::task<json::value> previousTask) {
           try
           {
+             cout << "tyasks" << endl;
              std::fstream fs;
              fs.open("../src/test/responses/" + string(path) + "-" + to_string(no) + ".json", std::fstream::out);
              fs << endl;
@@ -157,8 +171,7 @@ bool make_request(
           {         
              wcout << e.what() << endl;
           }
-       })
-       .wait();
+       });
    return valid;
 }
 
@@ -184,7 +197,7 @@ save requests in ./test/requests.json in format
 
 int main()
 {
-   http_client client(U("http://localhost:8081"));
+   http_client client(U("http://localhost:13780"));
       signal(SIGUSR1, sigHandler);
    pause();
    std::fstream fs;
@@ -210,4 +223,5 @@ int main()
                    : " not ok")
            << endl;
    }
+   cout << "finished requests" << endl;
 }

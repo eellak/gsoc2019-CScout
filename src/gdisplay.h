@@ -127,7 +127,7 @@ public:
 	virtual void node(Fileid f) {
 		fprintf(fdot, "\t_%d [label=\"%s\"", f.get_id(), Option::fgraph_show->get() == 'e' ? "" : file_label(f, false).c_str());
 		if (isHyperlinked())
-			fprintf(fdot, ", URL=\"file.html?id=%d\"", f.get_id());
+			fprintf(fdot, ", URL=\"file?id=%d\"", f.get_id());
 		fprintf(fdot, "];\n");
 	}
 
