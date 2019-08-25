@@ -14,6 +14,8 @@ applied on projects of tens of thousands of lines to millions of lines,
 like the Linux, OpenSolaris, and FreeBSD kernels, and the Apache web
 server. 
 
+More info about the project can be found in this project's [wiki](https://github.com/eellak/gsoc2019-CScout/wiki) and the original project's [page](https://www.spinellis.gr/cscout/).
+
 ## Project Goals
 Although Cscout is great at analyzing C programs, it has the disadvantage of having an outdated web interface. Besides the outdated aesthetics the issue is that it does not take advantage of AJAX technologies.
 
@@ -40,10 +42,10 @@ user experience. On every step there will be adjustments based on the recieved
 user feedback
 
 ## Building, Testing, Installing, Using
-CScout has been compiled and tested on GNU/Linux (Debian jessie). In order to
+CScout has been compiled and tested on GNU/Linux (Ubuntu 18.04). In order to
 build and use CScout you need a Unix (like) system
-with a modern C++ compiler, GNU make, Perl and npm.
-Building installs [Microsoft's C++ Rest SDK](https://github.com/microsoft/cpprestsdk). 
+with a modern C++ compiler, GNU make, Perl and npm with NodeJS and 
+[Microsoft's C++ Rest SDK](https://github.com/microsoft/cpprestsdk). 
 To test CScout you also need to be able to run Java from the command line,
 in order to use the HSQLDB database.
 To view CScout's diagrams you must have the
