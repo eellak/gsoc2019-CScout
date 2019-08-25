@@ -78,6 +78,11 @@ Ensure that the tests continue to pass after your change.
 If you're fixing a bug or adding a feature related to the language, add a corresponding test case.
 * Before embarking on a large-scale contribution, please open a GitHub issue.
 
+## Contributors
+Mentor: Diomidis Spinellis [dspinellis](https://github.com/dspinellis)  
+GSOC-2019 Participant: Dimitrios Styliaras [dimstil](https://github.com/dimstil)  
+Orginization: Open Technologies Alliance - GFOSS  
+
 ## Links
 For more details, examples, and documentation visit the project's
 [web site](http://www.spinellis.gr/cscout).
