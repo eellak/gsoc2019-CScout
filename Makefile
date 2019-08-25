@@ -30,21 +30,6 @@ export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 src/build/cscout: casablanca/build.debug btyacc/btyacc
 	cd src && $(MAKE)
 
-cpprest: casablanca/build.debug ninja
-	cd casablanca/build.debug && sudo ninja install
-
-casablanca/build.debug: casablanca 
-	cd casablanca && mkdir build.debug
-	
-casablanca:
-	git clone https://github.com/Microsoft/cpprestsdk.git casablanca
-	
-ninja: build.ninja	
-	cd casablanca/build.debug && ninja
-
-build.ninja: 
-	cd casablanca/build.debug && cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
-
 btyacc/btyacc: btyacc
 	cd btyacc && $(MAKE)
 
@@ -67,12 +52,12 @@ testServ:
 clean:
 	cd src && $(MAKE) clean
 
-build/server:
-	cd cscout_front && $(MAKE)
+cscoutFront/build:
+	cd cscoutFront && $(MAKE)
 
 all:
 	$(MAKE) src/build/cscout
-	$(MAKE) build/server
+	$(MAKE) cscoutFront/build 
 
 install: src/build/cscout
 	cd src && $(MAKE) install
