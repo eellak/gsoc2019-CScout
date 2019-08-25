@@ -117,7 +117,6 @@ public:
 	GDDot(ostringstream*f) : GraphDisplay(f) {}
 	virtual void head(const char *fname, const char *title, bool empty_node);
 	virtual void node(Call *p) {
-		cout << "node:" << p->get_name() << endl;
 		fprintf(fdot, "\t_%p [label=\"%s\"", p, Option::cgraph_show->get() == 'e' ? "" : function_label(p, false).c_str());
 		if (isHyperlinked())
 			fprintf(fdot, ", URL=\"%p\"", p);
