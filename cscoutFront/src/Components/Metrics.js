@@ -44,7 +44,12 @@ class Metrics extends Component {
         switch(this.props.type){
             case("fun"):
                 return "Function";
-            case("id")
+	    case("id"):
+		return "Identifier";
+	    case("f"):
+		return "File";
+	    default:
+		return "Unknown Type";
         }
     }
 
@@ -61,7 +66,7 @@ class Metrics extends Component {
         else
             return (
                 <div>
-                    <h3>{switch(this.props.type</h3>
+                    <h3>{this.title() + " Metrics"}</h3>
                     {
                         (this.props.type === "fun") ? <Table head={this.state.head} contents={this.state.metrics} /> :
                             <Table head={this.state.writable.head} contents={this.state.writable.metrics} />

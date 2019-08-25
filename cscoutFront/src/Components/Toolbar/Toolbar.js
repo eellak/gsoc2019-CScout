@@ -68,7 +68,12 @@ class Toolbar extends Component{
                                             ) 
                                         }}
                                         className="formButton" >Yes</button><div style={{display:"inline"}}>{"   "}</div>
-                                        <button onClick={() => Axios.get(global.address + "qexit")} className="formButton">No</button><div style={{display:"inline"}}>{"   "}</div>
+                                         <button onClick={() =>
+						Axios.get(global.address + "qexit")
+						.then((response) => this.openModal(response.data.exit?<div>Exited</div>:<div> Exit Failed:{response.data.error}</div>)
+						)
+					}
+ 					className="formButton">No</button>
                                         <button onClick={this.closeModal} className="formButton">
                                             Cancel
                                         </button>

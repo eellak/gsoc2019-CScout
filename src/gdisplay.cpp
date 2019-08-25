@@ -136,16 +136,12 @@ GDDotImage::tail()
 	 * Changing to the tmp directory overcomes the problem of Cygwin
 	 * differences between CScout and dot file paths
 	 */
-	cout << "here closed:" << cmd << endl;
 	snprintf(cmd, sizeof(cmd), "cd %s && dot -T%s in.dot -o out.img ",
 			dot_dir, format);
-	cout << "here closed" << cmd << endl;
 	
 	if (DP())
 		cout << cmd << '\n';
-	cout << "cmd:" << cmd << endl;
 	pid_t p = fork();
-	
 	switch(p){
 		case(-1):
 			cerr << "Fork Failed- Error:" << strerror(errno) <<endl;
@@ -159,6 +155,7 @@ GDDotImage::tail()
 			break;
 		default:
 			int stat;
+			waitpid(p, &stat, 0);
 			if(!WIFEXITED(stat)) {
 				cout << "ex stat:" << WEXITSTATUS(stat);
 				cerr << "Shell didn't terminate peacefully" << endl;

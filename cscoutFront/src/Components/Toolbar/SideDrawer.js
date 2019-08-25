@@ -1,15 +1,30 @@
 import React, { Component } from 'react';
 import './SideDrawer.css';
+import Popup from 'reactjs-popup';
+
 
 class SideDrawer extends Component {
     constructor(props) {
         super(props);
         this.state = {
             query: 0,
-            drawerClasses: (props.show) ? "side-drawer open" : "side-drawer"
-        }
+            drawerClasses: (props.show) ? "side-drawer open" : "side-drawer",
+       		open: false, 
+			popUp: null 
+		};
+        this.openModal = this.openModal.bind(this);
+        this.closeModal = this.closeModal.bind(this);
+		this.temport = 13780;
+      }
 
-    }
+      openModal(toRender) {
+        this.setState({ open: true, popUp: toRender });
+      }
+
+      closeModal() {
+        this.setState({ open: false });
+      }
+
 
     componentDidUpdate(prevProps) {
         if (prevProps !== this.props) {
@@ -57,8 +72,15 @@ class SideDrawer extends Component {
                             <a>Function Metrics</a></li>
 
 
-                        <li className='title'><a onClick={() => console.log('options')}>Options</a></li>
-
+                        <li className='title'><a onClick={() => this.openModal(
+							<div>
+								Change Connection port with Backend: <input type="number" onChange={(e) => this.tempPort = e.target.value}  style={{width:'50%'}}/><br />
+								<button onClick={() => {global.address = "http://localhost:" + this.tempPort + "/";this.closeModal()}} className="formButton">OK</button>
+							</div>
+						)}>Options</a></li>
+						 <Popup open={this.state.open} modal closeOnDocumentClick closeOnEscape onClose={this.closeModal}>
+                                       <div> {this.state.popUp}</div>
+                    </Popup>
                     </ul>
                 </nav>
             </div>
