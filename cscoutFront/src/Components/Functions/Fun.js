@@ -142,10 +142,11 @@ class Fun extends Component {
                             </div>
                             <div>
                             <form onSubmit={this.handleSubmit}>
-                                <div className='textSearch'>
+                                <div className='textSearch' style={{width:'80%'}} style={{display:'inline-block'}}>
                                     Refactor:<input type='text' value={this.state.value} onChange={this.handleInputChange}
-                                    placeholder="Refactor Arguments..." /><br />
+                                    placeholder="Refactor Arguments..." />
                                 </div>
+				<button className='formButton'>Refactor</button>
                             </form>
                                </div>
                         </div>
