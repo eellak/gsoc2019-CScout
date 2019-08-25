@@ -240,7 +240,7 @@ class IdentifierSearch extends Component {
                         }, this.getIds);
                         e.preventDefault()
                     }
-                    }> Results per Page:            (this.state.orderField === 1) ?
+                    }> Results per Page:          
                     <img src={Uarr} alt={'&#8593;'} align="right" style={(this.state.rev) ?
                         { transform: "scaleY(-1)" }
                         : {}
