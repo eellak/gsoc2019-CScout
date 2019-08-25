@@ -80,7 +80,7 @@ If you're fixing a bug or adding a feature related to the language, add a corres
 
 ## Contributors
 Mentors: Diomidis Spinellis [dspinellis](https://github.com/dspinellis)  
-Mentors: ΑΝΑΣΤΑΣΙΑ ΔΕΛΙΓΚΑ
+Mentors: ΑΝΑΣΤΑΣΙΑ ΔΕΛΙΓΚΑ  
 GSOC-2019 Participant: Dimitrios Styliaras [dimstil](https://github.com/dimstil)  
 Orginization: Open Technologies Alliance - GFOSS  
 
