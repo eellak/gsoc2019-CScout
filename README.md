@@ -16,6 +16,8 @@ server.
 
 More info about the project can be found in this project's [wiki](https://github.com/eellak/gsoc2019-CScout/wiki) and the original project's [page](https://www.spinellis.gr/cscout/).
 
+This project has a [gist](https://gist.github.com/dimstil/3a65a18b675235e367eeefee2e554ccb)
+
 ## Project Goals
 Although Cscout is great at analyzing C programs, it has the disadvantage of having an outdated web interface. Besides the outdated aesthetics the issue is that it does not take advantage of AJAX technologies.
 
