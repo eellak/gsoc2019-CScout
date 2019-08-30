@@ -27,7 +27,7 @@ export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
 .PHONY: src/build/cscout cpprest btyacc/btyacc build/server
 
-src/build/cscout: casablanca/build.debug btyacc/btyacc
+src/build/cscout: btyacc/btyacc
 	cd src && $(MAKE)
 
 btyacc/btyacc: btyacc
