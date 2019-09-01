@@ -27,6 +27,10 @@ export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
 .PHONY: src/build/cscout cpprest btyacc/btyacc build/server
 
+all:
+	$(MAKE) src/build/cscout
+	$(MAKE) cscoutFront/build 
+
 src/build/cscout: btyacc/btyacc
 	cd src && $(MAKE)
 
@@ -55,9 +59,6 @@ clean:
 cscoutFront/build:
 	cd cscoutFront && $(MAKE)
 
-all:
-	$(MAKE) src/build/cscout
-	$(MAKE) cscoutFront/build 
 
 install: src/build/cscout
 	cd src && $(MAKE) install

@@ -574,7 +574,6 @@ file_hypertext( Fileid * fi,bool eval_query)
 	
 	(void)html('\n');	// Reset HTML tab handling
 	// Go through the file character by character
-	int no = 0;
 	ostringstream file;
 	for (;;) {
 		Tokid ti;
@@ -1745,7 +1744,7 @@ xfunquery_page(void *p)
 		to_return["max"] = json::value(sorted_funs.size());
 
 		void *p;
-		for (int i = 0; i < to_return["f"].size(); i++){
+		for (unsigned int i = 0; i < to_return["f"].size(); i++){
 			sscanf(to_return["f"][i].as_string().c_str(), "%p", &p);
 			if (!query.bookmarkable()){	
 				to_return["funs"]["occ"][i] = query.appeared((Call *)p);
@@ -2328,7 +2327,7 @@ explore_functions(Call *f,
 	bool recursive)
 {
 	Call::const_fiterator_type i;
-	json::value to_return = NULL;
+	json::value to_return = json::value();
 	int no = 0;
 	char * s = new char[20];
 	cout<< "explore" << endl;
@@ -4011,7 +4010,7 @@ main(int argc, char *argv[])
 #endif
 	vector<string> call_graphs;
 	Debug::db_read();
-	ofstream *logfile;
+	ofstream *logfile = NULL;
 	pid_t * p = NULL;
 	while ((c = getopt(argc, argv, "3bCcd:rvE:p:P:m:l:os:R:tT" PICO_QL_OPTIONS)) != EOF)
 		switch (c) {
@@ -4148,9 +4147,6 @@ main(int argc, char *argv[])
 	
 	
 	if (process_mode != pm_compile && process_mode != pm_preprocess) {
-		
-
-		
 		server = HttpServer(address,logfile);
 		Option::initialize();
 		options_load();

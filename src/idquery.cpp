@@ -98,7 +98,8 @@ IdQuery::IdQuery(bool icase, Attributes::size_type cp, bool e, bool r) :
 		// Type of boolean match
 		const char *m = server.getCharPParam("match");
 		if (m == NULL ) {
-			error = "Missing value: match";
+			error = new char[222];
+			sprintf(error,"Missing value: match");
 			valid = return_val = false;
 			lazy = true;
 			return;

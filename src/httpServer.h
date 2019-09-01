@@ -37,6 +37,9 @@ private :
     
 public:
     static bool must_exit;
+    // listener sturct 
+    http_listener listener;
+    
     HttpServer() {}
     // Constructor for HttpServer on a url
     HttpServer(utility::string_t url, ofstream * log);
@@ -66,8 +69,6 @@ public:
     bool getBoolParam(string name);
     // log server to a file
     void log(string msg);
-    // listener sturct 
-    http_listener listener;
     // JSON Put data 
     json::value putData;
 };
