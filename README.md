@@ -29,7 +29,7 @@ To view CScout's diagrams you must have the
 [GraphViz](http://www.graphviz.org) dot command in
 your executable file path.
 * To install npm with NodeJS run `sudo apt-get install npm nodejs` and for Microsoft's C++ Rest SDK run `sudo apt-get install libcpprest-dev`.
-* To build run `make`. You can also use the `-j` make option to increase the build's speed.
+* To build run `sudo make`. You can also use the `-j` make option to increase the build's speed.
 * To build and test, run `make test`.
 * To test Server, run `make testServ`.
 * To install (typically after building and testing), run `sudo make install`.
