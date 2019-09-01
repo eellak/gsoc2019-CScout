@@ -4124,10 +4124,17 @@ main(int argc, char *argv[])
 					cerr <<  "Fork Failed:" << strerror(errno) ;
 					break;
 				case(0):
-					if(execvp("../src/runtest",NULL) == -1){
+					char * params[2];
+					params[0] = "../src/runtest";
+					params[1] = NULL;
+					if(execvp(params[0], params) == -1){
 						cerr << "execve failed:" << strerror(errno)<< endl;			
+						delete params[0];
+						delete params;
 						return -1;
 					}
+					delete params[0];
+					delete params;
 			}
 			break;
 		case 'T':

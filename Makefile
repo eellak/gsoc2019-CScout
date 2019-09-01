@@ -29,7 +29,7 @@ export HSQLDB_DIR?=$(DEFAULT_HSQLDB_DIR)
 
 all:
 	$(MAKE) src/build/cscout
-	$(MAKE) cscoutFront/build 
+	$(MAKE) build/server 
 
 src/build/cscout: btyacc/btyacc
 	cd src && $(MAKE)
@@ -56,7 +56,7 @@ testServ:
 clean:
 	cd src && $(MAKE) clean
 
-cscoutFront/build:
+build/server:
 	cd cscoutFront && $(MAKE)
 
 
